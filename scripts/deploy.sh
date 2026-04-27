@@ -262,10 +262,10 @@ echo "Symlink: $CURRENT_LINK -> $DEPLOY_DIR"
 # Clean old releases (keep last 5)
 cd "$RELEASES_DIR" && ls -1dt */ 2>/dev/null | tail -n +6 | xargs rm -rf 2>/dev/null || true
 
-# Install dependencies
+# Install ALL dependencies (need devDeps for prisma generate, tsx seed, etc.)
 cd "$DEPLOY_DIR"
-echo "Installing production dependencies..."
-npm ci --production --prefer-offline 2>/dev/null || npm install --production
+echo "Installing dependencies..."
+npm ci --prefer-offline 2>/dev/null || npm install
 
 # Link shared directories
 rm -rf "$DEPLOY_DIR/public/uploads" "$DEPLOY_DIR/logs" 2>/dev/null || true
@@ -290,7 +290,21 @@ if [ -f "prisma/schema.prisma" ]; then
     fi
     npx prisma migrate deploy
     echo "Migrations applied"
+
+    # Seed on first deploy (if User table is empty)
+    USER_COUNT=$(npx prisma db execute --stdin <<< "SELECT COUNT(*) as c FROM User;" 2>/dev/null | grep -o '[0-9]*' | head -1 || echo "NOTABLE")
+    if [ "$USER_COUNT" = "0" ] || [ "$USER_COUNT" = "NOTABLE" ]; then
+        echo "Running database seed (first deploy)..."
+        npx tsx prisma/seed.ts
+        echo "Seed completed"
+    else
+        echo "Database already seeded ($USER_COUNT users), skipping seed"
+    fi
 fi
+
+# Prune devDependencies for production runtime
+echo "Pruning devDependencies..."
+npm prune --production 2>/dev/null || true
 
 # Create logs dir for PM2
 mkdir -p "$DEPLOY_DIR/logs"
