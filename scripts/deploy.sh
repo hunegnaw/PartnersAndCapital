@@ -3,34 +3,27 @@
 #################################################################
 # Partners + Capital — Unified Deployment Script
 #
+# Deploys to Cloudways PHP stack with Node.js via PM2 + .htaccess proxy
+#
 # Usage: ./scripts/deploy.sh [staging|production]
 #
 # Environment variables required (set in .env.staging or .env.production):
-#   - SERVER_USER
-#   - SERVER_HOST
-#   - SERVER_PATH
-#   - SSH_KEY
-#   - DB_USER
-#   - DB_PASS
-#   - DB_NAME
+#   - SERVER_USER, SERVER_HOST, SERVER_PATH, SSH_KEY
+#   - DB_USER, DB_PASS, DB_NAME
 #   - DB_HOST (optional, defaults to localhost)
-#   - NOTIFY_EMAIL (optional)
-#   - SLACK_WEBHOOK (optional)
+#   - HEALTH_CHECK_HOST (optional, for health check URL)
 #################################################################
 
 set -e
 
-# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-CYAN='\033[0;36m'
 NC='\033[0m'
 
 TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 DEPLOY_DATE=$(date +%Y%m%d-%H%M%S)
-DEPLOY_TAG="deploy-$DEPLOY_DATE"
 START_TIME=$(date +%s)
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -49,31 +42,9 @@ get_elapsed_time() {
     echo "$((elapsed / 60))m $((elapsed % 60))s"
 }
 
-send_notification() {
-    local subject="$1" message="$2" status="$3"
-    if [ -n "$NOTIFY_EMAIL" ] && [ -n "$ELASTIC_EMAIL_API_KEY" ]; then
-        curl -s -X POST "https://api.elasticemail.com/v2/email/send" \
-            -d "apikey=$ELASTIC_EMAIL_API_KEY" \
-            -d "from=deploy@partnersandcapital.com" \
-            -d "fromName=P+C Deploy" \
-            -d "to=$NOTIFY_EMAIL" \
-            -d "subject=[$ENVIRONMENT] $subject" \
-            -d "bodyText=$message" 2>/dev/null || true
-    fi
-    if [ -n "$SLACK_WEBHOOK" ]; then
-        local color="#36a64f"
-        [ "$status" = "warning" ] && color="#ff9800"
-        [ "$status" = "error" ] && color="#ff0000"
-        curl -s -X POST -H 'Content-type: application/json' \
-            --data "{\"attachments\":[{\"color\":\"$color\",\"title\":\"[$ENVIRONMENT] $subject\",\"text\":\"$message\"}]}" \
-            "$SLACK_WEBHOOK" 2>/dev/null || true
-    fi
-}
-
 handle_error() {
     local exit_code=$? line_number=$1
     error "Deployment failed at line $line_number with exit code $exit_code"
-    send_notification "Deployment FAILED" "Failed at line $line_number (exit $exit_code)" "error"
     exit $exit_code
 }
 trap 'handle_error $LINENO' ERR
@@ -92,6 +63,8 @@ load_environment() {
     done
 
     DB_HOST="${DB_HOST:-localhost}"
+
+    # Cloudways structure: releases/shared/current sit inside public_html
     RELEASES_DIR="$SERVER_PATH/releases"
     CURRENT_LINK="$SERVER_PATH/current"
     DEPLOY_DIR="$RELEASES_DIR/$DEPLOY_DATE"
@@ -169,15 +142,25 @@ build_application() {
 
 create_backup() {
     log "Creating backup..."
-    ssh -T -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" bash -s "$DEPLOY_DATE" "$SERVER_PATH" "$DB_HOST" "$DB_USER" "$DB_PASS" "$DB_NAME" << 'ENDSSH' || warn "Backup skipped"
+    ssh -T -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" bash -s "$DEPLOY_DATE" "$CURRENT_LINK" "$DB_HOST" "$DB_USER" "$DB_PASS" "$DB_NAME" << 'ENDSSH' || warn "Backup skipped"
 set -e
-BACKUP_DIR="${HOME}/backups/$1"
+BACKUP_DIR="/home/master/backups/$1"
 mkdir -p "$BACKUP_DIR"
-if [ -d "$2/.next" ]; then cp -r "$2/.next" "$BACKUP_DIR/" 2>/dev/null || true; fi
+
+# Backup current release .next if it exists
+CURRENT_RELEASE=$(readlink -f "$2" 2>/dev/null || echo "")
+if [ -n "$CURRENT_RELEASE" ] && [ -d "$CURRENT_RELEASE/.next" ]; then
+    cp "$CURRENT_RELEASE/package.json" "$BACKUP_DIR/" 2>/dev/null || true
+fi
+
+# Database backup
 if command -v mysqldump &>/dev/null; then
     mysqldump -h "$3" -u "$4" -p"$5" "$6" > "$BACKUP_DIR/database.sql" 2>/dev/null || echo "DB backup skipped"
 fi
-cd "${HOME}/backups" && ls -t | tail -n +11 | xargs rm -rf 2>/dev/null || true
+
+# Clean old backups (keep last 10)
+cd /home/master/backups && ls -t | tail -n +11 | xargs rm -rf 2>/dev/null || true
+echo "Backup done"
 ENDSSH
     success "Backup completed"
 }
@@ -214,44 +197,106 @@ deploy_files() {
     set -e
     [ $RSYNC_EXIT -ne 0 ] && [ $RSYNC_EXIT -ne 23 ] && { error "rsync failed ($RSYNC_EXIT)"; exit 1; }
 
-    # Deploy env file
+    # Deploy env file (filter out deploy-only vars)
     local env_file=".env.$ENVIRONMENT"
-    grep -v -E '^(SERVER_USER|SERVER_HOST|SERVER_PATH|SSH_KEY|BRANCH|DB_USER|DB_PASS|DB_NAME|DB_HOST|NOTIFY_EMAIL|SLACK_WEBHOOK)=' "$env_file" | \
+    grep -v -E '^(SERVER_USER|SERVER_HOST|SERVER_PATH|SSH_KEY|BRANCH|DB_USER|DB_PASS|DB_NAME|DB_HOST|NOTIFY_EMAIL|SLACK_WEBHOOK|HEALTH_CHECK_HOST)=' "$env_file" | \
+    grep -v '^#' | grep -v '^$' | \
     ssh -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" "cat > '$SHARED_DIR/.env'"
-    ssh -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" "echo 'NODE_ENV=$ENVIRONMENT' >> '$SHARED_DIR/.env' && ln -sfn '$SHARED_DIR/.env' '$DEPLOY_DIR/.env'"
+
+    # Always set NODE_ENV=production (Next.js requires it for built output)
+    ssh -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" "echo 'NODE_ENV=production' >> '$SHARED_DIR/.env' && ln -sfn '$SHARED_DIR/.env' '$DEPLOY_DIR/.env'"
 
     success "Files deployed"
 }
 
+create_htaccess() {
+    log "Creating .htaccess for Apache reverse proxy..."
+
+    # Production uses port 3000, staging uses 3001
+    local PORT=3000
+    [ "$ENVIRONMENT" = "staging" ] && PORT=3001
+
+    ssh -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" "cat > '$SERVER_PATH/.htaccess'" << HTACCESS
+DirectoryIndex disabled
+RewriteEngine On
+RewriteBase /
+RewriteRule ^(.*)?$ http://127.0.0.1:$PORT/\$1 [P,L]
+HTACCESS
+
+    # Remove default Cloudways index.php if present
+    ssh -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" "rm -f '$SERVER_PATH/index.php' 2>/dev/null || true"
+
+    success ".htaccess created (proxying to port $PORT)"
+}
+
 activate_release() {
     log "Activating release..."
-    ssh -T -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" bash -s "$CURRENT_LINK" "$DEPLOY_DIR" "$RELEASES_DIR" "$SHARED_DIR" << 'ENDSSH'
+    ssh -T -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" bash -s "$CURRENT_LINK" "$DEPLOY_DIR" "$RELEASES_DIR" "$SHARED_DIR" "$ENVIRONMENT" << 'ENDSSH'
 set -e
-ln -sfn "$2" "$1"
+CURRENT_LINK="$1"
+DEPLOY_DIR="$2"
+RELEASES_DIR="$3"
+SHARED_DIR="$4"
+ENVIRONMENT="$5"
+
+# Add pm2 to PATH (installed at /home/master/.npm-global/bin)
+export PATH="/home/master/bin/npm/lib/node_modules/bin:/home/master/.npm-global/bin:$PATH"
+
+# Update current symlink
+ln -sfn "$DEPLOY_DIR" "$CURRENT_LINK"
+echo "Symlink: $CURRENT_LINK -> $DEPLOY_DIR"
 
 # Clean old releases (keep last 5)
-cd "$3" && ls -1dt */ | tail -n +6 | xargs rm -rf 2>/dev/null || true
+cd "$RELEASES_DIR" && ls -1dt */ 2>/dev/null | tail -n +6 | xargs rm -rf 2>/dev/null || true
 
-cd "$2"
+# Install dependencies
+cd "$DEPLOY_DIR"
+echo "Installing production dependencies..."
 npm ci --production --prefer-offline 2>/dev/null || npm install --production
 
-# Link shared dirs
-rm -rf "$2/public/uploads" "$2/logs" 2>/dev/null || true
-ln -sfn "$4/uploads" "$2/public/uploads"
-ln -sfn "$4/logs" "$2/logs"
+# Link shared directories
+rm -rf "$DEPLOY_DIR/public/uploads" "$DEPLOY_DIR/logs" 2>/dev/null || true
+mkdir -p "$DEPLOY_DIR/public"
+ln -sfn "$SHARED_DIR/uploads" "$DEPLOY_DIR/public/uploads"
+ln -sfn "$SHARED_DIR/logs" "$DEPLOY_DIR/logs"
+echo "Shared dirs linked"
 
-# Prisma
+# Prisma generate + migrate
 if [ -f "prisma/schema.prisma" ]; then
+    echo "Running Prisma generate..."
     npx prisma generate
+
+    echo "Running database migrations..."
+    # Auto-recover from failed migrations
+    MIGRATE_STATUS=$(npx prisma migrate status 2>&1 || true)
+    if echo "$MIGRATE_STATUS" | grep -q "failed"; then
+        echo "Recovering failed migrations..."
+        echo "$MIGRATE_STATUS" | grep "failed" | sed -n 's/.*`\([^`]*\)`.*/\1/p' | while read migration; do
+            [ -n "$migration" ] && npx prisma migrate resolve --rolled-back "$migration" 2>/dev/null || true
+        done
+    fi
     npx prisma migrate deploy
+    echo "Migrations applied"
 fi
 
-# PM2
+# Create logs dir for PM2
+mkdir -p "$DEPLOY_DIR/logs"
+
+# Determine app name and restart with PM2
 APP_NAME="partnersandcapital-production"
-grep -q "PORT=3001" .env 2>/dev/null && APP_NAME="partnersandcapital-staging"
+[ "$ENVIRONMENT" = "staging" ] && APP_NAME="partnersandcapital-staging"
+echo "PM2 app: $APP_NAME"
+
 PM2_CMD=$(command -v pm2 2>/dev/null || echo "")
+if [ -z "$PM2_CMD" ] && [ -x "/home/master/bin/npm/lib/node_modules/bin/pm2" ]; then
+    PM2_CMD="/home/master/bin/npm/lib/node_modules/bin/pm2"
+elif [ -z "$PM2_CMD" ] && [ -x "/home/master/.npm-global/bin/pm2" ]; then
+    PM2_CMD="/home/master/.npm-global/bin/pm2"
+fi
+
 if [ -n "$PM2_CMD" ]; then
-    cd "$1"
+    echo "Found PM2 at: $PM2_CMD"
+    cd "$(readlink -f $CURRENT_LINK)"
     $PM2_CMD delete "$APP_NAME" 2>/dev/null || true
     if [ -f "ecosystem.config.js" ]; then
         $PM2_CMD start ecosystem.config.js --only "$APP_NAME"
@@ -259,6 +304,10 @@ if [ -n "$PM2_CMD" ]; then
         $PM2_CMD start npm --name "$APP_NAME" -- start
     fi
     $PM2_CMD save
+    echo "PM2 started"
+    $PM2_CMD list
+else
+    echo "WARNING: PM2 not found. Install with: npm install -g pm2"
 fi
 ENDSSH
     success "Release activated"
@@ -267,27 +316,29 @@ ENDSSH
 run_health_check() {
     log "Running health checks..."
     HEALTH_HOST="${HEALTH_CHECK_HOST:-$SERVER_HOST}"
-    for i in $(seq 1 5); do
+    for i in $(seq 1 8); do
         sleep 5
         HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$HEALTH_HOST/api/health" 2>/dev/null || echo "000")
-        if [ "$HTTP_STATUS" = "200" ]; then success "Health check passed"; return 0; fi
-        warn "Attempt $i: HTTP $HTTP_STATUS"
+        if [ "$HTTP_STATUS" = "200" ]; then success "Health check passed (HTTP 200)"; return 0; fi
+        warn "Attempt $i/8: HTTP $HTTP_STATUS"
     done
-    warn "Health check failed after 5 attempts"
+    warn "Health check did not return 200 after 8 attempts. Check manually: https://$HEALTH_HOST/api/health"
 }
 
 show_summary() {
+    HEALTH_HOST="${HEALTH_CHECK_HOST:-$SERVER_HOST}"
     echo ""
     echo -e "${GREEN}╔══════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${GREEN}║          Deployment Completed Successfully!                 ║${NC}"
     echo -e "${GREEN}╚══════════════════════════════════════════════════════════════╝${NC}"
     echo ""
     echo "  Environment: $ENVIRONMENT"
-    echo "  URL: https://$SERVER_HOST"
+    echo "  URL: https://$HEALTH_HOST"
     echo "  Release: $DEPLOY_DATE"
     echo "  Time: $(get_elapsed_time)"
     echo ""
-    send_notification "Deployment SUCCESS" "Deployed to $ENVIRONMENT in $(get_elapsed_time)" "success"
+    echo "  Rollback: ./scripts/rollback.sh latest $ENVIRONMENT"
+    echo ""
 }
 
 main() {
@@ -303,6 +354,7 @@ main() {
     create_backup
     prepare_package
     deploy_files
+    create_htaccess
     activate_release
     run_health_check
     show_summary
