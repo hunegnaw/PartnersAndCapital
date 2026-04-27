@@ -85,13 +85,25 @@ show_header() {
     echo ""
 }
 
-confirm_production() {
+confirm_deploy() {
+    echo ""
     if [ "$ENVIRONMENT" = "production" ]; then
-        printf "Are you sure you want to deploy to PRODUCTION? Type 'yes' to confirm: "
-        read confirm </dev/tty
-        if [ "$confirm" != "yes" ]; then log "Cancelled."; exit 0; fi
-        exec </dev/null
+        echo -e "${RED}You are about to deploy to PRODUCTION.${NC}"
+    else
+        echo -e "${YELLOW}You are about to deploy to STAGING.${NC}"
     fi
+    echo ""
+    echo "  Server:  $SERVER_USER@$SERVER_HOST"
+    echo "  Path:    $SERVER_PATH"
+    echo "  DB:      $DB_NAME"
+    echo ""
+    printf "Deploy to ${ENVIRONMENT}? (y/n): "
+    read confirm </dev/tty
+    if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
+        log "Cancelled."
+        exit 0
+    fi
+    echo ""
 }
 
 run_preflight_checks() {
@@ -325,6 +337,21 @@ run_health_check() {
     warn "Health check did not return 200 after 8 attempts. Check manually: https://$HEALTH_HOST/api/health"
 }
 
+play_done_sound() {
+    # Try multiple methods to play a completion sound (macOS / Linux)
+    if command -v afplay &>/dev/null; then
+        # macOS — use system sounds
+        afplay /System/Library/Sounds/Glass.aiff 2>/dev/null &
+    elif command -v paplay &>/dev/null; then
+        paplay /usr/share/sounds/freedesktop/stereo/complete.oga 2>/dev/null &
+    elif command -v aplay &>/dev/null; then
+        aplay /usr/share/sounds/alsa/Front_Center.wav 2>/dev/null &
+    else
+        # Fallback: terminal bell
+        printf '\a'
+    fi
+}
+
 show_summary() {
     HEALTH_HOST="${HEALTH_CHECK_HOST:-$SERVER_HOST}"
     echo ""
@@ -339,6 +366,8 @@ show_summary() {
     echo ""
     echo "  Rollback: ./scripts/rollback.sh latest $ENVIRONMENT"
     echo ""
+
+    play_done_sound
 }
 
 main() {
@@ -347,7 +376,7 @@ main() {
     fi
     show_header
     load_environment
-    confirm_production
+    confirm_deploy
     run_preflight_checks
     run_quality_checks
     build_application
