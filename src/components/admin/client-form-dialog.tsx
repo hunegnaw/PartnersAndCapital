@@ -47,12 +47,14 @@ export function ClientFormDialog({
 
   useEffect(() => {
     if (open) {
-      setName(client?.name ?? "")
-      setEmail(client?.email ?? "")
-      setPhone(client?.phone ?? "")
-      setCompany(client?.company ?? "")
-      setPassword("")
-      setError(null)
+      Promise.resolve().then(() => {
+        setName(client?.name ?? "")
+        setEmail(client?.email ?? "")
+        setPhone(client?.phone ?? "")
+        setCompany(client?.company ?? "")
+        setPassword("")
+        setError(null)
+      })
     }
   }, [open, client])
 

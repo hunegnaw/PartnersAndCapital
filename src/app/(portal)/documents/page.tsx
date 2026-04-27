@@ -130,7 +130,7 @@ export default function DocumentsPage() {
   }, [search, selectedType, selectedYear, selectedInvestment, page]);
 
   useEffect(() => {
-    fetchDocuments();
+    Promise.resolve().then(() => fetchDocuments());
   }, [fetchDocuments]);
 
   // Debounced search

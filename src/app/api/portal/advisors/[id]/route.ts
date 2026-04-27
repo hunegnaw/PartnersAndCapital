@@ -31,7 +31,7 @@ export async function PATCH(
       body;
 
     // Update advisor profile fields
-    const updatedAdvisor = await prisma.advisor.update({
+    await prisma.advisor.update({
       where: { id },
       data: {
         ...(name !== undefined && { name }),

@@ -145,7 +145,7 @@ export default function AdminInvestmentsPage() {
   }, [page, pageSize, search, statusFilter, assetClassFilter])
 
   useEffect(() => {
-    fetchInvestments()
+    Promise.resolve().then(() => fetchInvestments())
   }, [fetchInvestments])
 
   function handleSearch(e: React.FormEvent) {

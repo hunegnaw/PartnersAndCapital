@@ -50,10 +50,12 @@ export function ClientInvestmentDialog({
 
   useEffect(() => {
     if (open) {
-      setClientId("")
-      setAmountInvested("")
-      setInvestmentDate("")
-      setError(null)
+      Promise.resolve().then(() => {
+        setClientId("")
+        setAmountInvested("")
+        setInvestmentDate("")
+        setError(null)
+      })
     }
   }, [open])
 

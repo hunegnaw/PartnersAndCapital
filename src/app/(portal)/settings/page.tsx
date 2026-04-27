@@ -102,7 +102,7 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    fetchProfile();
+    Promise.resolve().then(() => fetchProfile());
   }, [fetchProfile]);
 
   const handleProfileSave = useCallback(async () => {

@@ -19,7 +19,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  DollarSign,
   ArrowUpRight,
   ArrowDownLeft,
   TrendingUp,
@@ -207,7 +206,7 @@ export default function CapitalActivityPage() {
   }, []);
 
   useEffect(() => {
-    fetchActivity();
+    Promise.resolve().then(() => fetchActivity());
   }, [fetchActivity]);
 
   if (loading) {

@@ -35,9 +35,11 @@ export function DealRoomUpdateDialog({
 
   useEffect(() => {
     if (open) {
-      setTitle("")
-      setContent("")
-      setError(null)
+      Promise.resolve().then(() => {
+        setTitle("")
+        setContent("")
+        setError(null)
+      })
     }
   }, [open])
 

@@ -21,7 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { formatDate } from "@/lib/utils"
 import {
   AlertCircle,
   ChevronLeft,
@@ -106,7 +105,7 @@ export default function AdminAuditLogPage() {
   }, [page, pageSize, actionFilter, fromDate, toDate])
 
   useEffect(() => {
-    fetchLogs()
+    Promise.resolve().then(() => fetchLogs())
   }, [fetchLogs])
 
   function formatDateTime(dateStr: string): string {

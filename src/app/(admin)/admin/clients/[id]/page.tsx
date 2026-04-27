@@ -104,7 +104,7 @@ export default function AdminClientDetailPage({
   }, [id])
 
   useEffect(() => {
-    fetchClient()
+    Promise.resolve().then(() => fetchClient())
   }, [fetchClient])
 
   if (error) {

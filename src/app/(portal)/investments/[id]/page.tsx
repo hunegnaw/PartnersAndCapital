@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -156,7 +155,7 @@ export default function InvestmentDetailPage({
   }, [id]);
 
   useEffect(() => {
-    fetchDetail();
+    Promise.resolve().then(() => fetchDetail());
   }, [fetchDetail]);
 
   if (loading) {

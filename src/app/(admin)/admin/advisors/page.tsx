@@ -105,7 +105,7 @@ export default function AdminAdvisorsPage() {
   }, [page, pageSize, search, statusFilter])
 
   useEffect(() => {
-    fetchAdvisors()
+    Promise.resolve().then(() => fetchAdvisors())
   }, [fetchAdvisors])
 
   function handleSearch(e: React.FormEvent) {

@@ -85,7 +85,7 @@ export function NotificationBell() {
 
   // Fetch on mount
   useEffect(() => {
-    fetchNotifications();
+    Promise.resolve().then(() => fetchNotifications());
   }, [fetchNotifications]);
 
   // Poll for new notifications every 60 seconds

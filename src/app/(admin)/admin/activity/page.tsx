@@ -117,8 +117,10 @@ export default function AdminActivityPage() {
   }, [])
 
   useEffect(() => {
-    fetchActivity()
-    fetchUsers()
+    Promise.resolve().then(() => {
+      fetchActivity()
+      fetchUsers()
+    })
   }, [fetchActivity, fetchUsers])
 
   function openDialog() {

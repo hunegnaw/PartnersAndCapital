@@ -222,6 +222,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 
             <div className="flex justify-center rounded-lg border border-border bg-white p-4">
               {qrCodeUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={qrCodeUrl}
                   alt="Two-factor authentication QR code"

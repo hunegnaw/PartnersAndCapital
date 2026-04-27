@@ -129,8 +129,10 @@ export default function AdminDocumentsPage() {
   }, [])
 
   useEffect(() => {
-    fetchDocuments()
-    fetchOptions()
+    Promise.resolve().then(() => {
+      fetchDocuments()
+      fetchOptions()
+    })
   }, [fetchDocuments, fetchOptions])
 
   function handleSearch(e: React.FormEvent) {

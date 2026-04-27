@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -102,7 +100,7 @@ export default function InvestmentsPage() {
   }, []);
 
   useEffect(() => {
-    fetchInvestments();
+    Promise.resolve().then(() => fetchInvestments());
   }, [fetchInvestments]);
 
   if (loading) {

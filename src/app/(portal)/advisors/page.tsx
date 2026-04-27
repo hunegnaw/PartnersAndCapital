@@ -181,7 +181,7 @@ export default function AdvisorsPage() {
   }, []);
 
   useEffect(() => {
-    fetchAdvisors();
+    Promise.resolve().then(() => fetchAdvisors());
   }, [fetchAdvisors]);
 
   const handleInvite = useCallback(async () => {

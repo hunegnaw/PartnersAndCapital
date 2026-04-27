@@ -86,20 +86,22 @@ export function InvestmentFormDialog({
 
   useEffect(() => {
     if (open) {
-      setName(investment?.name ?? "")
-      setDescription(investment?.description ?? "")
-      setAssetClassId(investment?.assetClassId ?? "")
-      setStatus(investment?.status ?? "ACTIVE")
-      setTargetReturn(investment?.targetReturn?.toString() ?? "")
-      setMinimumInvestment(investment?.minimumInvestment?.toString() ?? "")
-      setVintage(investment?.vintage?.toString() ?? "")
-      setStartDate(investment?.startDate ? investment.startDate.slice(0, 10) : "")
-      setEndDate(investment?.endDate ? investment.endDate.slice(0, 10) : "")
-      setLocation(investment?.location ?? "")
-      setTargetHoldPeriod(investment?.targetHoldPeriod ?? "")
-      setDistributionCadence(investment?.distributionCadence ?? "")
-      setFundStatus(investment?.fundStatus ?? "")
-      setError(null)
+      Promise.resolve().then(() => {
+        setName(investment?.name ?? "")
+        setDescription(investment?.description ?? "")
+        setAssetClassId(investment?.assetClassId ?? "")
+        setStatus(investment?.status ?? "ACTIVE")
+        setTargetReturn(investment?.targetReturn?.toString() ?? "")
+        setMinimumInvestment(investment?.minimumInvestment?.toString() ?? "")
+        setVintage(investment?.vintage?.toString() ?? "")
+        setStartDate(investment?.startDate ? investment.startDate.slice(0, 10) : "")
+        setEndDate(investment?.endDate ? investment.endDate.slice(0, 10) : "")
+        setLocation(investment?.location ?? "")
+        setTargetHoldPeriod(investment?.targetHoldPeriod ?? "")
+        setDistributionCadence(investment?.distributionCadence ?? "")
+        setFundStatus(investment?.fundStatus ?? "")
+        setError(null)
+      })
     }
   }, [open, investment])
 

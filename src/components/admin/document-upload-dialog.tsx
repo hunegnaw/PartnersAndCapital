@@ -79,19 +79,21 @@ export function DocumentUploadDialog({
 
   useEffect(() => {
     if (open) {
-      setFile(null)
-      setDocumentName("")
-      setDocumentType("OTHER")
-      setYear("")
-      setDescription("")
-      setClientId("")
-      setInvestmentId("")
-      setAdvisorVisible(false)
-      setError(null)
-      setUploadProgress(null)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
-      }
+      Promise.resolve().then(() => {
+        setFile(null)
+        setDocumentName("")
+        setDocumentType("OTHER")
+        setYear("")
+        setDescription("")
+        setClientId("")
+        setInvestmentId("")
+        setAdvisorVisible(false)
+        setError(null)
+        setUploadProgress(null)
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ""
+        }
+      })
     }
   }, [open])
 

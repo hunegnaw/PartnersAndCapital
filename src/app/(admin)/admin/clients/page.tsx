@@ -18,7 +18,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { ClientFormDialog } from "@/components/admin/client-form-dialog"
-import { formatDate } from "@/lib/utils"
 import {
   Search,
   Plus,
@@ -88,7 +87,7 @@ export default function AdminClientsPage() {
   }, [page, pageSize, search, status])
 
   useEffect(() => {
-    fetchClients()
+    Promise.resolve().then(() => fetchClients())
   }, [fetchClients])
 
   function handleSearch(e: React.FormEvent) {

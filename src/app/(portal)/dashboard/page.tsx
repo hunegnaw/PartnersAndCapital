@@ -6,7 +6,6 @@ import Link from "next/link";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -31,7 +30,6 @@ import {
   Clock,
   ChevronRight,
   Briefcase,
-  CheckCircle2,
   Users,
   Shield,
 } from "lucide-react";
@@ -239,7 +237,7 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    fetchDashboard();
+    Promise.resolve().then(() => fetchDashboard());
   }, [fetchDashboard]);
 
   if (loading) {

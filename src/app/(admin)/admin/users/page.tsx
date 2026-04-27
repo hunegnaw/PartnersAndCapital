@@ -111,7 +111,7 @@ export default function AdminUsersPage() {
   }, [page, pageSize, search])
 
   useEffect(() => {
-    fetchUsers()
+    Promise.resolve().then(() => fetchUsers())
   }, [fetchUsers])
 
   function handleSearch(e: React.FormEvent) {
