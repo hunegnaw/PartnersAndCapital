@@ -20,7 +20,7 @@ module.exports = {
       max_memory_restart: "1G",
       env: {
         NODE_ENV: "production",
-        PORT: 3000,
+        PORT: 4000,
       },
       log_file: "./logs/combined.log",
       out_file: "./logs/out.log",
@@ -42,7 +42,7 @@ module.exports = {
       max_memory_restart: "1G",
       env: {
         NODE_ENV: "production",
-        PORT: 3001,
+        PORT: 40001,
       },
       log_file: "./logs/combined.log",
       out_file: "./logs/out.log",

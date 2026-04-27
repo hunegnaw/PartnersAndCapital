@@ -226,8 +226,8 @@ create_htaccess() {
     log "Creating .htaccess for Apache reverse proxy..."
 
     # Production uses port 3000, staging uses 3001
-    local PORT=3000
-    [ "$ENVIRONMENT" = "staging" ] && PORT=3001
+    local PORT=4000
+    [ "$ENVIRONMENT" = "staging" ] && PORT=40001
 
     ssh -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" "cat > '$SERVER_PATH/.htaccess'" << HTACCESS
 DirectoryIndex disabled
