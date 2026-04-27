@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, use } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -477,15 +477,14 @@ export default function AdminInvestmentDetailPage({
                         <TableCell>{(doc.fileSize / 1024).toFixed(1)} KB</TableCell>
                         <TableCell>{formatDate(doc.createdAt)}</TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" asChild>
-                            <a
-                              href={`/api/portal/documents/${doc.id}/download`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Download
-                            </a>
-                          </Button>
+                          <a
+                            href={`/api/portal/documents/${doc.id}/download`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={buttonVariants({ variant: "ghost", size: "sm" })}
+                          >
+                            Download
+                          </a>
                         </TableCell>
                       </TableRow>
                     ))

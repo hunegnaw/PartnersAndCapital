@@ -356,7 +356,7 @@ export default function DashboardPage() {
                     width={90}
                   />
                   <Tooltip
-                    formatter={(value: number) => [formatCurrency(value), "Value"]}
+                    formatter={(value) => [formatCurrency(Number(value ?? 0)), "Value"]}
                     labelStyle={{ color: "hsl(var(--foreground))" }}
                     contentStyle={{
                       backgroundColor: "hsl(var(--popover))",

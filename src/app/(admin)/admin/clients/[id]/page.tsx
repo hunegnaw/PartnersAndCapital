@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, use } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { ClientFormDialog } from "@/components/admin/client-form-dialog"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { cn, formatCurrency, formatDate } from "@/lib/utils"
 import {
   ArrowLeft,
   Pencil,
@@ -315,11 +315,9 @@ export default function AdminClientDetailPage({
                   ? `${client._count.documents} document${client._count.documents !== 1 ? "s" : ""} on file.`
                   : "No documents uploaded for this client."}
               </p>
-              <Button variant="outline" size="sm" className="mt-3" asChild>
-                <Link href={`/admin/documents?userId=${client.id}`}>
-                  View Documents
-                </Link>
-              </Button>
+              <Link href={`/admin/documents?userId=${client.id}`} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-3")}>
+                View Documents
+              </Link>
             </CardContent>
           </Card>
         </TabsContent>
@@ -377,7 +375,7 @@ export default function AdminClientDetailPage({
       <ClientFormDialog
         open={editOpen}
         onOpenChange={setEditOpen}
-        client={client}
+        client={{ ...client, phone: client.phone ?? undefined, company: client.company ?? undefined }}
         onSuccess={fetchClient}
       />
     </div>

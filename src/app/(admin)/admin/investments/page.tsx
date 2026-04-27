@@ -200,7 +200,7 @@ export default function AdminInvestmentsPage() {
         <Select
           value={assetClassFilter}
           onValueChange={(val) => {
-            setAssetClassFilter(val === "all" ? "" : val)
+            setAssetClassFilter(val === "all" ? "" : (val ?? ""))
             setPage(1)
           }}
         >
@@ -220,7 +220,7 @@ export default function AdminInvestmentsPage() {
         <Select
           value={statusFilter}
           onValueChange={(val) => {
-            setStatusFilter(val === "all" ? "" : val)
+            setStatusFilter(val === "all" ? "" : (val ?? ""))
             setPage(1)
           }}
         >

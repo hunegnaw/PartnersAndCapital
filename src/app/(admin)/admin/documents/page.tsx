@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -200,7 +200,7 @@ export default function AdminDocumentsPage() {
         <Select
           value={typeFilter}
           onValueChange={(val) => {
-            setTypeFilter(val === "all" ? "" : val)
+            setTypeFilter(val === "all" ? "" : (val ?? ""))
             setPage(1)
           }}
         >
@@ -219,7 +219,7 @@ export default function AdminDocumentsPage() {
         <Select
           value={yearFilter}
           onValueChange={(val) => {
-            setYearFilter(val === "all" ? "" : val)
+            setYearFilter(val === "all" ? "" : (val ?? ""))
             setPage(1)
           }}
         >
@@ -297,15 +297,14 @@ export default function AdminDocumentsPage() {
                     <TableCell>{formatDate(doc.createdAt)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="sm" asChild>
-                          <a
-                            href={`/api/portal/documents/${doc.id}/download`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <Download className="h-4 w-4" />
-                          </a>
-                        </Button>
+                        <a
+                          href={`/api/portal/documents/${doc.id}/download`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={buttonVariants({ variant: "ghost", size: "sm" })}
+                        >
+                          <Download className="h-4 w-4" />
+                        </a>
                         <Button
                           variant="ghost"
                           size="sm"

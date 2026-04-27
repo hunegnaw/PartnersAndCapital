@@ -149,7 +149,7 @@ export default function AdminAdvisorsPage() {
         <Select
           value={statusFilter}
           onValueChange={(val) => {
-            setStatusFilter(val === "all" ? "" : val)
+            setStatusFilter(val === "all" ? "" : (val ?? ""))
             setPage(1)
           }}
         >

@@ -430,7 +430,7 @@ export default function AdminUsersPage() {
 
               <div className="grid gap-2">
                 <Label>Role *</Label>
-                <Select value={formRole} onValueChange={setFormRole}>
+                <Select value={formRole} onValueChange={(v) => setFormRole(v ?? "ADMIN")}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
@@ -445,7 +445,7 @@ export default function AdminUsersPage() {
                 <Label>Sub-Role</Label>
                 <Select
                   value={formSubRole || "none"}
-                  onValueChange={(val) => setFormSubRole(val === "none" ? "" : val)}
+                  onValueChange={(val) => setFormSubRole(val === "none" ? "" : (val ?? ""))}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select sub-role (optional)" />

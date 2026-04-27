@@ -369,7 +369,7 @@ export default function AdvisorsPage() {
                 <Label>
                   Advisor Type <span className="text-destructive">*</span>
                 </Label>
-                <Select value={inviteType} onValueChange={setInviteType}>
+                <Select value={inviteType} onValueChange={(v) => setInviteType(v ?? "")}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select advisor type" />
                   </SelectTrigger>
@@ -389,7 +389,7 @@ export default function AdvisorsPage() {
                 <Label>Permission Level</Label>
                 <RadioGroup
                   value={invitePermission}
-                  onValueChange={setInvitePermission}
+                  onValueChange={(v) => setInvitePermission(v ?? "DASHBOARD_ONLY")}
                 >
                   {PERMISSION_LEVELS.map((level) => (
                     <div
@@ -422,7 +422,7 @@ export default function AdvisorsPage() {
                   <Label>Select Investment</Label>
                   <Select
                     value={inviteInvestmentId}
-                    onValueChange={setInviteInvestmentId}
+                    onValueChange={(v) => setInviteInvestmentId(v ?? "")}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Choose an investment" />

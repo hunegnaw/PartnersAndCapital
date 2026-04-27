@@ -304,7 +304,7 @@ export default function AdminClientsPage() {
       <ClientFormDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        client={editingClient}
+        client={editingClient ? { ...editingClient, phone: editingClient.phone ?? undefined, company: editingClient.company ?? undefined } : undefined}
         onSuccess={fetchClients}
       />
     </div>

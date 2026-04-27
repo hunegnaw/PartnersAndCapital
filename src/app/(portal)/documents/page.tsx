@@ -241,7 +241,7 @@ export default function DocumentsPage() {
               <Select
                 value={selectedType}
                 onValueChange={(val) => {
-                  setSelectedType(val);
+                  setSelectedType(val ?? "");
                   setPage(1);
                 }}
               >
@@ -263,7 +263,7 @@ export default function DocumentsPage() {
               <Select
                 value={selectedYear}
                 onValueChange={(val) => {
-                  setSelectedYear(val);
+                  setSelectedYear(val ?? "");
                   setPage(1);
                 }}
               >
@@ -285,7 +285,7 @@ export default function DocumentsPage() {
               <Select
                 value={selectedInvestment}
                 onValueChange={(val) => {
-                  setSelectedInvestment(val);
+                  setSelectedInvestment(val ?? "");
                   setPage(1);
                 }}
               >

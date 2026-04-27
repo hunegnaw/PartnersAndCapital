@@ -323,7 +323,7 @@ export default function AdminActivityPage() {
 
               <div className="grid gap-2">
                 <Label>Target User (optional)</Label>
-                <Select value={targetUserId} onValueChange={setTargetUserId}>
+                <Select value={targetUserId} onValueChange={(v) => setTargetUserId(v ?? "")}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a user (optional)" />
                   </SelectTrigger>

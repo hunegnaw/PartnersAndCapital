@@ -396,7 +396,7 @@ export default function AdminSettingsPage() {
           <CardContent className="space-y-4">
             <div className="grid gap-2 max-w-sm">
               <Label>Two-Factor Authentication Policy</Label>
-              <Select value={twoFactorPolicy} onValueChange={setTwoFactorPolicy}>
+              <Select value={twoFactorPolicy} onValueChange={(v) => setTwoFactorPolicy(v ?? "OPTIONAL")}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select policy" />
                 </SelectTrigger>

@@ -144,7 +144,7 @@ export default function AdminAuditLogPage() {
         <Select
           value={actionFilter}
           onValueChange={(val) => {
-            setActionFilter(val === "all" ? "" : val)
+            setActionFilter(val === "all" ? "" : (val ?? ""))
             setPage(1)
           }}
         >

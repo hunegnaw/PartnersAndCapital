@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { formatCurrency } from "@/lib/utils"
+import { cn, formatCurrency } from "@/lib/utils"
 import {
   Users,
   Briefcase,
@@ -137,9 +137,9 @@ export default function AdminDashboard() {
               )}
             </div>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/admin/audit-log">View Audit Log</Link>
-          </Button>
+          <Link href="/admin/audit-log" className={buttonVariants({ variant: "outline", size: "sm" })}>
+            View Audit Log
+          </Link>
         </CardContent>
       </Card>
 
@@ -147,45 +147,37 @@ export default function AdminDashboard() {
       <div>
         <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Button variant="outline" className="h-auto py-4 justify-start gap-3" asChild>
-            <Link href="/admin/clients">
+          <Link href="/admin/clients" className={cn(buttonVariants({ variant: "outline" }), "h-auto py-4 justify-start gap-3")}>
               <Plus className="h-5 w-5" />
               <div className="text-left">
                 <div className="font-medium">Add Client</div>
                 <div className="text-xs text-muted-foreground">Create a new client account</div>
               </div>
-            </Link>
-          </Button>
+          </Link>
 
-          <Button variant="outline" className="h-auto py-4 justify-start gap-3" asChild>
-            <Link href="/admin/investments">
+          <Link href="/admin/investments" className={cn(buttonVariants({ variant: "outline" }), "h-auto py-4 justify-start gap-3")}>
               <Plus className="h-5 w-5" />
               <div className="text-left">
                 <div className="font-medium">Add Investment</div>
                 <div className="text-xs text-muted-foreground">Create a new investment offering</div>
               </div>
-            </Link>
-          </Button>
+          </Link>
 
-          <Button variant="outline" className="h-auto py-4 justify-start gap-3" asChild>
-            <Link href="/admin/documents">
+          <Link href="/admin/documents" className={cn(buttonVariants({ variant: "outline" }), "h-auto py-4 justify-start gap-3")}>
               <Upload className="h-5 w-5" />
               <div className="text-left">
                 <div className="font-medium">Upload Document</div>
                 <div className="text-xs text-muted-foreground">Upload K-1s, reports, and more</div>
               </div>
-            </Link>
-          </Button>
+          </Link>
 
-          <Button variant="outline" className="h-auto py-4 justify-start gap-3" asChild>
-            <Link href="/admin/activity">
+          <Link href="/admin/activity" className={cn(buttonVariants({ variant: "outline" }), "h-auto py-4 justify-start gap-3")}>
               <MessageSquare className="h-5 w-5" />
               <div className="text-left">
                 <div className="font-medium">Post Update</div>
                 <div className="text-xs text-muted-foreground">Share news with clients</div>
               </div>
-            </Link>
-          </Button>
+          </Link>
         </div>
       </div>
     </div>
