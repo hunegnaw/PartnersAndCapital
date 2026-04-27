@@ -192,6 +192,7 @@ prepare_package() {
     [ -f package-lock.json ] && cp package-lock.json "$LOCAL_PACKAGE/"
     [ -f next.config.ts ] && cp next.config.ts "$LOCAL_PACKAGE/"
     [ -f ecosystem.config.js ] && cp ecosystem.config.js "$LOCAL_PACKAGE/"
+    [ -f prisma.config.ts ] && cp prisma.config.ts "$LOCAL_PACKAGE/"
     [ -d "prisma" ] && cp -r prisma "$LOCAL_PACKAGE/"
 
     success "Package prepared"
