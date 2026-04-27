@@ -1,0 +1,623 @@
+// Partners + Capital — Prisma Schema
+// Database: MySQL on Cloudways
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ============================================================
+// AUTH & USER MODELS
+// ============================================================
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  CLIENT
+  ADVISOR
+}
+
+enum AdminSubRole {
+  FULL_ACCESS
+  READ_ONLY
+  DATA_ENTRY
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?
+  name          String?
+  role          Role      @default(CLIENT)
+  adminSubRole  AdminSubRole?
+  phone         String?
+  company       String?
+
+  // 2FA
+  twoFactorEnabled  Boolean @default(false)
+  twoFactorVerified Boolean @default(false)
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+
+  // Soft delete
+  deletedAt DateTime?
+
+  // Relations
+  accounts          Account[]
+  sessions          Session[]
+  twoFactorSecret   TwoFactorSecret?
+  clientInvestments ClientInvestment[]
+  contributions     Contribution[]
+  distributions     Distribution[]
+  documents         Document[]
+  advisorsInvited   Advisor[]          @relation("ClientAdvisors")
+  advisorProfile    Advisor?           @relation("AdvisorUser")
+  advisorAccesses   AdvisorAccess[]    @relation("AdvisorAccessUser")
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+  apiKeys           ApiKey[]
+  activityFeeds     ActivityFeed[]     @relation("ActivityFeedAuthor")
+  activityFeedTarget ActivityFeed[]    @relation("ActivityFeedTarget")
+
+  @@index([email])
+  @@index([role])
+  @@index([deletedAt])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model TwoFactorSecret {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  secret    String
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// ORGANIZATION (WHITE-LABEL CONFIG)
+// ============================================================
+
+model Organization {
+  id              String  @id @default(cuid())
+  name            String
+  legalName       String?
+  logoUrl         String?
+  faviconUrl      String?
+  primaryColor    String  @default("#1e3a5f")
+  secondaryColor  String  @default("#2563eb")
+  accentColor     String  @default("#f59e0b")
+
+  // Contact
+  email           String?
+  phone           String?
+  website         String?
+  address         String? @db.Text
+
+  // Compliance
+  disclaimer      String? @db.Text
+  privacyPolicy   String? @db.Text
+  termsOfService  String? @db.Text
+
+  // 2FA Policy
+  twoFactorPolicy String  @default("optional") // mandatory | optional | disabled
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// INVESTMENT MODELS
+// ============================================================
+
+model AssetClass {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?  @db.Text
+  icon        String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  investments Investment[]
+
+  @@index([deletedAt])
+}
+
+enum InvestmentStatus {
+  ACTIVE
+  CLOSED
+  FULLY_REALIZED
+  PENDING
+}
+
+model Investment {
+  id                String           @id @default(cuid())
+  name              String
+  description       String?          @db.Text
+  assetClassId      String
+  status            InvestmentStatus @default(ACTIVE)
+  targetReturn      Decimal?         @db.Decimal(10, 2)
+  minimumInvestment Decimal?         @db.Decimal(14, 2)
+  vintage           Int?
+  startDate         DateTime?
+  endDate           DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  deletedAt         DateTime?
+
+  assetClass        AssetClass         @relation(fields: [assetClassId], references: [id])
+  clientInvestments ClientInvestment[]
+  documents         Document[]
+  dealRoomUpdates   DealRoomUpdate[]
+
+  @@index([assetClassId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+enum ClientInvestmentStatus {
+  ACTIVE
+  REDEEMED
+  PENDING
+}
+
+model ClientInvestment {
+  id                String                 @id @default(cuid())
+  userId            String
+  investmentId      String
+  amountInvested    Decimal                @db.Decimal(14, 2)
+  currentValue      Decimal                @default(0) @db.Decimal(14, 2)
+  totalReturn       Decimal                @default(0) @db.Decimal(14, 2)
+  returnPercentage  Decimal                @default(0) @db.Decimal(10, 4)
+  irr               Decimal?               @db.Decimal(10, 4)
+  returnMultiple    Decimal?               @db.Decimal(10, 4)
+  cashDistributed   Decimal                @default(0) @db.Decimal(14, 2)
+  status            ClientInvestmentStatus @default(ACTIVE)
+  investmentDate    DateTime?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  deletedAt         DateTime?
+
+  user          User           @relation(fields: [userId], references: [id])
+  investment    Investment     @relation(fields: [investmentId], references: [id])
+  contributions Contribution[]
+  distributions Distribution[]
+
+  @@unique([userId, investmentId])
+  @@index([userId])
+  @@index([investmentId])
+  @@index([deletedAt])
+}
+
+// ============================================================
+// CAPITAL ACTIVITY
+// ============================================================
+
+enum ContributionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model Contribution {
+  id                 String             @id @default(cuid())
+  userId             String
+  clientInvestmentId String
+  amount             Decimal            @db.Decimal(14, 2)
+  date               DateTime
+  description        String?
+  status             ContributionStatus @default(COMPLETED)
+  externalId         String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  deletedAt          DateTime?
+
+  user             User             @relation(fields: [userId], references: [id])
+  clientInvestment ClientInvestment @relation(fields: [clientInvestmentId], references: [id])
+
+  @@index([userId])
+  @@index([clientInvestmentId])
+  @@index([date])
+  @@index([deletedAt])
+}
+
+enum DistributionType {
+  CASH
+  REINVESTMENT
+  RETURN_OF_CAPITAL
+}
+
+enum DistributionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model Distribution {
+  id                 String             @id @default(cuid())
+  userId             String
+  clientInvestmentId String
+  amount             Decimal            @db.Decimal(14, 2)
+  date               DateTime
+  type               DistributionType   @default(CASH)
+  description        String?
+  status             DistributionStatus @default(COMPLETED)
+  externalId         String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  deletedAt          DateTime?
+
+  user             User             @relation(fields: [userId], references: [id])
+  clientInvestment ClientInvestment @relation(fields: [clientInvestmentId], references: [id])
+
+  @@index([userId])
+  @@index([clientInvestmentId])
+  @@index([date])
+  @@index([deletedAt])
+}
+
+// ============================================================
+// DOCUMENT VAULT
+// ============================================================
+
+enum DocumentType {
+  K1
+  TAX_1099
+  QUARTERLY_REPORT
+  ANNUAL_REPORT
+  SUBSCRIPTION_AGREEMENT
+  CAPITAL_CALL_NOTICE
+  DISTRIBUTION_NOTICE
+  PPM
+  INVESTOR_LETTER
+  OTHER
+}
+
+model Document {
+  id             String       @id @default(cuid())
+  name           String
+  fileName       String
+  filePath       String
+  fileSize       Int
+  mimeType       String
+  type           DocumentType @default(OTHER)
+  year           Int?
+  description    String?      @db.Text
+  userId         String?
+  investmentId   String?
+  advisorVisible Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  user       User?       @relation(fields: [userId], references: [id])
+  investment Investment? @relation(fields: [investmentId], references: [id])
+
+  @@index([userId])
+  @@index([investmentId])
+  @@index([type])
+  @@index([year])
+  @@index([deletedAt])
+}
+
+// ============================================================
+// ADVISOR SHARING
+// ============================================================
+
+enum AdvisorStatus {
+  PENDING
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+model Advisor {
+  id              String        @id @default(cuid())
+  clientId        String
+  advisorUserId   String?       @unique
+  email           String
+  name            String?
+  firm            String?
+  invitationToken String?       @unique
+  status          AdvisorStatus @default(PENDING)
+  invitedAt       DateTime      @default(now())
+  acceptedAt      DateTime?
+  revokedAt       DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  client      User           @relation("ClientAdvisors", fields: [clientId], references: [id])
+  advisorUser User?          @relation("AdvisorUser", fields: [advisorUserId], references: [id])
+  accesses    AdvisorAccess[]
+
+  @@index([clientId])
+  @@index([email])
+  @@index([invitationToken])
+}
+
+enum AdvisorPermissionLevel {
+  DASHBOARD_ONLY
+  DASHBOARD_AND_DOCUMENTS
+  SPECIFIC_INVESTMENT
+}
+
+model AdvisorAccess {
+  id              String                 @id @default(cuid())
+  advisorId       String
+  userId          String
+  permissionLevel AdvisorPermissionLevel @default(DASHBOARD_ONLY)
+  investmentId    String?
+  expiresAt       DateTime?
+  revokedAt       DateTime?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  advisor Advisor @relation(fields: [advisorId], references: [id])
+  user    User    @relation("AdvisorAccessUser", fields: [userId], references: [id])
+
+  @@index([advisorId])
+  @@index([userId])
+}
+
+// ============================================================
+// ACTIVITY & NOTIFICATIONS
+// ============================================================
+
+model DealRoomUpdate {
+  id           String    @id @default(cuid())
+  investmentId String
+  title        String
+  content      String    @db.Text
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  investment Investment @relation(fields: [investmentId], references: [id])
+
+  @@index([investmentId])
+  @@index([deletedAt])
+}
+
+model ActivityFeed {
+  id           String    @id @default(cuid())
+  authorId     String
+  title        String
+  content      String    @db.Text
+  isBroadcast  Boolean   @default(false)
+  targetUserId String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  author     User  @relation("ActivityFeedAuthor", fields: [authorId], references: [id])
+  targetUser User? @relation("ActivityFeedTarget", fields: [targetUserId], references: [id])
+
+  @@index([authorId])
+  @@index([targetUserId])
+  @@index([isBroadcast])
+  @@index([deletedAt])
+}
+
+enum NotificationType {
+  DOCUMENT_UPLOADED
+  DISTRIBUTION_RECEIVED
+  CAPITAL_CALL
+  INVESTMENT_UPDATE
+  ADVISOR_INVITED
+  ADVISOR_ACCEPTED
+  SYSTEM_MESSAGE
+  ACTIVITY_POST
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String           @db.Text
+  link      String?
+  read      Boolean          @default(false)
+  emailSent Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  userId        String?
+  action        String
+  targetType    String
+  targetId      String?
+  details       Json?
+  ipAddress     String?
+  userAgent     String?  @db.Text
+  requestMethod String?
+  requestPath   String?
+  createdAt     DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([targetType])
+  @@index([createdAt])
+}
+
+// ============================================================
+// API INTEGRATION LAYER
+// ============================================================
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  name        String
+  hashedKey   String    @unique
+  prefix      String
+  permissions Json
+  rateLimit   Int       @default(1000)
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  active      Boolean   @default(true)
+  revokedAt   DateTime?
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdBy User     @relation(fields: [createdById], references: [id])
+  apiLogs   ApiLog[]
+
+  @@index([hashedKey])
+  @@index([prefix])
+  @@index([createdById])
+}
+
+model ApiLog {
+  id           String   @id @default(cuid())
+  apiKeyId     String?
+  endpoint     String
+  method       String
+  statusCode   Int
+  ipAddress    String?
+  userAgent    String?  @db.Text
+  responseTime Int?
+  error        String?  @db.Text
+  createdAt    DateTime @default(now())
+
+  apiKey ApiKey? @relation(fields: [apiKeyId], references: [id])
+
+  @@index([apiKeyId])
+  @@index([endpoint])
+  @@index([createdAt])
+}
+
+model WebhookEndpoint {
+  id            String    @id @default(cuid())
+  url           String
+  events        Json
+  secret        String
+  active        Boolean   @default(true)
+  failureCount  Int       @default(0)
+  lastFailureAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  deliveries WebhookDelivery[]
+
+  @@index([active])
+}
+
+model WebhookDelivery {
+  id             String    @id @default(cuid())
+  webhookId      String
+  event          String
+  payload        Json
+  responseStatus Int?
+  responseBody   String?   @db.Text
+  attempts       Int       @default(0)
+  nextRetryAt    DateTime?
+  deliveredAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  webhook WebhookEndpoint @relation(fields: [webhookId], references: [id])
+
+  @@index([webhookId])
+  @@index([event])
+  @@index([nextRetryAt])
+}
+
+model SyncLog {
+  id               String    @id @default(cuid())
+  source           String
+  entityType       String
+  recordsProcessed Int       @default(0)
+  recordsFailed    Int       @default(0)
+  recordsSkipped   Int       @default(0)
+  status           String    @default("completed")
+  details          Json?
+  startedAt        DateTime  @default(now())
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([source])
+  @@index([entityType])
+  @@index([createdAt])
+}
+
+// ============================================================
+// SYSTEM
+// ============================================================
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
