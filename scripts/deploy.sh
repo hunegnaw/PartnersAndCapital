@@ -244,13 +244,17 @@ HTACCESS
 
 activate_release() {
     log "Activating release..."
-    ssh -T -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" bash -s "$CURRENT_LINK" "$DEPLOY_DIR" "$RELEASES_DIR" "$SHARED_DIR" "$ENVIRONMENT" << 'ENDSSH'
+    ssh -T -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" bash -s "$CURRENT_LINK" "$DEPLOY_DIR" "$RELEASES_DIR" "$SHARED_DIR" "$ENVIRONMENT" "$DB_HOST" "$DB_USER" "$DB_PASS" "$DB_NAME" << 'ENDSSH'
 set -e
 CURRENT_LINK="$1"
 DEPLOY_DIR="$2"
 RELEASES_DIR="$3"
 SHARED_DIR="$4"
 ENVIRONMENT="$5"
+DB_HOST="$6"
+DB_USER="$7"
+DB_PASS="$8"
+DB_NAME="$9"
 
 # Add pm2 to PATH (installed at /home/master/.npm-global/bin)
 export PATH="/home/master/bin/npm/lib/node_modules/bin:/home/master/.npm-global/bin:$PATH"
@@ -292,8 +296,8 @@ if [ -f "prisma/schema.prisma" ]; then
     echo "Migrations applied"
 
     # Seed on first deploy (if User table is empty)
-    USER_COUNT=$(npx prisma db execute --stdin <<< "SELECT COUNT(*) as c FROM User;" 2>/dev/null | grep -o '[0-9]*' | head -1 || echo "NOTABLE")
-    if [ "$USER_COUNT" = "0" ] || [ "$USER_COUNT" = "NOTABLE" ]; then
+    USER_COUNT=$(mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -sN -e "SELECT COUNT(*) FROM User;" 2>/dev/null || echo "0")
+    if [ "$USER_COUNT" = "0" ]; then
         echo "Running database seed (first deploy)..."
         npx tsx prisma/seed.ts
         echo "Seed completed"
