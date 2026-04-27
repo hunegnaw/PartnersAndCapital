@@ -174,7 +174,13 @@ fi
 cd /home/master/backups && ls -t | tail -n +11 | xargs rm -rf 2>/dev/null || true
 echo "Backup done"
 ENDSSH
-    success "Backup completed"
+    # Download backup locally
+    LOCAL_BACKUP_DIR="$PROJECT_ROOT/backups/$ENVIRONMENT/$DEPLOY_DATE"
+    mkdir -p "$LOCAL_BACKUP_DIR"
+    log "Downloading backup locally..."
+    scp -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST:/home/master/backups/$DEPLOY_DATE/database.sql" "$LOCAL_BACKUP_DIR/database.sql" 2>/dev/null && \
+        success "Local backup saved to backups/$ENVIRONMENT/$DEPLOY_DATE/" || \
+        warn "Local backup download failed (may be first deploy)"
 }
 
 prepare_package() {
