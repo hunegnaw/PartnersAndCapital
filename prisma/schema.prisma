@@ -54,6 +54,7 @@ model User {
   accounts          Account[]
   sessions          Session[]
   twoFactorSecret   TwoFactorSecret?
+  backupCodes       BackupCode[]
   clientInvestments ClientInvestment[]
   contributions     Contribution[]
   distributions     Distribution[]
@@ -132,6 +133,19 @@ model TwoFactorSecret {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model BackupCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String
+  used      Boolean   @default(false)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 // ============================================================
 // ORGANIZATION (WHITE-LABEL CONFIG)
 // ============================================================
@@ -200,11 +214,15 @@ model Investment {
   targetReturn      Decimal?         @db.Decimal(10, 2)
   minimumInvestment Decimal?         @db.Decimal(14, 2)
   vintage           Int?
-  startDate         DateTime?
-  endDate           DateTime?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  deletedAt         DateTime?
+  startDate             DateTime?
+  endDate               DateTime?
+  location              String?
+  targetHoldPeriod      String?
+  distributionCadence   String?
+  fundStatus            String?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  deletedAt             DateTime?
 
   assetClass        AssetClass         @relation(fields: [assetClassId], references: [id])
   clientInvestments ClientInvestment[]
@@ -379,6 +397,7 @@ model Advisor {
   email           String
   name            String?
   firm            String?
+  advisorType     String?
   invitationToken String?       @unique
   status          AdvisorStatus @default(PENDING)
   invitedAt       DateTime      @default(now())

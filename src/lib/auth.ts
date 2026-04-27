@@ -74,13 +74,40 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             };
           }
 
-          // Verify 2FA code
+          // Verify 2FA code - try TOTP first, then backup codes
           const { verifyTOTP } = await import("@/lib/two-factor");
           const secret = await prisma.twoFactorSecret.findUnique({
             where: { userId: user.id },
           });
 
-          if (!secret || !verifyTOTP(secret.secret, twoFactorCode)) {
+          let codeValid = false;
+
+          // Check if it's a TOTP code (6 digits)
+          if (/^\d{6}$/.test(twoFactorCode) && secret) {
+            codeValid = verifyTOTP(secret.secret, twoFactorCode);
+          }
+
+          // If TOTP didn't work, try backup codes
+          if (!codeValid) {
+            const backupCodes = await prisma.backupCode.findMany({
+              where: { userId: user.id, used: false },
+            });
+
+            for (const bc of backupCodes) {
+              const match = await bcrypt.compare(twoFactorCode, bc.codeHash);
+              if (match) {
+                codeValid = true;
+                // Mark backup code as used
+                await prisma.backupCode.update({
+                  where: { id: bc.id },
+                  data: { used: true, usedAt: new Date() },
+                });
+                break;
+              }
+            }
+          }
+
+          if (!codeValid) {
             throw new Error("Invalid two-factor authentication code");
           }
         }
