@@ -94,11 +94,11 @@ export default async function AdminLayout({
       </header>
 
       <div className="flex flex-1">
-        {/* Light sidebar */}
-        <aside className="w-60 bg-white border-r border-[#dfdedd] flex flex-col pt-6">
+        {/* Navy sidebar */}
+        <aside className="w-60 bg-[#2C3E5C] flex flex-col pt-6">
           <nav className="flex-1 px-4">
             {/* MANAGE section */}
-            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3 px-3">
+            <p className="text-[10px] font-semibold text-white/25 tracking-widest uppercase mb-3 px-3">
               Manage
             </p>
             <ul className="space-y-0.5 mb-6">
@@ -106,14 +106,14 @@ export default async function AdminLayout({
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="flex items-center justify-between px-3 py-2 text-sm rounded-md text-[#5f5e5a] hover:text-[#7A5520] hover:bg-[#FDF5E8] transition-colors"
+                    className="flex items-center justify-between px-3 py-2 text-sm rounded-md text-white/55 hover:text-[#E8D5B0] hover:bg-white/5 transition-colors"
                   >
                     <span className="flex items-center gap-3">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#B07D3A] opacity-40" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
                       {item.label}
                     </span>
                     {item.count !== undefined && (
-                      <span className="text-[10px] bg-[#f5f5f3] text-[#888780] px-2 py-0.5 rounded-full tabular-nums">
+                      <span className="text-[10px] bg-white/10 text-white/60 px-2 py-0.5 rounded-full tabular-nums">
                         {item.count}
                       </span>
                     )}
@@ -123,7 +123,7 @@ export default async function AdminLayout({
             </ul>
 
             {/* WEBSITE section */}
-            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3 px-3">
+            <p className="text-[10px] font-semibold text-white/25 tracking-widest uppercase mb-3 px-3">
               Website
             </p>
             <ul className="space-y-0.5 mb-6">
@@ -131,14 +131,14 @@ export default async function AdminLayout({
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="flex items-center justify-between px-3 py-2 text-sm rounded-md text-[#5f5e5a] hover:text-[#7A5520] hover:bg-[#FDF5E8] transition-colors"
+                    className="flex items-center justify-between px-3 py-2 text-sm rounded-md text-white/55 hover:text-[#E8D5B0] hover:bg-white/5 transition-colors"
                   >
                     <span className="flex items-center gap-3">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#B07D3A] opacity-40" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
                       {item.label}
                     </span>
                     {item.count !== undefined && (
-                      <span className="text-[10px] bg-[#f5f5f3] text-[#888780] px-2 py-0.5 rounded-full tabular-nums">
+                      <span className="text-[10px] bg-white/10 text-white/60 px-2 py-0.5 rounded-full tabular-nums">
                         {item.count}
                       </span>
                     )}
@@ -148,7 +148,7 @@ export default async function AdminLayout({
             </ul>
 
             {/* SYSTEM section */}
-            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3 px-3">
+            <p className="text-[10px] font-semibold text-white/25 tracking-widest uppercase mb-3 px-3">
               System
             </p>
             <ul className="space-y-0.5 mb-6">
@@ -156,9 +156,9 @@ export default async function AdminLayout({
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#5f5e5a] hover:text-[#7A5520] hover:bg-[#FDF5E8] transition-colors"
+                    className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-white/55 hover:text-[#E8D5B0] hover:bg-white/5 transition-colors"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#B07D3A] opacity-40" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
                     {item.label}
                   </Link>
                 </li>
@@ -166,19 +166,19 @@ export default async function AdminLayout({
             </ul>
 
             {/* Back to portal */}
-            <div className="px-3 pt-4 border-t border-[#dfdedd]">
+            <div className="px-3 pt-4 border-t border-white/10">
               <Link
                 href="/"
-                className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#888780] hover:text-[#5f5e5a] transition-colors"
+                className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-white/40 hover:text-white/60 transition-colors"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#B07D3A] opacity-40" />
+                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
                 Back to Portal
               </Link>
               <Link
                 href="/api/auth/signout"
-                className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#5f5e5a] hover:text-[#a32d2d] hover:bg-red-50 transition-colors"
+                className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-white/55 hover:text-red-300 hover:bg-white/5 transition-colors"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#B07D3A] opacity-40" />
+                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
                 Log Out
               </Link>
             </div>

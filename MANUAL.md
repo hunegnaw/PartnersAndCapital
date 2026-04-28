@@ -105,17 +105,17 @@ This manual covers setup, administration, and usage of the Partners + Capital in
 
 ### Admin Layout
 
-The admin panel features a white sidebar with gold-accent active states and a dark navy header (`#1A2640`):
+The admin panel features a navy sidebar (`#2C3E5C`) matching the client portal, and a dark navy header (`#1A2640`):
 
 **Header:** "PARTNERS + CAPITAL" branding with an "Admin Portal" gold badge, plus links to Audit Log, Settings, and the admin avatar.
 
-**Sidebar sections:** (white background with gold-dark hover/active states)
+**Sidebar sections:** (navy background with white/gold text, same styling as client portal)
 
 - **MANAGE:** Clients (with count), Investments (with count), Documents (with count), Advisors (with count), Activity Feed, Support (with open ticket count)
 - **WEBSITE:** Pages (with count), Blog Posts (with count), Blog Categories, Media Library (with count)
 - **SYSTEM:** Admin Users, Audit Log, Settings
 
-Active sidebar items use `text-[#7A5520]` on `bg-[#FDF5E8]` with a gold left border.
+Hover states use gold-light text (`#E8D5B0`). Count badges use `bg-white/10 text-white/60`.
 
 ### Client Management (Admin Dashboard)
 
@@ -939,7 +939,7 @@ The portal uses a refined color palette throughout all components:
 - 11 seed blog posts and 2 seed CMS pages (homepage + contact)
 - Portal visual redesign with refined color palette matching reference design
 - Client sidebar changed from white to navy-mid (#2C3E5C) with gold active states
-- Admin sidebar refined with gold-dark active states and FDF5E8 highlights
+- Admin sidebar changed to navy-mid to match client portal
 - Portal-identifying header badges (Client Portal, Admin Portal, Advisor Portal)
 - Consistent status badge colors across all pages (green/blue/gold/red palette)
 - Login redirect fix: authenticated users without homepage redirect to their portal
