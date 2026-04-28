@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, use } from "react";
+import { useEffect, useState, useCallback, useMemo, use } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,7 +14,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { formatCurrency, formatDate, cn } from "@/lib/utils";
+import { formatCurrency, formatDate, formatMonthYear, formatShortDate, cn } from "@/lib/utils";
 
 interface InvestmentDetail {
   id: string;
@@ -107,10 +107,7 @@ function generateGrowthData(
     if (item.type === "contrib") cumulative += item.amount;
     else cumulative -= item.amount;
     points.push({
-      date: new Date(item.date).toLocaleDateString("en-US", {
-        month: "short",
-        year: "2-digit",
-      }),
+      date: formatShortDate(item.date),
       value: cumulative,
     });
   }
@@ -169,11 +166,12 @@ export default function InvestmentDetailPage({
   const investmentDate = data.investmentDate
     ? new Date(data.investmentDate)
     : null;
-  const holdingMonths = investmentDate
-    ? Math.round(
-        (Date.now() - investmentDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
-      )
-    : null;
+  const holdingMonths = useMemo(() => {
+    if (!investmentDate) return null;
+    return Math.round(
+      (new Date().getTime() - investmentDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
+    );
+  }, [investmentDate]);
   const targetHoldMonths = data.investment.targetHoldPeriod
     ? parseInt(data.investment.targetHoldPeriod) * 12
     : null;
@@ -187,10 +185,7 @@ export default function InvestmentDetailPage({
   // Group updates by month/year
   const updatesByDate: Record<string, typeof data.dealRoomUpdates> = {};
   for (const update of data.dealRoomUpdates) {
-    const key = new Date(update.createdAt).toLocaleDateString("en-US", {
-      month: "long",
-      year: "numeric",
-    });
+    const key = formatMonthYear(update.createdAt);
     if (!updatesByDate[key]) updatesByDate[key] = [];
     updatesByDate[key].push(update);
   }

@@ -148,13 +148,14 @@ export function TwoFactorManage({ onDisabled }: TwoFactorManageProps) {
         (code, i) => `${(i + 1).toString().padStart(2, " ")}. ${code}`
       ),
       "",
-      `Generated: ${new Date().toLocaleDateString("en-US", {
+      `Generated: ${new Intl.DateTimeFormat("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-      })}`,
+        timeZone: "America/New_York",
+      }).format(new Date())} ET`,
     ].join("\n");
 
     const blob = new Blob([codesText], { type: "text/plain" });

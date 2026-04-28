@@ -26,7 +26,7 @@ import {
   ChevronRight,
   Download,
 } from "lucide-react";
-import { formatCurrency, formatDate, cn } from "@/lib/utils";
+import { formatCurrency, formatDate, formatTimeAgo, cn } from "@/lib/utils";
 
 interface Stats {
   totalClients: number;
@@ -57,19 +57,6 @@ interface Client {
     clientInvestments: number;
     documents: number;
   };
-}
-
-function formatTimeAgo(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
-  const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays}d ago`;
 }
 
 function formatAuditAction(action: string): string {

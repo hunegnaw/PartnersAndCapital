@@ -13,7 +13,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { formatCurrency, formatDate, cn } from "@/lib/utils";
+import { formatCurrency, formatDate, formatMonthYear, cn } from "@/lib/utils";
 
 interface DashboardData {
   totalInvested: number;
@@ -566,10 +566,7 @@ export default function DashboardPage() {
                       {item.title}
                     </p>
                     <p className="text-xs text-[#9a8c7a] mt-0.5">
-                      {new Date(item.createdAt).toLocaleDateString("en-US", {
-                        month: "long",
-                        year: "numeric",
-                      })}
+                      {formatMonthYear(item.createdAt)}
                     </p>
                   </div>
                 </div>

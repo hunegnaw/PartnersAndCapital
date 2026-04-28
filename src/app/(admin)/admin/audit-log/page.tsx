@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { formatDateTime } from "@/lib/utils"
 import {
   Table,
   TableBody,
@@ -107,18 +108,6 @@ export default function AdminAuditLogPage() {
   useEffect(() => {
     Promise.resolve().then(() => fetchLogs())
   }, [fetchLogs])
-
-  function formatDateTime(dateStr: string): string {
-    const d = new Date(dateStr)
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    }).format(d)
-  }
 
   const totalPages = Math.ceil(total / pageSize)
 

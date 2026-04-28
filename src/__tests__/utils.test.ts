@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatCurrency, formatCurrencyDetailed, formatPercentage, formatDate } from "@/lib/utils";
+import { formatCurrency, formatCurrencyDetailed, formatPercentage, formatDate, formatDateTime, formatMonthYear, formatTimeAgo } from "@/lib/utils";
 
 describe("formatCurrency", () => {
   it("formats whole dollar amounts", () => {
@@ -32,9 +32,32 @@ describe("formatPercentage", () => {
 });
 
 describe("formatDate", () => {
-  it("formats dates", () => {
-    const result = formatDate(new Date("2025-01-15"));
+  it("formats dates in America/New_York timezone", () => {
+    const result = formatDate(new Date("2025-01-15T12:00:00Z"));
     expect(result).toContain("Jan");
     expect(result).toContain("2025");
+  });
+});
+
+describe("formatDateTime", () => {
+  it("formats date with time", () => {
+    const result = formatDateTime(new Date("2025-06-15T18:30:00Z"));
+    expect(result).toContain("Jun");
+    expect(result).toContain("2025");
+  });
+});
+
+describe("formatMonthYear", () => {
+  it("formats month and year", () => {
+    const result = formatMonthYear(new Date("2025-03-15T12:00:00Z"));
+    expect(result).toContain("March");
+    expect(result).toContain("2025");
+  });
+});
+
+describe("formatTimeAgo", () => {
+  it("returns 'Just now' for recent dates", () => {
+    const result = formatTimeAgo(new Date());
+    expect(result).toBe("Just now");
   });
 });
