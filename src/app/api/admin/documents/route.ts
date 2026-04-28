@@ -3,6 +3,9 @@ import { requireAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { saveUploadedFile } from "@/lib/upload";
+import { createNotification } from "@/lib/notifications";
+import { sendEmail } from "@/lib/email";
+import { documentUploadedEmail } from "@/lib/email-templates";
 import { Prisma, DocumentType } from "@prisma/client";
 
 export async function GET(request: Request) {
@@ -125,6 +128,27 @@ export async function POST(request: Request) {
       },
       request,
     });
+
+    // Notify document owner
+    if (document.userId && document.user) {
+      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+      await createNotification({
+        userId: document.userId,
+        type: "DOCUMENT_UPLOADED",
+        title: "New document uploaded",
+        message: `New document: ${name}`,
+        link: "/documents",
+      });
+      await sendEmail({
+        to: document.user.email,
+        subject: "New document available in your portal",
+        html: documentUploadedEmail({
+          userName: document.user.name || "Investor",
+          documentTitle: name,
+          portalUrl: `${baseUrl}/documents`,
+        }),
+      });
+    }
 
     return NextResponse.json(document, { status: 201 });
   } catch (error) {

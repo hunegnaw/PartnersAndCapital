@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET(
   request: Request,
@@ -157,6 +158,15 @@ export async function POST(
         amountInvested,
       },
       request,
+    });
+
+    // Notify client
+    await createNotification({
+      userId,
+      type: "INVESTMENT_UPDATE",
+      title: "Added to investment",
+      message: `You've been added to ${investment.name}`,
+      link: `/investments/${id}`,
     });
 
     return NextResponse.json(result, { status: 201 });

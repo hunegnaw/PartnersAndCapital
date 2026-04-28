@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { createBulkNotifications } from "@/lib/notifications";
 
 export async function GET() {
   try {
@@ -48,6 +49,23 @@ export async function POST(request: Request) {
         category: category || null,
       },
     });
+
+    // Notify all admins about new ticket
+    const admins = await prisma.user.findMany({
+      where: { role: { in: ["SUPER_ADMIN", "ADMIN"] }, deletedAt: null },
+      select: { id: true },
+    });
+    if (admins.length > 0) {
+      await createBulkNotifications(
+        admins.map((a) => a.id),
+        {
+          type: "SUPPORT_TICKET",
+          title: "New support ticket",
+          message: `New support ticket: ${subject}`,
+          link: "/admin/support",
+        }
+      );
+    }
 
     return NextResponse.json(ticket, { status: 201 });
   } catch (error) {

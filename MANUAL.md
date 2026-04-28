@@ -493,6 +493,215 @@ The seed is idempotent -- it checks for existing records before creating and can
 
 ---
 
+## Password Reset
+
+If a user forgets their password:
+
+1. Click "Forgot your password?" on the login page.
+2. Enter the email address associated with the account.
+3. A reset link is sent via email (valid for 1 hour, single-use).
+4. Click the link to open the reset form at `/reset-password?token=...`.
+5. Enter and confirm a new password (minimum 8 characters).
+6. After successful reset, log in with the new password.
+
+The reset token is consumed on use and cannot be reused. Expired tokens are automatically cleaned up.
+
+---
+
+## Advisor Portal
+
+### Overview
+
+Advisors who accept an invitation gain access to a dedicated advisor portal at `/advisor/dashboard`. The portal provides scoped, read-only access to client portfolios based on the permission level granted.
+
+### Advisor Acceptance Flow
+
+1. Client invites advisor via the Advisor Access page.
+2. Advisor receives a branded email with an "Accept Invitation" button.
+3. Clicking the link opens `/advisor-accept?token=...`.
+4. If the advisor has no account: fill in name, password, and confirm password to register.
+5. If the advisor already has an account: click "Accept Invitation."
+6. After acceptance, the advisor can log in and access the Advisor Portal.
+
+### Advisor Portal Layout
+
+- **Header:** Navy background, "PARTNERS + CAPITAL" branding, gold "Advisor Portal" badge, avatar circle
+- **Sidebar:** PORTFOLIO section (Dashboard), ACCOUNT section (Log Out)
+- **Warm cream background** on the main content area
+
+### Advisor Dashboard (`/advisor/dashboard`)
+
+Displays a grid of client cards showing:
+- Client name and company
+- Permission level badge
+- Total invested and current value
+- Access expiration date
+- "View Portfolio" button
+
+### Client View (`/advisor/clients/[id]`)
+
+Shows the client's portfolio scoped by the advisor's permission level:
+- **KPI cards:** Total Invested, Current Value, Total Return
+- **Allocation:** Horizontal progress bars by asset class
+- **Investments table:** Name, invested amount, current value, status
+- **Documents:** Only shown if permission includes document access (tax docs or all docs)
+
+### Client Documents (`/advisor/clients/[id]/documents`)
+
+Full document list with:
+- File type badge (PDF = red, DOC = blue)
+- Document title, type, date, and file size
+- Download button
+- Scoped by permission: tax documents only, all documents, or investment-specific
+
+### Permission Level Scoping
+
+| Level | Dashboard | Tax Docs (K-1, 1099) | All Documents | Investments |
+|-------|-----------|---------------------|---------------|-------------|
+| DASHBOARD_ONLY | Yes | No | No | All |
+| DASHBOARD_AND_TAX_DOCUMENTS | Yes | Yes | No | All |
+| DASHBOARD_AND_DOCUMENTS | Yes | Yes | Yes | All |
+| SPECIFIC_INVESTMENT | Yes | Per permission | Per permission | Specified only |
+
+---
+
+## Transactional Emails
+
+The application sends branded transactional emails using the Elastic Email service. All emails share a consistent design:
+- Navy header with "PARTNERS + CAPITAL" branding
+- White card body with warm cream accents
+- Navy CTA button
+- Gray footer with automated message disclaimer
+
+### Email Templates
+
+| Template | Trigger | Recipient |
+|----------|---------|-----------|
+| **Advisor Invitation** | Client invites an advisor | Advisor |
+| **Password Reset** | User requests password reset | User |
+| **Ticket Reply** | Admin or client replies to a support ticket | Ticket owner / All admins |
+| **Document Uploaded** | Admin uploads a document for a client | Client |
+| **Distribution Notice** | Admin records a distribution for a client | Client |
+| **Welcome Email** | New client account created | Client |
+
+### Configuration
+
+Set these environment variables for email sending:
+
+```
+ELASTIC_EMAIL_API_KEY="your-api-key"
+EMAIL_FROM="noreply@partnersandcapital.com"
+EMAIL_FROM_NAME="Partners + Capital"
+```
+
+If `ELASTIC_EMAIL_API_KEY` is not set, emails are silently skipped (useful for development).
+
+---
+
+## Real-Time Notifications
+
+In-app notifications appear in the notification bell in the portal header. Notifications are triggered automatically by system events.
+
+### Notification Events
+
+| Event | Recipient | Notification |
+|-------|-----------|-------------|
+| Admin uploads document | Document owner | "New document: {title}" |
+| Admin adds client to investment | Client | "You've been added to {investment}" |
+| Admin records distribution | Client | "Distribution recorded for {investment}" |
+| Admin updates client position | Client | "Your position in {investment} has been updated" |
+| Admin replies to support ticket | Ticket owner | "New reply on: {subject}" |
+| Admin changes ticket status | Ticket owner | "Ticket updated: {subject}" |
+| Client creates support ticket | All admins | "New support ticket: {subject}" |
+| Client replies to support ticket | All admins | "Client replied to: {subject}" |
+| Client invites advisor | Client | "Advisor invitation sent to {email}" |
+
+---
+
+## Rate Limiting
+
+The application includes an in-memory rate limiter for security-sensitive endpoints. No external dependencies (Redis, etc.) are required.
+
+### Rate Limits
+
+| Endpoint | Limit |
+|----------|-------|
+| Login (`POST /api/auth/[...nextauth]`) | 5 attempts per 15 minutes per IP |
+| Forgot Password (`POST /api/auth/forgot-password`) | 3 attempts per 15 minutes per IP |
+| Signup (`POST /api/auth/signup`) | 5 attempts per hour per IP |
+| Password Reset (`POST /api/auth/reset-password`) | 5 attempts per 15 minutes per IP |
+| Support Tickets (`POST /api/portal/support`) | 10 tickets per hour per user |
+| Advisor Accept (`POST /api/auth/advisor-accept`) | 5 attempts per 15 minutes per IP |
+
+### Implementation
+
+Rate limiters are defined in `src/lib/rate-limit.ts` and can be imported into API routes:
+
+```ts
+import { loginLimiter } from "@/lib/rate-limit";
+
+// In your API handler:
+const rateLimitResult = loginLimiter.check(ip);
+if (!rateLimitResult.allowed) {
+  return NextResponse.json({ error: "Too many attempts" }, { status: 429 });
+}
+```
+
+---
+
+## Input Validation
+
+All user-facing API routes validate input using Zod schemas defined in `src/lib/validation.ts`. Schemas include:
+
+- `loginSchema` -- email format, password min 8 characters
+- `signupSchema` -- email, password, name required
+- `resetPasswordSchema` -- token, password min 8 characters
+- `supportTicketSchema` -- subject (max 200), message (max 5000), category enum
+- `advisorInviteSchema` -- name, email, permission level enum, optional dates
+- `profileUpdateSchema` -- name, phone, company (all optional, with max lengths)
+- `ticketReplySchema` -- message (max 5000)
+
+---
+
+## Google Analytics 4
+
+GA4 integration is available via the `NEXT_PUBLIC_GA4_ID` environment variable. When set, the GA4 script tag is automatically included in the root layout.
+
+### Configuration
+
+```
+NEXT_PUBLIC_GA4_ID="G-XXXXXXXXXX"
+```
+
+When the environment variable is not set (e.g., in development), the component renders nothing.
+
+---
+
+## Security Headers
+
+The application sets the following security headers on all responses via `next.config.ts`:
+
+| Header | Value |
+|--------|-------|
+| `X-Frame-Options` | `DENY` |
+| `X-Content-Type-Options` | `nosniff` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` |
+
+---
+
+## Error Pages
+
+### Error Boundary (`/error.tsx`)
+
+A branded error boundary catches unexpected runtime errors. Displays "Something went wrong" with a "Try again" button that reloads the page.
+
+### Custom 404 (`/not-found.tsx`)
+
+A branded 404 page showing "Page not found" with a link back to the dashboard. Matches the site's warm cream and navy design system.
+
+---
+
 ## Feature Roadmap
 
 | Phase | Name                         | Status      |
@@ -501,8 +710,8 @@ The seed is idempotent -- it checks for existing records before creating and can
 | 2     | Admin Panel + CRUD           | Completed   |
 | 3     | Client Portal + Mockup UI   | Completed   |
 | 4     | Advisor Sharing              | Completed   |
-| 5     | Integrations & Notifications | Planned     |
-| 6     | Hardening & Analytics        | Planned     |
+| 5     | Integrations & Notifications | Completed   |
+| 6     | Hardening & Analytics        | Completed   |
 
 ### Completed Features
 
@@ -510,10 +719,20 @@ The seed is idempotent -- it checks for existing records before creating and can
 - Client portal with dashboard (full + empty states), portfolio, documents, distributions
 - Design-aligned UI matching all 6 mockup screenshots
 - Advisor access with 4-tier permission levels and access logging
+- Full advisor portal with dashboard, client view, and scoped document access
+- Advisor invitation and acceptance flow with branded emails
+- Password reset flow (page + API + email)
 - Support ticket system (client submission + admin management)
+- Real-time in-app notifications wired to all major system events
+- Transactional emails for all major events (6 branded templates)
 - CSV export for admin client list
 - Two-factor authentication (TOTP)
 - Audit logging for all admin actions
+- In-memory rate limiting on security-sensitive endpoints
+- Zod input validation schemas for all user-facing forms
+- Google Analytics 4 integration (env-driven)
+- Security headers (X-Frame-Options, CSP, Referrer-Policy, Permissions-Policy)
+- Custom error boundary and 404 page
 - Production-aware database seeding
 - All timestamps standardized to America/New_York (ET) timezone
 - Custom branded date picker component (react-day-picker v9)

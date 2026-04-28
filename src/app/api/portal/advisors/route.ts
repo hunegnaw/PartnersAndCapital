@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
+import { createNotification } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
 import { advisorInviteEmail } from "@/lib/email-templates";
 import crypto from "crypto";
@@ -185,6 +186,15 @@ export async function POST(request: Request) {
         expiresAt: expiresAt || null,
         acceptUrl,
       }),
+    });
+
+    // Notify client that invitation was sent
+    await createNotification({
+      userId: user.id,
+      type: "ADVISOR_INVITED",
+      title: "Advisor invitation sent",
+      message: `Advisor invitation sent to ${email}`,
+      link: "/advisors",
     });
 
     return NextResponse.json(advisor, { status: 201 });

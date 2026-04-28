@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { createNotification } from "@/lib/notifications";
+import { sendEmail } from "@/lib/email";
+import { ticketReplyEmail } from "@/lib/email-templates";
 
 export async function GET(
   request: Request,
@@ -59,6 +62,17 @@ export async function PATCH(
       },
     });
 
+    // Notify ticket owner about status change
+    if (status) {
+      await createNotification({
+        userId: ticket.userId,
+        type: "SUPPORT_TICKET",
+        title: "Ticket updated",
+        message: `Ticket updated: ${ticket.subject}`,
+        link: "/support",
+      });
+    }
+
     return NextResponse.json(ticket);
   } catch (error) {
     console.error("Error updating ticket:", error);
@@ -88,6 +102,12 @@ export async function POST(
       );
     }
 
+    // Get ticket for notification
+    const ticket = await prisma.supportTicket.findUnique({
+      where: { id },
+      include: { user: { select: { id: true, name: true, email: true } } },
+    });
+
     const reply = await prisma.ticketReply.create({
       data: {
         ticketId: id,
@@ -95,6 +115,28 @@ export async function POST(
         message,
       },
     });
+
+    // Notify ticket owner + send email
+    if (ticket && ticket.user) {
+      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+      await createNotification({
+        userId: ticket.userId,
+        type: "SUPPORT_TICKET",
+        title: "New reply on your ticket",
+        message: `New reply on: ${ticket.subject}`,
+        link: "/support",
+      });
+      await sendEmail({
+        to: ticket.user.email,
+        subject: `New reply on: ${ticket.subject}`,
+        html: ticketReplyEmail({
+          userName: ticket.user.name || "Investor",
+          ticketSubject: ticket.subject,
+          replyPreview: message.slice(0, 200),
+          ticketUrl: `${baseUrl}/support`,
+        }),
+      });
+    }
 
     return NextResponse.json(reply, { status: 201 });
   } catch (error) {

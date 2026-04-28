@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useOrganization } from "@/components/providers/organization-provider";
@@ -20,6 +20,23 @@ interface TokenData {
 }
 
 export default function AdvisorAcceptPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="rounded-lg border border-[#e8e0d4] bg-white p-8 shadow-sm">
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-[#b8860b]" />
+            <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
+          </div>
+        </div>
+      }
+    >
+      <AdvisorAcceptInner />
+    </Suspense>
+  );
+}
+
+function AdvisorAcceptInner() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const org = useOrganization();

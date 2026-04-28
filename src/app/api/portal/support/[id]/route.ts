@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { createBulkNotifications } from "@/lib/notifications";
+import { sendEmail } from "@/lib/email";
+import { ticketReplyEmail } from "@/lib/email-templates";
 
 export async function GET(
   request: Request,
@@ -73,6 +76,37 @@ export async function POST(
         message,
       },
     });
+
+    // Notify all admins about client reply
+    const admins = await prisma.user.findMany({
+      where: { role: { in: ["SUPER_ADMIN", "ADMIN"] }, deletedAt: null },
+      select: { id: true, email: true, name: true },
+    });
+    if (admins.length > 0) {
+      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+      await createBulkNotifications(
+        admins.map((a) => a.id),
+        {
+          type: "SUPPORT_TICKET",
+          title: "Client replied to ticket",
+          message: `Client replied to: ${ticket.subject}`,
+          link: "/admin/support",
+        }
+      );
+      // Email each admin
+      for (const admin of admins) {
+        await sendEmail({
+          to: admin.email,
+          subject: `Client replied to: ${ticket.subject}`,
+          html: ticketReplyEmail({
+            userName: admin.name || "Admin",
+            ticketSubject: ticket.subject,
+            replyPreview: message.slice(0, 200),
+            ticketUrl: `${baseUrl}/admin/support`,
+          }),
+        });
+      }
+    }
 
     return NextResponse.json(reply, { status: 201 });
   } catch (error) {

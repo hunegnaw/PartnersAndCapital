@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
+import { createNotification } from "@/lib/notifications";
+import { sendEmail } from "@/lib/email";
+import { distributionNoticeEmail } from "@/lib/email-templates";
 
 export async function PATCH(
   request: Request,
@@ -73,6 +76,38 @@ export async function PATCH(
       details: body,
       request,
     });
+
+    // Notify client about position update
+    if (updated.user && updated.investment) {
+      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+      if (cashDistributed !== undefined) {
+        await createNotification({
+          userId: updated.user.id,
+          type: "DISTRIBUTION_RECEIVED",
+          title: "Distribution recorded",
+          message: `Distribution recorded for ${updated.investment.name}`,
+          link: `/investments/${id}`,
+        });
+        await sendEmail({
+          to: updated.user.email,
+          subject: `Distribution recorded for ${updated.investment.name}`,
+          html: distributionNoticeEmail({
+            userName: updated.user.name || "Investor",
+            investmentName: updated.investment.name,
+            amount: `$${Number(cashDistributed).toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+            portalUrl: `${baseUrl}/investments/${id}`,
+          }),
+        });
+      } else {
+        await createNotification({
+          userId: updated.user.id,
+          type: "INVESTMENT_UPDATE",
+          title: "Investment updated",
+          message: `Your position in ${updated.investment.name} has been updated`,
+          link: `/investments/${id}`,
+        });
+      }
+    }
 
     return NextResponse.json(updated);
   } catch (error) {
