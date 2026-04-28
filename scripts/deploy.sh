@@ -301,15 +301,10 @@ if [ -f "prisma/schema.prisma" ]; then
     npx prisma migrate deploy
     echo "Migrations applied"
 
-    # Seed on first deploy (if User table is empty)
-    USER_COUNT=$(mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -sN -e "SELECT COUNT(*) FROM User;" 2>/dev/null || echo "0")
-    if [ "$USER_COUNT" = "0" ]; then
-        echo "Running database seed (first deploy)..."
-        npx tsx prisma/seed.ts
-        echo "Seed completed"
-    else
-        echo "Database already seeded ($USER_COUNT users), skipping seed"
-    fi
+    # Run seed (idempotent — uses upserts, safe to run every deploy)
+    echo "Running database seed..."
+    npx tsx prisma/seed.ts
+    echo "Seed completed"
 fi
 
 # Prune devDependencies for production runtime
