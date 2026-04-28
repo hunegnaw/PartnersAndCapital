@@ -72,12 +72,12 @@ function DetailSkeleton() {
   return (
     <div className="p-8 space-y-6">
       <Skeleton className="h-4 w-48" />
-      <div className="bg-[#0f1c2e] rounded-2xl p-8">
+      <div className="bg-[#1A2640] rounded-2xl p-8">
         <Skeleton className="h-8 w-64 bg-white/10" />
       </div>
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-xl border border-[#e8e0d4] p-4">
+          <div key={i} className="bg-white rounded-xl border border-[#dfdedd] p-4">
             <Skeleton className="h-3 w-20 mb-2" />
             <Skeleton className="h-6 w-28" />
           </div>
@@ -154,7 +154,7 @@ export default function InvestmentDetailPage({
   if (error || !data) {
     return (
       <div className="p-8">
-        <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
+        <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
           <p className="text-red-600">{error || "Investment not found"}</p>
         </div>
       </div>
@@ -214,7 +214,7 @@ export default function InvestmentDetailPage({
   return (
     <div className="p-8 space-y-6">
       {/* Navy header section */}
-      <div className="bg-[#0f1c2e] rounded-2xl p-8">
+      <div className="bg-[#1A2640] rounded-2xl p-8">
         <nav className="flex items-center gap-1 text-sm text-white/40 mb-4">
           <Link
             href="/investments"
@@ -239,7 +239,7 @@ export default function InvestmentDetailPage({
             className={cn(
               "text-xs font-medium border",
               data.status === "ACTIVE"
-                ? "border-green-400/50 text-green-300 bg-green-900/30"
+                ? "border-[#3b6d11]/30 text-[#3b6d11] bg-[#eaf3de]"
                 : "border-white/20 text-white/60 bg-white/5"
             )}
           >
@@ -250,7 +250,7 @@ export default function InvestmentDetailPage({
 
       {/* Tabs */}
       <Tabs defaultValue="overview">
-        <TabsList className="bg-white border border-[#e8e0d4]">
+        <TabsList className="bg-white border border-[#dfdedd]">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="updates">Updates</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
@@ -259,23 +259,23 @@ export default function InvestmentDetailPage({
 
         {/* 5 KPI Cards */}
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5 mt-6">
-          <div className="bg-white rounded-xl border border-[#e8e0d4] p-4">
-            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-1">
+          <div className="bg-white rounded-xl border border-[#dfdedd] p-4">
+            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-1">
               Invested
             </p>
-            <p className="text-xl font-bold text-[#1a1a1a]">
+            <p className="text-xl font-bold text-[#1a1a18]">
               {formatCurrency(data.amountInvested)}
             </p>
-            <p className="text-xs text-[#9a8c7a] mt-0.5">
+            <p className="text-xs text-[#888780] mt-0.5">
               {data.investmentDate ? formatDateOnly(data.investmentDate) : ""}
             </p>
           </div>
 
-          <div className="bg-white rounded-xl border border-[#e8e0d4] p-4">
-            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-1">
+          <div className="bg-white rounded-xl border border-[#dfdedd] p-4">
+            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-1">
               Current Value
             </p>
-            <p className="text-xl font-bold text-[#1a1a1a]">
+            <p className="text-xl font-bold text-[#1a1a18]">
               {formatCurrency(data.currentValue)}
             </p>
             <p
@@ -289,8 +289,8 @@ export default function InvestmentDetailPage({
             </p>
           </div>
 
-          <div className="bg-white rounded-xl border border-[#e8e0d4] p-4">
-            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-1">
+          <div className="bg-white rounded-xl border border-[#dfdedd] p-4">
+            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-1">
               Total Return
             </p>
             <p
@@ -301,31 +301,31 @@ export default function InvestmentDetailPage({
             >
               +{Number(data.returnPercentage).toFixed(1)}%
             </p>
-            <p className="text-xs text-[#9a8c7a] mt-0.5">
+            <p className="text-xs text-[#888780] mt-0.5">
               Net IRR: {data.irr != null ? `${Number(data.irr).toFixed(1)}%` : "N/A"}
             </p>
           </div>
 
-          <div className="bg-white rounded-xl border border-[#e8e0d4] p-4">
-            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-1">
+          <div className="bg-white rounded-xl border border-[#dfdedd] p-4">
+            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-1">
               Cash Distributed
             </p>
-            <p className="text-xl font-bold text-[#1a1a1a]">
+            <p className="text-xl font-bold text-[#1a1a18]">
               {formatCurrency(data.cashDistributed)}
             </p>
-            <p className="text-xs text-[#9a8c7a] mt-0.5">
+            <p className="text-xs text-[#888780] mt-0.5">
               {distributionCount} payment{distributionCount !== 1 ? "s" : ""}
             </p>
           </div>
 
-          <div className="bg-white rounded-xl border border-[#e8e0d4] p-4">
-            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-1">
+          <div className="bg-white rounded-xl border border-[#dfdedd] p-4">
+            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-1">
               Holding Period
             </p>
-            <p className="text-xl font-bold text-[#1a1a1a]">
+            <p className="text-xl font-bold text-[#1a1a18]">
               {holdingMonths != null ? `${holdingMonths} mo.` : "N/A"}
             </p>
-            <p className="text-xs text-[#9a8c7a] mt-0.5">
+            <p className="text-xs text-[#888780] mt-0.5">
               {targetHoldMonths
                 ? `Target ${targetHoldMonths} mo.`
                 : data.investment.targetHoldPeriod || ""}
@@ -337,23 +337,23 @@ export default function InvestmentDetailPage({
         <TabsContent value="overview" className="space-y-6 mt-6">
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Left column: Overview details */}
-            <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
-              <h3 className="text-xs font-semibold text-[#9a8c7a] tracking-widest uppercase mb-4">
+            <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
+              <h3 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-4">
                 Overview
               </h3>
               {data.investment.description && (
-                <p className="text-sm text-[#4a4a4a] mb-4 leading-relaxed">
+                <p className="text-sm text-[#5f5e5a] mb-4 leading-relaxed">
                   {data.investment.description}
                 </p>
               )}
-              <div className="divide-y divide-[#f5f0e8]">
+              <div className="divide-y divide-[#eeece8]">
                 {overviewRows.map((row) => (
                   <div
                     key={row.label}
                     className="flex items-center justify-between py-2.5"
                   >
-                    <span className="text-sm text-[#6b7280]">{row.label}</span>
-                    <span className="text-sm font-medium text-[#1a1a1a]">
+                    <span className="text-sm text-[#5f5e5a]">{row.label}</span>
+                    <span className="text-sm font-medium text-[#1a1a18]">
                       {row.value}
                     </span>
                   </div>
@@ -363,22 +363,22 @@ export default function InvestmentDetailPage({
 
             {/* Right column: Chart + Latest Update */}
             <div className="space-y-6">
-              <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
-                <h3 className="text-xs font-semibold text-[#9a8c7a] tracking-widest uppercase mb-4">
+              <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
+                <h3 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-4">
                   Value Over Time
                 </h3>
                 {growthData.length > 1 ? (
                   <ResponsiveContainer width="100%" height={200}>
                     <LineChart data={growthData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e8e0d4" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#dfdedd" />
                       <XAxis
                         dataKey="date"
-                        tick={{ fontSize: 11, fill: "#9a8c7a" }}
+                        tick={{ fontSize: 11, fill: "#888780" }}
                         tickLine={false}
                         axisLine={false}
                       />
                       <YAxis
-                        tick={{ fontSize: 11, fill: "#9a8c7a" }}
+                        tick={{ fontSize: 11, fill: "#888780" }}
                         tickLine={false}
                         axisLine={false}
                         tickFormatter={(val) => `$${(val / 1000).toFixed(0)}K`}
@@ -391,7 +391,7 @@ export default function InvestmentDetailPage({
                         ]}
                         contentStyle={{
                           backgroundColor: "#fff",
-                          border: "1px solid #e8e0d4",
+                          border: "1px solid #dfdedd",
                           borderRadius: "8px",
                           fontSize: "13px",
                         }}
@@ -399,15 +399,15 @@ export default function InvestmentDetailPage({
                       <Line
                         type="monotone"
                         dataKey="value"
-                        stroke="#b8860b"
+                        stroke="#B07D3A"
                         strokeWidth={2}
                         dot={false}
-                        activeDot={{ r: 4, fill: "#b8860b" }}
+                        activeDot={{ r: 4, fill: "#B07D3A" }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex items-center justify-center h-[200px] text-sm text-[#9a8c7a]">
+                  <div className="flex items-center justify-center h-[200px] text-sm text-[#888780]">
                     Not enough data for chart
                   </div>
                 )}
@@ -415,17 +415,17 @@ export default function InvestmentDetailPage({
 
               {/* Latest Update */}
               {data.dealRoomUpdates.length > 0 && (
-                <div className="bg-[#faf8f5] rounded-xl border border-[#e8e0d4] p-6">
-                  <h3 className="text-xs font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3">
+                <div className="bg-[#f5f5f3] rounded-xl border border-[#dfdedd] p-6">
+                  <h3 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-3">
                     Latest Update
                   </h3>
-                  <h4 className="text-sm font-semibold text-[#1a1a1a] mb-1">
+                  <h4 className="text-sm font-semibold text-[#1a1a18] mb-1">
                     {data.dealRoomUpdates[0].title}
                   </h4>
-                  <p className="text-sm text-[#4a4a4a] leading-relaxed line-clamp-4">
+                  <p className="text-sm text-[#5f5e5a] leading-relaxed line-clamp-4">
                     {data.dealRoomUpdates[0].content}
                   </p>
-                  <p className="text-xs text-[#9a8c7a] mt-2">
+                  <p className="text-xs text-[#888780] mt-2">
                     {formatDate(data.dealRoomUpdates[0].createdAt)}
                   </p>
                 </div>
@@ -440,19 +440,19 @@ export default function InvestmentDetailPage({
             <div className="space-y-6">
               {Object.entries(updatesByDate).map(([dateGroup, updates]) => (
                 <div key={dateGroup}>
-                  <h3 className="text-xs font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3">
+                  <h3 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-3">
                     {dateGroup}
                   </h3>
                   <div className="space-y-4">
                     {updates.map((update) => (
                       <div
                         key={update.id}
-                        className="bg-white rounded-xl border border-[#e8e0d4] p-5"
+                        className="bg-white rounded-xl border border-[#dfdedd] p-5"
                       >
-                        <h4 className="text-sm font-semibold text-[#1a1a1a] mb-2">
+                        <h4 className="text-sm font-semibold text-[#1a1a18] mb-2">
                           {update.title}
                         </h4>
-                        <p className="text-sm text-[#4a4a4a] whitespace-pre-wrap leading-relaxed">
+                        <p className="text-sm text-[#5f5e5a] whitespace-pre-wrap leading-relaxed">
                           {update.content}
                         </p>
                       </div>
@@ -462,8 +462,8 @@ export default function InvestmentDetailPage({
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-[#e8e0d4] p-6 text-center py-12">
-              <p className="text-sm text-[#9a8c7a]">
+            <div className="bg-white rounded-xl border border-[#dfdedd] p-6 text-center py-12">
+              <p className="text-sm text-[#888780]">
                 No updates available for this investment
               </p>
             </div>
@@ -473,17 +473,17 @@ export default function InvestmentDetailPage({
         {/* Documents Tab */}
         <TabsContent value="documents" className="mt-6">
           {data.documents.length > 0 ? (
-            <div className="bg-white rounded-xl border border-[#e8e0d4] divide-y divide-[#f5f0e8]">
+            <div className="bg-white rounded-xl border border-[#dfdedd] divide-y divide-[#eeece8]">
               {data.documents.map((doc) => (
                 <div
                   key={doc.id}
                   className="flex items-center justify-between p-4"
                 >
                   <div>
-                    <p className="text-sm font-medium text-[#1a1a1a]">
+                    <p className="text-sm font-medium text-[#1a1a18]">
                       {doc.name}
                     </p>
-                    <p className="text-xs text-[#9a8c7a]">
+                    <p className="text-xs text-[#888780]">
                       {doc.type.replace(/_/g, " ")} &middot;{" "}
                       {formatDate(doc.createdAt)}
                     </p>
@@ -492,7 +492,7 @@ export default function InvestmentDetailPage({
                     href={`/api/portal/documents/${doc.id}/download`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-[#b8860b] hover:underline font-medium"
+                    className="text-xs text-[#B07D3A] hover:underline font-medium"
                   >
                     Download
                   </a>
@@ -500,8 +500,8 @@ export default function InvestmentDetailPage({
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-[#e8e0d4] p-6 text-center py-12">
-              <p className="text-sm text-[#9a8c7a]">
+            <div className="bg-white rounded-xl border border-[#dfdedd] p-6 text-center py-12">
+              <p className="text-sm text-[#888780]">
                 No documents available for this investment
               </p>
             </div>
@@ -510,8 +510,8 @@ export default function InvestmentDetailPage({
 
         {/* Disclosures Tab */}
         <TabsContent value="disclosures" className="mt-6">
-          <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
-            <p className="text-sm text-[#6b7280] leading-relaxed">
+          <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
+            <p className="text-sm text-[#5f5e5a] leading-relaxed">
               Past performance is not indicative of future results. Private
               investments carry risk including loss of principal. Return figures
               are estimates and subject to final fund accounting. The information
@@ -523,8 +523,8 @@ export default function InvestmentDetailPage({
       </Tabs>
 
       {/* Disclaimer box */}
-      <div className="bg-[#f5f0e8] rounded-xl p-4 mt-6">
-        <p className="text-xs text-[#9a8c7a] leading-relaxed">
+      <div className="bg-[#eeece8] rounded-xl p-4 mt-6">
+        <p className="text-xs text-[#888780] leading-relaxed">
           Past performance is not indicative of future results. Private
           investments carry risk including loss of principal. Return figures are
           estimates and subject to final fund accounting.

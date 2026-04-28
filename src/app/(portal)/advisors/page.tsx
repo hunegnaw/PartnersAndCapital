@@ -130,7 +130,7 @@ function formatAccessLogAction(action: string): string {
 
 function AdvisorSkeleton() {
   return (
-    <div className="bg-white rounded-xl border border-[#e8e0d4] p-5">
+    <div className="bg-white rounded-xl border border-[#dfdedd] p-5">
       <div className="space-y-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -299,10 +299,10 @@ export default function AdvisorsPage() {
     <div className="p-8 space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#1a1a1a]">
+        <h1 className="text-2xl font-bold tracking-tight text-[#1a1a18]">
           Advisor Access
         </h1>
-        <p className="text-[#6b7280] text-sm mt-1">
+        <p className="text-[#5f5e5a] text-sm mt-1">
           Manage who can view your portfolio and documents.
         </p>
       </div>
@@ -310,10 +310,10 @@ export default function AdvisorsPage() {
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Left Column — Invite Form */}
         <div>
-          <h2 className="text-lg font-semibold text-[#1a1a1a] mb-1">
+          <h2 className="text-lg font-semibold text-[#1a1a18] mb-1">
             Invite an Advisor
           </h2>
-          <p className="text-sm text-[#6b7280] mb-6">
+          <p className="text-sm text-[#5f5e5a] mb-6">
             Share visibility with your CPA, financial advisor, or family office
             rep. You control what they see and for how long.
           </p>
@@ -336,30 +336,30 @@ export default function AdvisorsPage() {
             )}
 
             <div className="space-y-2">
-              <Label className="text-sm text-[#4a4a4a]">Advisor name</Label>
+              <Label className="text-sm text-[#5f5e5a]">Advisor name</Label>
               <Input
                 placeholder="Sarah Ellison"
                 value={inviteName}
                 onChange={(e) => setInviteName(e.target.value)}
-                className="bg-white border-[#e8e0d4]"
+                className="bg-white border-[#dfdedd]"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm text-[#4a4a4a]">Email address</Label>
+              <Label className="text-sm text-[#5f5e5a]">Email address</Label>
               <Input
                 type="email"
                 placeholder="sarah@taxcpa.com"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
-                className="bg-white border-[#e8e0d4]"
+                className="bg-white border-[#dfdedd]"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm text-[#4a4a4a]">Advisor type</Label>
+              <Label className="text-sm text-[#5f5e5a]">Advisor type</Label>
               <Select value={inviteType} onValueChange={(v) => setInviteType(v ?? "")}>
-                <SelectTrigger className="bg-white border-[#e8e0d4]">
+                <SelectTrigger className="bg-white border-[#dfdedd]">
                   <SelectValue placeholder="Select advisor type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -373,18 +373,18 @@ export default function AdvisorsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm text-[#4a4a4a]">Firm (optional)</Label>
+              <Label className="text-sm text-[#5f5e5a]">Firm (optional)</Label>
               <Input
                 placeholder="Ellison Tax Group"
                 value={inviteFirm}
                 onChange={(e) => setInviteFirm(e.target.value)}
-                className="bg-white border-[#e8e0d4]"
+                className="bg-white border-[#dfdedd]"
               />
             </div>
 
             {/* Access level radio */}
             <div className="space-y-3">
-              <Label className="text-sm text-[#4a4a4a]">Access level</Label>
+              <Label className="text-sm text-[#5f5e5a]">Access level</Label>
               <RadioGroup
                 value={invitePermission}
                 onValueChange={(v) => setInvitePermission(v ?? "DASHBOARD_ONLY")}
@@ -395,8 +395,8 @@ export default function AdvisorsPage() {
                     className={cn(
                       "flex items-start space-x-3 rounded-lg border p-3 transition-colors cursor-pointer",
                       invitePermission === level.value
-                        ? "border-[#b8860b] bg-[#faf8f5]"
-                        : "border-[#e8e0d4]"
+                        ? "border-[#B07D3A] bg-[#f5f5f3]"
+                        : "border-[#dfdedd]"
                     )}
                   >
                     <RadioGroupItem
@@ -407,11 +407,11 @@ export default function AdvisorsPage() {
                     <div>
                       <Label
                         htmlFor={`perm-${level.value}`}
-                        className="text-sm font-medium cursor-pointer text-[#1a1a1a]"
+                        className="text-sm font-medium cursor-pointer text-[#1a1a18]"
                       >
                         {level.label}
                       </Label>
-                      <p className="text-xs text-[#9a8c7a] mt-0.5">
+                      <p className="text-xs text-[#888780] mt-0.5">
                         {level.description}
                       </p>
                     </div>
@@ -422,12 +422,12 @@ export default function AdvisorsPage() {
 
             {invitePermission === "SPECIFIC_INVESTMENT" && (
               <div className="space-y-2">
-                <Label className="text-sm text-[#4a4a4a]">Select Investment</Label>
+                <Label className="text-sm text-[#5f5e5a]">Select Investment</Label>
                 <Select
                   value={inviteInvestmentId}
                   onValueChange={(v) => setInviteInvestmentId(v ?? "")}
                 >
-                  <SelectTrigger className="bg-white border-[#e8e0d4]">
+                  <SelectTrigger className="bg-white border-[#dfdedd]">
                     <SelectValue placeholder="Choose an investment" />
                   </SelectTrigger>
                   <SelectContent>
@@ -441,7 +441,7 @@ export default function AdvisorsPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label className="text-sm text-[#4a4a4a]">Access start date</Label>
+                <Label className="text-sm text-[#5f5e5a]">Access start date</Label>
                 <DatePicker
                   value={inviteAccessStart}
                   onChange={setInviteAccessStart}
@@ -449,7 +449,7 @@ export default function AdvisorsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm text-[#4a4a4a]">
+                <Label className="text-sm text-[#5f5e5a]">
                   Expiration date (optional)
                 </Label>
                 <DatePicker
@@ -462,7 +462,7 @@ export default function AdvisorsPage() {
             </div>
 
             <Button
-              className="w-full bg-[#0f1c2e] hover:bg-[#1a2d45] text-white"
+              className="w-full bg-[#1A2640] hover:bg-[#2C3E5C] text-white"
               onClick={handleInvite}
               disabled={inviteLoading}
             >
@@ -470,7 +470,7 @@ export default function AdvisorsPage() {
               Send Invitation
             </Button>
 
-            <p className="text-xs text-[#9a8c7a]">
+            <p className="text-xs text-[#888780]">
               Advisor will receive a secure link via email. You can revoke access
               at any time.
             </p>
@@ -480,10 +480,10 @@ export default function AdvisorsPage() {
         {/* Right Column — Active Advisors */}
         <div className="space-y-6">
           <div>
-            <h2 className="text-lg font-semibold text-[#1a1a1a] mb-1">
+            <h2 className="text-lg font-semibold text-[#1a1a18] mb-1">
               Active Advisors
             </h2>
-            <p className="text-sm text-[#6b7280]">
+            <p className="text-sm text-[#5f5e5a]">
               {activeAdvisors.length} advisor
               {activeAdvisors.length !== 1 ? "s" : ""} currently have access to
               your portfolio.
@@ -497,12 +497,12 @@ export default function AdvisorsPage() {
               ))}
             </div>
           ) : error ? (
-            <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
+            <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
               <p className="text-red-600">{error}</p>
             </div>
           ) : activeAdvisors.length === 0 ? (
-            <div className="bg-white rounded-xl border border-[#e8e0d4] p-6 text-center py-12">
-              <p className="text-sm text-[#6b7280]">
+            <div className="bg-white rounded-xl border border-[#dfdedd] p-6 text-center py-12">
+              <p className="text-sm text-[#5f5e5a]">
                 No advisors have access yet. Use the form to invite your first
                 advisor.
               </p>
@@ -526,22 +526,22 @@ export default function AdvisorsPage() {
                 return (
                   <div
                     key={advisor.id}
-                    className="bg-white rounded-xl border border-[#e8e0d4] p-5"
+                    className="bg-white rounded-xl border border-[#dfdedd] p-5"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-[#1e3a5f] flex items-center justify-center text-sm font-semibold text-white">
+                        <div className="h-10 w-10 rounded-full bg-[#1A2640] flex items-center justify-center text-sm font-semibold text-white">
                           {initials}
                         </div>
                         <div>
-                          <h3 className="font-semibold text-sm text-[#1a1a1a]">
+                          <h3 className="font-semibold text-sm text-[#1a1a18]">
                             {advisor.name}
                           </h3>
-                          <p className="text-xs text-[#6b7280]">
+                          <p className="text-xs text-[#5f5e5a]">
                             {advisor.advisorType?.replace(/_/g, " ")}
                             {advisor.firm && ` \u00b7 ${advisor.firm}`}
                           </p>
-                          <p className="text-xs text-[#9a8c7a]">
+                          <p className="text-xs text-[#888780]">
                             {advisor.email}
                           </p>
                         </div>
@@ -550,7 +550,7 @@ export default function AdvisorsPage() {
                         className={cn(
                           "text-[10px] font-medium border",
                           advisor.status === "ACTIVE"
-                            ? "border-green-300 text-green-700 bg-green-50"
+                            ? "border-[#3b6d11]/20 text-[#3b6d11] bg-[#eaf3de]"
                             : "border-amber-300 text-amber-700 bg-amber-50"
                         )}
                       >
@@ -565,7 +565,7 @@ export default function AdvisorsPage() {
                       {tags.map((tag) => (
                         <span
                           key={tag}
-                          className="inline-flex items-center px-2 py-0.5 rounded border border-[#e8e0d4] text-[10px] text-[#6b7280]"
+                          className="inline-flex items-center px-2 py-0.5 rounded border border-[#dfdedd] text-[10px] text-[#5f5e5a]"
                         >
                           {tag}
                         </span>
@@ -573,7 +573,7 @@ export default function AdvisorsPage() {
                     </div>
 
                     {/* Date info */}
-                    <p className="text-xs text-[#9a8c7a] mb-3">
+                    <p className="text-xs text-[#888780] mb-3">
                       {advisor.status === "ACTIVE" ? (
                         <>
                           {access?.expiresAt &&
@@ -602,7 +602,7 @@ export default function AdvisorsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-[#e8e0d4] text-xs"
+                            className="border-[#dfdedd] text-xs"
                           >
                             Edit
                           </Button>
@@ -623,7 +623,7 @@ export default function AdvisorsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-[#e8e0d4] text-xs"
+                            className="border-[#dfdedd] text-xs"
                             onClick={() => handleResend(advisor.id)}
                           >
                             Resend
@@ -651,20 +651,20 @@ export default function AdvisorsPage() {
           {/* Access Log */}
           {accessLog.length > 0 && (
             <div>
-              <h3 className="text-xs font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3">
+              <h3 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-3">
                 Access Log
               </h3>
-              <div className="bg-white rounded-xl border border-[#e8e0d4] divide-y divide-[#f5f0e8]">
+              <div className="bg-white rounded-xl border border-[#dfdedd] divide-y divide-[#eeece8]">
                 {accessLog.map((entry, i) => (
                   <div key={i} className="px-4 py-3 flex items-center justify-between">
-                    <p className="text-sm text-[#4a4a4a]">
+                    <p className="text-sm text-[#5f5e5a]">
                       {formatAccessLogAction(entry.action)}
                       {entry.details &&
                         typeof entry.details === "object" &&
                         "email" in entry.details &&
                         ` — ${(entry.details as Record<string, string>).email}`}
                     </p>
-                    <p className="text-xs text-[#9a8c7a] shrink-0 ml-4">
+                    <p className="text-xs text-[#888780] shrink-0 ml-4">
                       {formatDate(entry.createdAt)}
                     </p>
                   </div>

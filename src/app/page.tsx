@@ -17,8 +17,18 @@ export default async function Home() {
     },
   });
 
-  // Fallback: if no homepage exists, redirect to login
+  // Fallback: if no homepage exists, redirect based on auth state
   if (!homepage) {
+    if (session?.user) {
+      const role = session.user.role;
+      if (role === "ADMIN" || role === "SUPER_ADMIN") {
+        redirect("/admin");
+      } else if (role === "ADVISOR") {
+        redirect("/advisor/dashboard");
+      } else {
+        redirect("/dashboard");
+      }
+    }
     redirect("/login");
   }
 
@@ -47,7 +57,7 @@ export default async function Home() {
               ? "/advisor/dashboard"
               : "/dashboard"
           }
-          className="fixed bottom-6 right-6 z-50 bg-[#0f1c2e] text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium hover:bg-[#1e3a5f] transition-colors"
+          className="fixed bottom-6 right-6 z-50 bg-[#1A2640] text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium hover:bg-[#2C3E5C] transition-colors"
         >
           Go to Portal
         </Link>

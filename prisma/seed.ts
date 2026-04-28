@@ -52,7 +52,7 @@ async function main() {
       phone: "(212) 555-0100",
       website: "https://partnersandcapital.com",
       address: "350 Park Avenue, Suite 2100\nNew York, NY 10022",
-      primaryColor: "#1e3a5f",
+      primaryColor: "#1A2640",
       secondaryColor: "#2563eb",
       accentColor: "#f59e0b",
       twoFactorPolicy: "optional",
@@ -497,8 +497,8 @@ async function main() {
   // ============================================================
 
   const blogCategories = [
-    { name: "Investments", slug: "investments", color: "#b8860b", sortOrder: 1 },
-    { name: "Market Insights", slug: "market-insights", color: "#1e3a5f", sortOrder: 2 },
+    { name: "Investments", slug: "investments", color: "#B07D3A", sortOrder: 1 },
+    { name: "Market Insights", slug: "market-insights", color: "#1A2640", sortOrder: 2 },
     { name: "Company Updates", slug: "company-updates", color: "#2563eb", sortOrder: 3 },
   ];
 
@@ -518,7 +518,7 @@ async function main() {
     { name: "Oil & Gas", slug: "oil-gas", color: "#b45309" },
     { name: "Real Estate", slug: "real-estate", color: "#7c3aed" },
     { name: "Private Credit", slug: "private-credit", color: "#0369a1" },
-    { name: "Consumer Products", slug: "consumer-products", color: "#dc2626" },
+    { name: "Consumer Products", slug: "consumer-products", color: "#a32d2d" },
     { name: "Agriculture", slug: "agriculture", color: "#16a34a" },
     { name: "Technology", slug: "technology", color: "#6366f1" },
     { name: "ESG", slug: "esg", color: "#0d9488" },
@@ -726,7 +726,7 @@ async function main() {
             { value: "$50M+", label: "Capital Deployed" },
             { value: "14.2%", label: "Avg. Net Return" },
           ],
-          backgroundColor: "#0f1c2e",
+          backgroundColor: "#1A2640",
         },
         sortOrder: 2,
       },
@@ -759,7 +759,7 @@ async function main() {
         props: {
           content: "<h2 style=\"text-align: center\">Our Mission</h2><p style=\"text-align: center\">We believe that access to private markets should not be limited to the largest institutions. Our mission is to democratize access to high-quality alternative investments, providing our partners with the same opportunities historically reserved for endowments, pension funds, and ultra-high-net-worth families.</p>",
           maxWidth: "4xl",
-          backgroundColor: "#faf8f5",
+          backgroundColor: "#f5f5f3",
           textColor: "",
           paddingY: "lg",
         },
@@ -772,7 +772,7 @@ async function main() {
           text: "Sign up to receive news, updates, and insights from Partners + Capital.",
           ctaText: "Subscribe",
           ctaUrl: "#newsletter",
-          backgroundColor: "#b8860b",
+          backgroundColor: "#B07D3A",
         },
         sortOrder: 6,
       },
@@ -781,7 +781,7 @@ async function main() {
         props: {
           heading: "Get Partner Thoughts Delivered",
           description: "Our latest investment insights and market commentary, delivered to your inbox.",
-          backgroundColor: "#0f1c2e",
+          backgroundColor: "#1A2640",
         },
         sortOrder: 7,
       },

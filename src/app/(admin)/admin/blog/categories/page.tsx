@@ -56,7 +56,7 @@ export default function AdminBlogCategoriesPage() {
   const [newName, setNewName] = useState("")
   const [newSlug, setNewSlug] = useState("")
   const [newSlugManual, setNewSlugManual] = useState(false)
-  const [newColor, setNewColor] = useState("#b8860b")
+  const [newColor, setNewColor] = useState("#B07D3A")
   const [newSortOrder, setNewSortOrder] = useState(0)
 
   // Edit state
@@ -119,7 +119,7 @@ export default function AdminBlogCategoriesPage() {
       setNewName("")
       setNewSlug("")
       setNewSlugManual(false)
-      setNewColor("#b8860b")
+      setNewColor("#B07D3A")
       setNewSortOrder(0)
       setShowCreate(false)
       fetchCategories()
@@ -202,7 +202,7 @@ export default function AdminBlogCategoriesPage() {
             <ArrowLeft className="h-4 w-4 text-gray-600" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-[#0f1c2e]">Blog Categories</h1>
+            <h1 className="text-2xl font-bold text-[#1A2640]">Blog Categories</h1>
             <p className="text-muted-foreground mt-1">
               Manage categories for organizing blog posts.
             </p>
@@ -211,7 +211,7 @@ export default function AdminBlogCategoriesPage() {
         {!showCreate && (
           <Button
             onClick={() => setShowCreate(true)}
-            className="bg-[#b8860b] hover:bg-[#9a7209] text-white"
+            className="bg-[#B07D3A] hover:bg-[#7A5520] text-white"
           >
             <Plus className="h-4 w-4" />
             Add Category
@@ -228,7 +228,7 @@ export default function AdminBlogCategoriesPage() {
 
       {/* Inline create form */}
       {showCreate && (
-        <Card className="border-[#b8860b]/30">
+        <Card className="border-[#B07D3A]/30">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">New Category</CardTitle>
           </CardHeader>
@@ -271,7 +271,7 @@ export default function AdminBlogCategoriesPage() {
                     className="h-9 w-9 rounded border border-gray-200 cursor-pointer"
                   />
                   <Input
-                    placeholder="#b8860b"
+                    placeholder="#B07D3A"
                     value={newColor}
                     onChange={(e) => setNewColor(e.target.value)}
                     className="font-mono text-sm"
@@ -294,7 +294,7 @@ export default function AdminBlogCategoriesPage() {
                 <Button
                   onClick={handleCreate}
                   disabled={saving || !newName.trim()}
-                  className="bg-[#b8860b] hover:bg-[#9a7209] text-white"
+                  className="bg-[#B07D3A] hover:bg-[#7A5520] text-white"
                 >
                   {saving ? "Creating..." : "Create"}
                 </Button>
@@ -305,7 +305,7 @@ export default function AdminBlogCategoriesPage() {
                     setNewName("")
                     setNewSlug("")
                     setNewSlugManual(false)
-                    setNewColor("#b8860b")
+                    setNewColor("#B07D3A")
                     setNewSortOrder(0)
                   }}
                 >

@@ -56,7 +56,7 @@ export const BLOCK_TYPES = {
     defaultProps: {
       heading: "",
       stats: [] as { value: string; label: string }[],
-      backgroundColor: "#0f1c2e",
+      backgroundColor: "#1A2640",
     },
   },
   cta_banner: {
@@ -68,7 +68,7 @@ export const BLOCK_TYPES = {
       text: "",
       ctaText: "",
       ctaUrl: "",
-      backgroundColor: "#b8860b",
+      backgroundColor: "#B07D3A",
     },
   },
   two_column: {
@@ -99,7 +99,7 @@ export const BLOCK_TYPES = {
     defaultProps: {
       heading: "Stay Updated",
       description: "",
-      backgroundColor: "#0f1c2e",
+      backgroundColor: "#1A2640",
     },
   },
   quote: {

@@ -51,16 +51,16 @@ export function DatePicker({
       <PopoverTrigger
         disabled={disabled}
         className={cn(
-          "inline-flex h-10 w-full items-center justify-between rounded-lg border border-[#e8e0d4] bg-white px-3 text-sm transition-colors",
-          "hover:border-[#d4c5a9] focus-visible:border-[#b8860b] focus-visible:ring-2 focus-visible:ring-[#b8860b]/20 focus-visible:outline-none",
+          "inline-flex h-10 w-full items-center justify-between rounded-lg border border-[#dfdedd] bg-white px-3 text-sm transition-colors",
+          "hover:border-[#888780] focus-visible:border-[#B07D3A] focus-visible:ring-2 focus-visible:ring-[#B07D3A]/20 focus-visible:outline-none",
           "disabled:pointer-events-none disabled:opacity-50",
-          !displayValue && "text-[#9a8c7a]",
-          displayValue && "text-[#1a1a1a]",
+          !displayValue && "text-[#888780]",
+          displayValue && "text-[#1a1a18]",
           className
         )}
       >
         <span className="flex items-center gap-2 truncate">
-          <CalendarDays className="h-4 w-4 text-[#9a8c7a] shrink-0" />
+          <CalendarDays className="h-4 w-4 text-[#888780] shrink-0" />
           {displayValue || placeholder}
         </span>
         {clearable && value ? (
@@ -70,19 +70,19 @@ export function DatePicker({
               e.stopPropagation();
               onChange("");
             }}
-            className="ml-1 rounded-full p-0.5 hover:bg-[#f5f0e8] transition-colors"
+            className="ml-1 rounded-full p-0.5 hover:bg-[#eeece8] transition-colors"
           >
-            <X className="h-3.5 w-3.5 text-[#9a8c7a]" />
+            <X className="h-3.5 w-3.5 text-[#888780]" />
           </button>
         ) : (
-          <ChevronRight className="h-4 w-4 text-[#9a8c7a] shrink-0 opacity-50" />
+          <ChevronRight className="h-4 w-4 text-[#888780] shrink-0 opacity-50" />
         )}
       </PopoverTrigger>
 
       <PopoverContent
         align="start"
         sideOffset={6}
-        className="w-auto p-0 bg-white border border-[#e8e0d4] shadow-lg shadow-[#0f1c2e]/8 rounded-xl"
+        className="w-auto p-0 bg-white border border-[#dfdedd] shadow-lg shadow-[#1A2640]/8 rounded-xl"
       >
         <DayPicker
           mode="single"
@@ -95,32 +95,32 @@ export function DatePicker({
             months: "flex flex-col",
             month: "space-y-3",
             month_caption: "flex justify-center relative items-center h-8",
-            caption_label: "text-sm font-semibold text-[#1a1a1a] tracking-wide",
+            caption_label: "text-sm font-semibold text-[#1a1a18] tracking-wide",
             nav: "flex items-center gap-1 absolute inset-x-0 top-0",
             button_previous: cn(
               "absolute left-0 inline-flex h-8 w-8 items-center justify-center rounded-lg",
-              "text-[#9a8c7a] hover:bg-[#faf8f5] hover:text-[#1a1a1a] transition-colors"
+              "text-[#888780] hover:bg-[#f5f5f3] hover:text-[#1a1a18] transition-colors"
             ),
             button_next: cn(
               "absolute right-0 inline-flex h-8 w-8 items-center justify-center rounded-lg",
-              "text-[#9a8c7a] hover:bg-[#faf8f5] hover:text-[#1a1a1a] transition-colors"
+              "text-[#888780] hover:bg-[#f5f5f3] hover:text-[#1a1a18] transition-colors"
             ),
             weekdays: "flex",
             weekday:
-              "w-9 text-[11px] font-medium text-[#9a8c7a] uppercase tracking-wider text-center",
+              "w-9 text-[11px] font-medium text-[#888780] uppercase tracking-wider text-center",
             week: "flex mt-1",
             day: "relative p-0 text-center focus-within:relative",
             day_button: cn(
               "inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm font-normal transition-all",
-              "text-[#4a4a4a] hover:bg-[#faf8f5] hover:text-[#1a1a1a]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b8860b]/30"
+              "text-[#5f5e5a] hover:bg-[#f5f5f3] hover:text-[#1a1a18]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B07D3A]/30"
             ),
             selected:
-              "!bg-[#0f1c2e] !text-white !rounded-lg !font-medium [&>button]:!bg-[#0f1c2e] [&>button]:!text-white [&>button]:hover:!bg-[#1a2d45]",
+              "!bg-[#1A2640] !text-white !rounded-lg !font-medium [&>button]:!bg-[#1A2640] [&>button]:!text-white [&>button]:hover:!bg-[#2C3E5C]",
             today:
-              "[&>button]:font-semibold [&>button]:text-[#b8860b] [&>button]:ring-1 [&>button]:ring-[#b8860b]/30 [&>button]:rounded-lg",
-            outside: "[&>button]:text-[#d4c5a9] [&>button]:hover:text-[#9a8c7a]",
-            disabled: "[&>button]:text-[#e8e0d4] [&>button]:pointer-events-none",
+              "[&>button]:font-semibold [&>button]:text-[#B07D3A] [&>button]:ring-1 [&>button]:ring-[#B07D3A]/30 [&>button]:rounded-lg",
+            outside: "[&>button]:text-[#888780] [&>button]:hover:text-[#888780]",
+            disabled: "[&>button]:text-[#dfdedd] [&>button]:pointer-events-none",
             hidden: "invisible",
           }}
           components={{

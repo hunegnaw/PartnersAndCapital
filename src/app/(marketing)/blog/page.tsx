@@ -53,9 +53,9 @@ export default async function BlogPage({
   const totalPages = Math.ceil(total / pageSize);
 
   return (
-    <div className="bg-[#faf8f5] min-h-screen">
+    <div className="bg-[#f5f5f3] min-h-screen">
       {/* Hero */}
-      <div className="bg-[#0f1c2e] py-20 text-center">
+      <div className="bg-[#1A2640] py-20 text-center">
         <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
           Partner Thoughts
         </h1>
@@ -71,7 +71,7 @@ export default async function BlogPage({
             href="/blog"
             className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
               !categorySlug
-                ? "bg-[#0f1c2e] text-white"
+                ? "bg-[#1A2640] text-white"
                 : "bg-white text-gray-600 hover:bg-gray-100 border"
             }`}
           >
@@ -83,7 +83,7 @@ export default async function BlogPage({
               href={`/blog?category=${cat.slug}`}
               className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
                 categorySlug === cat.slug
-                  ? "bg-[#0f1c2e] text-white"
+                  ? "bg-[#1A2640] text-white"
                   : "bg-white text-gray-600 hover:bg-gray-100 border"
               }`}
             >
@@ -114,7 +114,7 @@ export default async function BlogPage({
                     />
                   </div>
                 ) : (
-                  <div className="aspect-[16/10] bg-gradient-to-br from-[#0f1c2e] to-[#1e3a5f] flex items-center justify-center">
+                  <div className="aspect-[16/10] bg-gradient-to-br from-[#1A2640] to-[#1A2640] flex items-center justify-center">
                     <span className="text-white/20 text-6xl font-bold">P+C</span>
                   </div>
                 )}
@@ -123,14 +123,14 @@ export default async function BlogPage({
                     <span
                       className="text-xs font-medium px-2 py-0.5 rounded-full"
                       style={{
-                        backgroundColor: (post.category.color || "#b8860b") + "20",
-                        color: post.category.color || "#b8860b",
+                        backgroundColor: (post.category.color || "#B07D3A") + "20",
+                        color: post.category.color || "#B07D3A",
                       }}
                     >
                       {post.category.name}
                     </span>
                   )}
-                  <h2 className="text-lg font-semibold text-[#0f1c2e] mt-2 group-hover:text-[#b8860b] transition-colors line-clamp-2">
+                  <h2 className="text-lg font-semibold text-[#1A2640] mt-2 group-hover:text-[#B07D3A] transition-colors line-clamp-2">
                     {post.title}
                   </h2>
                   {post.excerpt && (
@@ -194,7 +194,7 @@ export default async function BlogPage({
                   href={`/blog?tag=${tag.slug}`}
                   className={`px-3 py-1 text-xs rounded-full transition-colors ${
                     tagSlug === tag.slug
-                      ? "bg-[#b8860b] text-white"
+                      ? "bg-[#B07D3A] text-white"
                       : "bg-white text-gray-600 hover:bg-gray-100 border"
                   }`}
                 >

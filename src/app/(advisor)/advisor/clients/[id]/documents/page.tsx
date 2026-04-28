@@ -35,14 +35,14 @@ function docTypeBadge(mimeType: string) {
 
   if (isPdf) {
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 text-red-700 border border-red-200">
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[#feecec] text-[#a32d2d] border border-red-200">
         PDF
       </span>
     );
   }
   if (isDoc) {
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-700 border border-blue-200">
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[#e6f1fb] text-[#185fa5] border border-blue-200">
         DOC
       </span>
     );
@@ -61,7 +61,7 @@ function DocumentsSkeleton() {
       <Skeleton className="h-8 w-40 mb-6" />
       <div className="space-y-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-xl border border-[#e8e0d4] p-5 flex items-center gap-4">
+          <div key={i} className="bg-white rounded-xl border border-[#dfdedd] p-5 flex items-center gap-4">
             <Skeleton className="h-8 w-10" />
             <div className="flex-1">
               <Skeleton className="h-5 w-48 mb-1" />
@@ -112,7 +112,7 @@ export default function AdvisorClientDocumentsPage({
   if (error) {
     return (
       <div className="p-8">
-        <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
+        <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
           <p className="text-red-600">{error}</p>
         </div>
       </div>
@@ -126,30 +126,30 @@ export default function AdvisorClientDocumentsPage({
   return (
     <div className="p-8 space-y-8">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-[#9a8c7a]">
+      <nav className="flex items-center gap-2 text-sm text-[#888780]">
         <Link
           href="/advisor/dashboard"
-          className="hover:text-[#b8860b] transition-colors"
+          className="hover:text-[#B07D3A] transition-colors"
         >
           Dashboard
         </Link>
         <span>/</span>
         <Link
           href={`/advisor/clients/${id}`}
-          className="hover:text-[#b8860b] transition-colors"
+          className="hover:text-[#B07D3A] transition-colors"
         >
           {data.clientName}
         </Link>
         <span>/</span>
-        <span className="text-[#1a1a1a]">Documents</span>
+        <span className="text-[#1a1a18]">Documents</span>
       </nav>
 
       {/* Title */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#1a1a1a]">
+        <h1 className="text-2xl font-bold tracking-tight text-[#1a1a18]">
           Documents
         </h1>
-        <p className="text-sm text-[#9a8c7a] mt-1">
+        <p className="text-sm text-[#888780] mt-1">
           {documents.length} document{documents.length !== 1 ? "s" : ""}{" "}
           available.
         </p>
@@ -157,11 +157,11 @@ export default function AdvisorClientDocumentsPage({
 
       {/* Document list */}
       {documents.length === 0 ? (
-        <div className="border-2 border-dashed border-[#d4c5a9] rounded-xl p-12 text-center">
-          <p className="text-sm font-medium text-[#4a4a4a] mb-1">
+        <div className="border-2 border-dashed border-[#888780] rounded-xl p-12 text-center">
+          <p className="text-sm font-medium text-[#5f5e5a] mb-1">
             No documents available.
           </p>
-          <p className="text-sm text-[#9a8c7a]">
+          <p className="text-sm text-[#888780]">
             Documents will appear here once they are uploaded for this client.
           </p>
         </div>
@@ -170,17 +170,17 @@ export default function AdvisorClientDocumentsPage({
           {documents.map((doc) => (
             <div
               key={doc.id}
-              className="bg-white rounded-xl border border-[#e8e0d4] p-5 flex items-center gap-4"
+              className="bg-white rounded-xl border border-[#dfdedd] p-5 flex items-center gap-4"
             >
               {/* File type badge */}
               <div className="shrink-0">{docTypeBadge(doc.mimeType)}</div>
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-[#1a1a1a] truncate">
+                <p className="text-sm font-medium text-[#1a1a18] truncate">
                   {doc.title}
                 </p>
-                <p className="text-xs text-[#9a8c7a] mt-0.5">
+                <p className="text-xs text-[#888780] mt-0.5">
                   {doc.docType.replace(/_/g, " ")}
                   {doc.investmentName
                     ? ` \u00b7 ${doc.investmentName}`
@@ -197,7 +197,7 @@ export default function AdvisorClientDocumentsPage({
                 href={`/api/portal/documents/${doc.id}/download`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg border border-[#b8860b] text-[#b8860b] hover:bg-[#b8860b] hover:text-white transition-colors"
+                className="shrink-0 inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg border border-[#B07D3A] text-[#B07D3A] hover:bg-[#B07D3A] hover:text-white transition-colors"
               >
                 Download
               </a>

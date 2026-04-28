@@ -260,7 +260,7 @@ export default function AdminNewPagePage() {
             <Button
               type="submit"
               disabled={saving}
-              className="w-full bg-[#b8860b] hover:bg-[#a07608] text-white"
+              className="w-full bg-[#B07D3A] hover:bg-[#7A5520] text-white"
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin" />}
               {saving ? "Saving..." : "Create Page"}

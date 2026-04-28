@@ -4,8 +4,8 @@ import { prisma } from "@/lib/prisma";
 
 // Allocation color mapping
 const ASSET_CLASS_COLORS: Record<string, string> = {
-  "Oil & Gas": "#b8860b",
-  "Real Estate": "#1e3a5f",
+  "Oil & Gas": "#B07D3A",
+  "Real Estate": "#1A2640",
   "Private Credit": "#4a5568",
   Specialty: "#a0aec0",
 };

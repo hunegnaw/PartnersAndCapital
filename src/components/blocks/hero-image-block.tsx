@@ -15,7 +15,7 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
       className="relative flex min-h-[70vh] items-center justify-center bg-cover bg-center"
       style={{
         backgroundImage: imageUrl ? `url(${imageUrl})` : undefined,
-        backgroundColor: imageUrl ? undefined : "#0f1c2e",
+        backgroundColor: imageUrl ? undefined : "#1A2640",
       }}
     >
       {/* Dark overlay */}
@@ -37,7 +37,7 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
         {ctaText && ctaUrl && (
           <a
             href={ctaUrl}
-            className="mt-8 inline-block rounded-full bg-[#b8860b] px-8 py-3 text-lg font-semibold text-white transition hover:bg-[#a0750a]"
+            className="mt-8 inline-block rounded-full bg-[#B07D3A] px-8 py-3 text-lg font-semibold text-white transition hover:bg-[#7A5520]"
           >
             {ctaText}
           </a>

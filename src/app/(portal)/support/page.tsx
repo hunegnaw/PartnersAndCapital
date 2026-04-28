@@ -54,11 +54,11 @@ const CATEGORIES = [
 function statusBadge(status: string) {
   switch (status) {
     case "OPEN":
-      return "border-blue-300 text-blue-700 bg-blue-50";
+      return "border-[#185fa5]/20 text-[#185fa5] bg-[#e6f1fb]";
     case "IN_PROGRESS":
-      return "border-amber-300 text-amber-700 bg-amber-50";
+      return "border-[#7A5520]/20 text-[#7A5520] bg-[#FDF5E8]";
     case "RESOLVED":
-      return "border-green-300 text-green-700 bg-green-50";
+      return "border-[#3b6d11]/20 text-[#3b6d11] bg-[#eaf3de]";
     case "CLOSED":
       return "border-gray-300 text-gray-600 bg-gray-50";
     default:
@@ -165,18 +165,18 @@ export default function SupportPage() {
   return (
     <div className="p-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#1a1a1a]">
+        <h1 className="text-2xl font-bold tracking-tight text-[#1a1a18]">
           Support
         </h1>
-        <p className="text-[#6b7280] text-sm mt-1">
+        <p className="text-[#5f5e5a] text-sm mt-1">
           Submit a request or check the status of an existing ticket.
         </p>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
         {/* New Ticket Form */}
-        <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
-          <h2 className="text-lg font-semibold text-[#1a1a1a] mb-4">
+        <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
+          <h2 className="text-lg font-semibold text-[#1a1a18] mb-4">
             New Ticket
           </h2>
 
@@ -188,19 +188,19 @@ export default function SupportPage() {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-sm text-[#4a4a4a]">Subject</Label>
+              <Label className="text-sm text-[#5f5e5a]">Subject</Label>
               <Input
                 placeholder="Brief description of your issue"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="bg-white border-[#e8e0d4]"
+                className="bg-white border-[#dfdedd]"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm text-[#4a4a4a]">Category</Label>
+              <Label className="text-sm text-[#5f5e5a]">Category</Label>
               <Select value={category} onValueChange={(v) => setCategory(v ?? "")}>
-                <SelectTrigger className="bg-white border-[#e8e0d4]">
+                <SelectTrigger className="bg-white border-[#dfdedd]">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -214,18 +214,18 @@ export default function SupportPage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm text-[#4a4a4a]">Message</Label>
+              <Label className="text-sm text-[#5f5e5a]">Message</Label>
               <Textarea
                 placeholder="Describe your issue in detail..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={5}
-                className="bg-white border-[#e8e0d4]"
+                className="bg-white border-[#dfdedd]"
               />
             </div>
 
             <Button
-              className="w-full bg-[#0f1c2e] hover:bg-[#1a2d45] text-white"
+              className="w-full bg-[#1A2640] hover:bg-[#2C3E5C] text-white"
               onClick={handleSubmit}
               disabled={submitting || !subject || !message}
             >
@@ -237,7 +237,7 @@ export default function SupportPage() {
 
         {/* Previous Tickets */}
         <div>
-          <h2 className="text-lg font-semibold text-[#1a1a1a] mb-4">
+          <h2 className="text-lg font-semibold text-[#1a1a18] mb-4">
             Your Tickets
           </h2>
 
@@ -246,7 +246,7 @@ export default function SupportPage() {
               {Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
-                  className="bg-white rounded-xl border border-[#e8e0d4] p-4 animate-pulse"
+                  className="bg-white rounded-xl border border-[#dfdedd] p-4 animate-pulse"
                 >
                   <div className="h-4 bg-gray-100 rounded w-48 mb-2" />
                   <div className="h-3 bg-gray-100 rounded w-32" />
@@ -254,9 +254,9 @@ export default function SupportPage() {
               ))}
             </div>
           ) : tickets.length === 0 ? (
-            <div className="bg-white rounded-xl border border-[#e8e0d4] p-6 text-center py-12">
-              <MessageSquare className="h-10 w-10 text-[#d4c5a9] mx-auto mb-3" />
-              <p className="text-sm text-[#6b7280]">
+            <div className="bg-white rounded-xl border border-[#dfdedd] p-6 text-center py-12">
+              <MessageSquare className="h-10 w-10 text-[#888780] mx-auto mb-3" />
+              <p className="text-sm text-[#5f5e5a]">
                 No tickets yet. Submit one using the form.
               </p>
             </div>
@@ -266,10 +266,10 @@ export default function SupportPage() {
                 <button
                   key={ticket.id}
                   onClick={() => openTicket(ticket.id)}
-                  className="w-full text-left bg-white rounded-xl border border-[#e8e0d4] p-4 hover:bg-[#faf8f5] transition-colors"
+                  className="w-full text-left bg-white rounded-xl border border-[#dfdedd] p-4 hover:bg-[#f5f5f3] transition-colors"
                 >
                   <div className="flex items-start justify-between mb-1">
-                    <p className="font-medium text-sm text-[#1a1a1a]">
+                    <p className="font-medium text-sm text-[#1a1a18]">
                       {ticket.subject}
                     </p>
                     <Badge
@@ -281,7 +281,7 @@ export default function SupportPage() {
                       {ticket.status.replace(/_/g, " ")}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-[#9a8c7a]">
+                  <div className="flex items-center gap-2 text-xs text-[#888780]">
                     <span>{formatDate(ticket.createdAt)}</span>
                     {ticket.category && (
                       <>
@@ -319,10 +319,10 @@ export default function SupportPage() {
           </DialogHeader>
 
           {detailLoading ? (
-            <div className="py-8 text-center text-[#9a8c7a]">Loading...</div>
+            <div className="py-8 text-center text-[#888780]">Loading...</div>
           ) : selectedTicket ? (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-xs text-[#9a8c7a]">
+              <div className="flex items-center gap-2 text-xs text-[#888780]">
                 <Badge
                   className={cn(
                     "text-[10px] font-medium border",
@@ -341,8 +341,8 @@ export default function SupportPage() {
               </div>
 
               {/* Original message */}
-              <div className="bg-[#faf8f5] rounded-lg p-4">
-                <p className="text-sm text-[#4a4a4a] whitespace-pre-wrap">
+              <div className="bg-[#f5f5f3] rounded-lg p-4">
+                <p className="text-sm text-[#5f5e5a] whitespace-pre-wrap">
                   {selectedTicket.message}
                 </p>
               </div>
@@ -354,24 +354,24 @@ export default function SupportPage() {
                   className={cn(
                     "rounded-lg p-4",
                     reply.user.role === "CLIENT"
-                      ? "bg-[#faf8f5]"
-                      : "bg-blue-50 border border-blue-100"
+                      ? "bg-[#f5f5f3]"
+                      : "bg-[#e6f1fb] border border-[#185fa5]/15"
                   )}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-medium text-[#1a1a1a]">
+                    <span className="text-xs font-medium text-[#1a1a18]">
                       {reply.user.name || "User"}
                     </span>
                     {reply.user.role !== "CLIENT" && (
-                      <Badge className="text-[10px] bg-blue-100 text-blue-700 border-blue-200">
+                      <Badge className="text-[10px] bg-[#e6f1fb] text-[#185fa5] border-blue-200">
                         Staff
                       </Badge>
                     )}
-                    <span className="text-xs text-[#9a8c7a]">
+                    <span className="text-xs text-[#888780]">
                       {formatDate(reply.createdAt)}
                     </span>
                   </div>
-                  <p className="text-sm text-[#4a4a4a] whitespace-pre-wrap">
+                  <p className="text-sm text-[#5f5e5a] whitespace-pre-wrap">
                     {reply.message}
                   </p>
                 </div>
@@ -385,13 +385,13 @@ export default function SupportPage() {
                     value={replyMessage}
                     onChange={(e) => setReplyMessage(e.target.value)}
                     rows={3}
-                    className="bg-white border-[#e8e0d4]"
+                    className="bg-white border-[#dfdedd]"
                   />
                   <Button
                     size="sm"
                     onClick={handleReply}
                     disabled={replying || !replyMessage}
-                    className="bg-[#0f1c2e] hover:bg-[#1a2d45]"
+                    className="bg-[#1A2640] hover:bg-[#2C3E5C]"
                   >
                     {replying && (
                       <Loader2 className="animate-spin mr-2 h-3 w-3" />

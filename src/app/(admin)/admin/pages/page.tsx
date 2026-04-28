@@ -42,11 +42,11 @@ interface PageRecord {
 const statusColor = (status: string) => {
   switch (status) {
     case "PUBLISHED":
-      return "bg-green-100 text-green-800 border-green-200"
+      return "bg-[#eaf3de] text-[#3b6d11] border-[#3b6d11]/20"
     case "DRAFT":
       return "bg-gray-100 text-gray-800 border-gray-200"
     case "ARCHIVED":
-      return "bg-red-100 text-red-800 border-red-200"
+      return "bg-[#feecec] text-[#a32d2d] border-[#a32d2d]/20"
     default:
       return "bg-gray-100 text-gray-800 border-gray-200"
   }
@@ -113,7 +113,7 @@ export default function AdminPagesPage() {
         </div>
         <Link
           href="/admin/pages/new"
-          className="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-white bg-[#b8860b] hover:bg-[#a07608] transition-colors"
+          className="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-white bg-[#B07D3A] hover:bg-[#7A5520] transition-colors"
         >
           New Page
         </Link>
@@ -199,7 +199,7 @@ export default function AdminPagesPage() {
                     </TableCell>
                     <TableCell className="text-center">
                       {page.isHomepage && (
-                        <Star className="h-4 w-4 text-[#b8860b] fill-[#b8860b] mx-auto" />
+                        <Star className="h-4 w-4 text-[#B07D3A] fill-[#B07D3A] mx-auto" />
                       )}
                     </TableCell>
                     <TableCell className="text-center">

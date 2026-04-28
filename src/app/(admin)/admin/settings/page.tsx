@@ -242,7 +242,7 @@ export default function AdminSettingsPage() {
                     id="org-primary-color"
                     value={primaryColor}
                     onChange={(e) => setPrimaryColor(e.target.value)}
-                    placeholder="#0f1c2e"
+                    placeholder="#1A2640"
                   />
                   {primaryColor && (
                     <div

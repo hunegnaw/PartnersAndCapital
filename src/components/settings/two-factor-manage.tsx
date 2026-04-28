@@ -199,7 +199,7 @@ export function TwoFactorManage({ onDisabled }: TwoFactorManageProps) {
                 </CardDescription>
               </div>
             </div>
-            <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+            <Badge className="bg-[#eaf3de] text-[#3b6d11] dark:bg-green-900/30 dark:text-green-400">
               Enabled
             </Badge>
           </div>

@@ -3,8 +3,8 @@ import { requireAdvisor } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 const ASSET_CLASS_COLORS = [
-  "#b8860b",
-  "#0f1c2e",
+  "#B07D3A",
+  "#1A2640",
   "#4a7c59",
   "#8b5e3c",
   "#6b5b95",

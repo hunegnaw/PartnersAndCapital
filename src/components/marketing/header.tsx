@@ -32,7 +32,7 @@ export function MarketingHeader({ transparent = true }: MarketingHeaderProps) {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${
-        solid ? "bg-[#0f1c2e]" : "bg-transparent"
+        solid ? "bg-[#1A2640]" : "bg-transparent"
       }`}
     >
       <nav className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -61,7 +61,7 @@ export function MarketingHeader({ transparent = true }: MarketingHeaderProps) {
         <div className="hidden md:block">
           <Link
             href="/login"
-            className="border border-[#b8860b] text-[#b8860b] hover:bg-[#b8860b] hover:text-white px-4 py-1.5 rounded text-sm flex items-center gap-2 transition-colors"
+            className="border border-[#B07D3A] text-[#B07D3A] hover:bg-[#B07D3A] hover:text-white px-4 py-1.5 rounded text-sm flex items-center gap-2 transition-colors"
           >
             <LogIn className="h-4 w-4" />
             Investor Login
@@ -85,7 +85,7 @@ export function MarketingHeader({ transparent = true }: MarketingHeaderProps) {
 
       {/* Mobile dropdown */}
       {mobileOpen && (
-        <div className="md:hidden bg-[#0f1c2e] border-t border-white/10 px-6 pb-6 pt-2 space-y-4">
+        <div className="md:hidden bg-[#1A2640] border-t border-white/10 px-6 pb-6 pt-2 space-y-4">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -98,7 +98,7 @@ export function MarketingHeader({ transparent = true }: MarketingHeaderProps) {
           ))}
           <Link
             href="/login"
-            className="border border-[#b8860b] text-[#b8860b] hover:bg-[#b8860b] hover:text-white px-4 py-1.5 rounded text-sm inline-flex items-center gap-2 transition-colors"
+            className="border border-[#B07D3A] text-[#B07D3A] hover:bg-[#B07D3A] hover:text-white px-4 py-1.5 rounded text-sm inline-flex items-center gap-2 transition-colors"
             onClick={() => setMobileOpen(false)}
           >
             <LogIn className="h-4 w-4" />

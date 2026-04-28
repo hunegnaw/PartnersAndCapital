@@ -105,15 +105,17 @@ This manual covers setup, administration, and usage of the Partners + Capital in
 
 ### Admin Layout
 
-The admin panel features a light sidebar with grouped navigation sections:
+The admin panel features a white sidebar with gold-accent active states and a dark navy header (`#1A2640`):
 
 **Header:** "PARTNERS + CAPITAL" branding with an "Admin Portal" gold badge, plus links to Audit Log, Settings, and the admin avatar.
 
-**Sidebar sections:**
+**Sidebar sections:** (white background with gold-dark hover/active states)
 
 - **MANAGE:** Clients (with count), Investments (with count), Documents (with count), Advisors (with count), Activity Feed, Support (with open ticket count)
 - **WEBSITE:** Pages (with count), Blog Posts (with count), Blog Categories, Media Library (with count)
 - **SYSTEM:** Admin Users, Audit Log, Settings
+
+Active sidebar items use `text-[#7A5520]` on `bg-[#FDF5E8]` with a gold left border.
 
 ### Client Management (Admin Dashboard)
 
@@ -182,7 +184,7 @@ All public pages share a common layout with:
 
 ### Homepage
 
-The root route (`/`) renders the CMS page marked as homepage. If no homepage exists, it falls back to redirecting to `/login`. Authenticated users see a floating "Go to Portal" button in the bottom-right corner.
+The root route (`/`) renders the CMS page marked as homepage. If no homepage exists, authenticated users are redirected to their portal (admin, advisor, or client dashboard) and unauthenticated users are redirected to `/login`. Authenticated users see a floating "Go to Portal" button in the bottom-right corner.
 
 ---
 
@@ -307,16 +309,16 @@ Contact submissions are stored in the `ContactSubmission` table and trigger an e
 
 ### Portal Layout
 
-The client portal features a warm cream background with a light sidebar and navy header:
+The client portal features a light gray background (`#f5f5f3`) with a navy sidebar (`#2C3E5C`) and dark navy header (`#1A2640`):
 
-**Header:** "PARTNERS + CAPITAL" in uppercase, with links to Documents, Advisor Access, Notifications (bell icon), and the user avatar.
+**Header:** "PARTNERS + CAPITAL" in uppercase with a gold "Client Portal" badge, plus links to Documents, Advisor Access, Notifications (bell icon), and the user avatar.
 
-**Sidebar sections:**
+**Sidebar sections:** (navy background with white/gold text)
 
 - **INVESTOR:** Dashboard, Portfolio, Documents, Distributions, Advisor Access
 - **ACCOUNT:** Settings, Support, Log Out
 
-Active navigation items are highlighted with a gold left border and gold text color.
+Active navigation items are highlighted with gold-light text (`#E8D5B0`) on hover.
 
 ### Dashboard
 
@@ -684,7 +686,7 @@ Advisors who accept an invitation gain access to a dedicated advisor portal at `
 
 - **Header:** Navy background, "PARTNERS + CAPITAL" branding, gold "Advisor Portal" badge, avatar circle
 - **Sidebar:** PORTFOLIO section (Dashboard), ACCOUNT section (Log Out)
-- **Warm cream background** on the main content area
+- **Light gray background** (`#f5f5f3`) on the main content area
 
 ### Advisor Dashboard (`/advisor/dashboard`)
 
@@ -859,6 +861,38 @@ A branded 404 page showing "Page not found" with a link back to the dashboard. M
 
 ---
 
+## Design System Colors
+
+The portal uses a refined color palette throughout all components:
+
+| Semantic Name | Hex | Usage |
+|---------------|-----|-------|
+| pc-navy | `#1A2640` | Header, buttons, hero sections |
+| pc-navy-mid | `#2C3E5C` | Client sidebar background |
+| pc-gold | `#B07D3A` | Accent, links, avatar bg |
+| pc-gold-dark | `#7A5520` | Admin sidebar active text, gold hover |
+| pc-gold-light | `#E8D5B0` | Client sidebar active text |
+| bg2 | `#f5f5f3` | Main content bg, muted bg |
+| bg3 | `#eeece8` | Count badges, dividers |
+| border | `#dfdedd` | Card borders, dividers |
+| text1 | `#1a1a18` | Headings, primary text |
+| text2 | `#5f5e5a` | Sidebar text, secondary text |
+| text3 | `#888780` | Muted text, section labels |
+| blue-text | `#185fa5` | Links, performing status |
+| red-text | `#a32d2d` | Destructive, error status |
+| gold-bg | `#FDF5E8` | Pending badge bg, admin active bg |
+
+### Status Badge Colors
+
+| Status | Background | Text |
+|--------|-----------|------|
+| Active/Green | `#eaf3de` | `#3b6d11` |
+| Performing/Blue | `#e6f1fb` | `#185fa5` |
+| Pending/Gold | `#FDF5E8` | `#7A5520` |
+| Error/Red | `#feecec` | `#a32d2d` |
+
+---
+
 ## Feature Roadmap
 
 | Phase | Name                         | Status      |
@@ -870,6 +904,7 @@ A branded 404 page showing "Page not found" with a link back to the dashboard. M
 | 5     | Integrations & Notifications | Completed   |
 | 6     | Hardening & Analytics        | Completed   |
 | 7     | Blog, Page Builder & Marketing Site | Completed |
+| 8     | Visual Redesign                     | Completed |
 
 ### Completed Features
 
@@ -902,3 +937,9 @@ A branded 404 page showing "Page not found" with a link back to the dashboard. M
 - Marketing header with transparent-to-solid scroll effect
 - Tiptap rich text editor with full toolbar and media picker integration
 - 11 seed blog posts and 2 seed CMS pages (homepage + contact)
+- Portal visual redesign with refined color palette matching reference design
+- Client sidebar changed from white to navy-mid (#2C3E5C) with gold active states
+- Admin sidebar refined with gold-dark active states and FDF5E8 highlights
+- Portal-identifying header badges (Client Portal, Admin Portal, Advisor Portal)
+- Consistent status badge colors across all pages (green/blue/gold/red palette)
+- Login redirect fix: authenticated users without homepage redirect to their portal

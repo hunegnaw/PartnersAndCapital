@@ -223,7 +223,7 @@ export default function EditBlogPostPage() {
           <ArrowLeft className="h-4 w-4 text-gray-600" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-[#0f1c2e]">Edit Blog Post</h1>
+          <h1 className="text-2xl font-bold text-[#1A2640]">Edit Blog Post</h1>
           <p className="text-muted-foreground mt-1">
             Update your blog post content and settings.
           </p>
@@ -247,7 +247,7 @@ export default function EditBlogPostPage() {
               placeholder="Post title"
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
-              className="text-2xl font-semibold h-14 border-gray-200 focus:border-[#b8860b] focus:ring-[#b8860b]/20"
+              className="text-2xl font-semibold h-14 border-gray-200 focus:border-[#B07D3A] focus:ring-[#B07D3A]/20"
             />
           </div>
 
@@ -317,7 +317,7 @@ export default function EditBlogPostPage() {
                 <Button
                   onClick={() => handleSubmit(false)}
                   disabled={saving || !title}
-                  className="w-full bg-[#b8860b] hover:bg-[#9a7209] text-white"
+                  className="w-full bg-[#B07D3A] hover:bg-[#7A5520] text-white"
                 >
                   {saving ? "Updating..." : "Update & Publish"}
                 </Button>
@@ -407,7 +407,7 @@ export default function EditBlogPostPage() {
                 <button
                   type="button"
                   onClick={() => setMediaPickerOpen(true)}
-                  className="w-full h-32 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-[#b8860b] hover:text-[#b8860b] transition-colors"
+                  className="w-full h-32 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-[#B07D3A] hover:text-[#B07D3A] transition-colors"
                 >
                   <ImageIcon className="h-8 w-8" />
                   <span className="text-sm">Choose image</span>

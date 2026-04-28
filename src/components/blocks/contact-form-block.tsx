@@ -50,18 +50,18 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
   }
 
   return (
-    <section className="py-20 bg-[#faf8f5]">
+    <section className="py-20 bg-[#f5f5f3]">
       <div className="mx-auto max-w-2xl px-6">
         {heading && (
-          <h2 className="text-3xl font-bold text-[#0f1c2e]">{heading}</h2>
+          <h2 className="text-3xl font-bold text-[#1A2640]">{heading}</h2>
         )}
         {description && (
-          <p className="mt-4 text-lg text-[#0f1c2e]/70">{description}</p>
+          <p className="mt-4 text-lg text-[#1A2640]/70">{description}</p>
         )}
 
         {/* Contact info */}
         {(showAddress || showEmail) && (
-          <div className="mt-6 space-y-2 text-[#0f1c2e]/80">
+          <div className="mt-6 space-y-2 text-[#1A2640]/80">
             {showAddress && (
               <p>605 N High St Suite 212, Columbus OH 43215</p>
             )}
@@ -69,7 +69,7 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
               <p>
                 <a
                   href="mailto:david@partnersandcapital.com"
-                  className="text-[#b8860b] underline hover:text-[#a0750a]"
+                  className="text-[#B07D3A] underline hover:text-[#7A5520]"
                 >
                   david@partnersandcapital.com
                 </a>
@@ -82,7 +82,7 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
           <div>
             <label
               htmlFor="contact-name"
-              className="mb-1 block text-sm font-medium text-[#0f1c2e]"
+              className="mb-1 block text-sm font-medium text-[#1A2640]"
             >
               Name
             </label>
@@ -91,13 +91,13 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
               name="name"
               type="text"
               required
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-[#0f1c2e] outline-none transition focus:border-[#b8860b] focus:ring-2 focus:ring-[#b8860b]/30"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-[#1A2640] outline-none transition focus:border-[#B07D3A] focus:ring-2 focus:ring-[#B07D3A]/30"
             />
           </div>
           <div>
             <label
               htmlFor="contact-email"
-              className="mb-1 block text-sm font-medium text-[#0f1c2e]"
+              className="mb-1 block text-sm font-medium text-[#1A2640]"
             >
               Email
             </label>
@@ -106,13 +106,13 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
               name="email"
               type="email"
               required
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-[#0f1c2e] outline-none transition focus:border-[#b8860b] focus:ring-2 focus:ring-[#b8860b]/30"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-[#1A2640] outline-none transition focus:border-[#B07D3A] focus:ring-2 focus:ring-[#B07D3A]/30"
             />
           </div>
           <div>
             <label
               htmlFor="contact-message"
-              className="mb-1 block text-sm font-medium text-[#0f1c2e]"
+              className="mb-1 block text-sm font-medium text-[#1A2640]"
             >
               Message
             </label>
@@ -121,14 +121,14 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
               name="message"
               rows={5}
               required
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-[#0f1c2e] outline-none transition focus:border-[#b8860b] focus:ring-2 focus:ring-[#b8860b]/30"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-[#1A2640] outline-none transition focus:border-[#B07D3A] focus:ring-2 focus:ring-[#B07D3A]/30"
             />
           </div>
 
           <button
             type="submit"
             disabled={status === "loading"}
-            className="w-full rounded-lg bg-[#b8860b] px-6 py-3 font-semibold text-white transition hover:bg-[#a0750a] disabled:opacity-50"
+            className="w-full rounded-lg bg-[#B07D3A] px-6 py-3 font-semibold text-white transition hover:bg-[#7A5520] disabled:opacity-50"
           >
             {status === "loading" ? "Sending..." : "Send Message"}
           </button>

@@ -44,11 +44,11 @@ interface TicketDetail extends Ticket {
 function statusBadge(status: string) {
   switch (status) {
     case "OPEN":
-      return "border-blue-300 text-blue-700 bg-blue-50";
+      return "border-[#185fa5]/20 text-[#185fa5] bg-[#e6f1fb]";
     case "IN_PROGRESS":
-      return "border-amber-300 text-amber-700 bg-amber-50";
+      return "border-[#7A5520]/20 text-[#7A5520] bg-[#FDF5E8]";
     case "RESOLVED":
-      return "border-green-300 text-green-700 bg-green-50";
+      return "border-[#3b6d11]/20 text-[#3b6d11] bg-[#eaf3de]";
     case "CLOSED":
       return "border-gray-300 text-gray-600 bg-gray-50";
     default:
@@ -59,7 +59,7 @@ function statusBadge(status: string) {
 function priorityBadge(priority: string) {
   switch (priority) {
     case "HIGH":
-      return "border-red-300 text-red-700 bg-red-50";
+      return "border-[#a32d2d]/20 text-[#a32d2d] bg-[#feecec]";
     case "MEDIUM":
       return "border-amber-300 text-amber-700 bg-amber-50";
     case "LOW":
@@ -156,8 +156,8 @@ export default function AdminSupportPage() {
   return (
     <div className="p-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#1a1a1a]">Support Tickets</h1>
-        <p className="text-sm text-[#6b7280] mt-1">
+        <h1 className="text-2xl font-bold text-[#1a1a18]">Support Tickets</h1>
+        <p className="text-sm text-[#5f5e5a] mt-1">
           {total} total ticket{total !== 1 ? "s" : ""}
         </p>
       </div>
@@ -168,7 +168,7 @@ export default function AdminSupportPage() {
           value={statusFilter}
           onValueChange={(v) => setStatusFilter(v === "all" ? "" : v ?? "")}
         >
-          <SelectTrigger className="w-[160px] bg-white border-[#e8e0d4]">
+          <SelectTrigger className="w-[160px] bg-white border-[#dfdedd]">
             <SelectValue placeholder="All statuses" />
           </SelectTrigger>
           <SelectContent>
@@ -183,7 +183,7 @@ export default function AdminSupportPage() {
           value={priorityFilter}
           onValueChange={(v) => setPriorityFilter(v === "all" ? "" : v ?? "")}
         >
-          <SelectTrigger className="w-[160px] bg-white border-[#e8e0d4]">
+          <SelectTrigger className="w-[160px] bg-white border-[#dfdedd]">
             <SelectValue placeholder="All priorities" />
           </SelectTrigger>
           <SelectContent>
@@ -201,7 +201,7 @@ export default function AdminSupportPage() {
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className="bg-white rounded-xl border border-[#e8e0d4] p-4 animate-pulse"
+              className="bg-white rounded-xl border border-[#dfdedd] p-4 animate-pulse"
             >
               <div className="h-4 bg-gray-100 rounded w-48 mb-2" />
               <div className="h-3 bg-gray-100 rounded w-64" />
@@ -209,24 +209,24 @@ export default function AdminSupportPage() {
           ))}
         </div>
       ) : tickets.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#e8e0d4] p-6 text-center py-12">
-          <MessageSquare className="h-10 w-10 text-[#d4c5a9] mx-auto mb-3" />
-          <p className="text-sm text-[#6b7280]">No tickets found.</p>
+        <div className="bg-white rounded-xl border border-[#dfdedd] p-6 text-center py-12">
+          <MessageSquare className="h-10 w-10 text-[#888780] mx-auto mb-3" />
+          <p className="text-sm text-[#5f5e5a]">No tickets found.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-[#e8e0d4] divide-y divide-[#f5f0e8]">
+        <div className="bg-white rounded-xl border border-[#dfdedd] divide-y divide-[#eeece8]">
           {tickets.map((ticket) => (
             <button
               key={ticket.id}
               onClick={() => openTicket(ticket.id)}
-              className="w-full text-left px-5 py-4 hover:bg-[#faf8f5] transition-colors"
+              className="w-full text-left px-5 py-4 hover:bg-[#f5f5f3] transition-colors"
             >
               <div className="flex items-start justify-between mb-1">
                 <div>
-                  <p className="font-medium text-sm text-[#1a1a1a]">
+                  <p className="font-medium text-sm text-[#1a1a18]">
                     {ticket.subject}
                   </p>
-                  <p className="text-xs text-[#9a8c7a]">
+                  <p className="text-xs text-[#888780]">
                     {ticket.user.name || ticket.user.email} &middot;{" "}
                     {formatDate(ticket.createdAt)}
                     {ticket.category && ` \u00b7 ${ticket.category}`}
@@ -272,7 +272,7 @@ export default function AdminSupportPage() {
 
           {selectedTicket && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-xs text-[#9a8c7a] flex-wrap">
+              <div className="flex items-center gap-2 text-xs text-[#888780] flex-wrap">
                 <span>
                   {selectedTicket.user.name || selectedTicket.user.email}
                 </span>
@@ -285,7 +285,7 @@ export default function AdminSupportPage() {
                   }}
                   disabled={updatingStatus}
                 >
-                  <SelectTrigger className="h-6 w-auto text-[10px] border-[#e8e0d4]">
+                  <SelectTrigger className="h-6 w-auto text-[10px] border-[#dfdedd]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -297,8 +297,8 @@ export default function AdminSupportPage() {
                 </Select>
               </div>
 
-              <div className="bg-[#faf8f5] rounded-lg p-4">
-                <p className="text-sm text-[#4a4a4a] whitespace-pre-wrap">
+              <div className="bg-[#f5f5f3] rounded-lg p-4">
+                <p className="text-sm text-[#5f5e5a] whitespace-pre-wrap">
                   {selectedTicket.message}
                 </p>
               </div>
@@ -309,24 +309,24 @@ export default function AdminSupportPage() {
                   className={cn(
                     "rounded-lg p-4",
                     reply.user.role === "CLIENT"
-                      ? "bg-[#faf8f5]"
-                      : "bg-blue-50 border border-blue-100"
+                      ? "bg-[#f5f5f3]"
+                      : "bg-[#e6f1fb] border border-[#185fa5]/15"
                   )}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-medium text-[#1a1a1a]">
+                    <span className="text-xs font-medium text-[#1a1a18]">
                       {reply.user.name || "User"}
                     </span>
                     {reply.user.role !== "CLIENT" && (
-                      <Badge className="text-[10px] bg-blue-100 text-blue-700 border-blue-200">
+                      <Badge className="text-[10px] bg-[#e6f1fb] text-[#185fa5] border-blue-200">
                         Staff
                       </Badge>
                     )}
-                    <span className="text-xs text-[#9a8c7a]">
+                    <span className="text-xs text-[#888780]">
                       {formatDate(reply.createdAt)}
                     </span>
                   </div>
-                  <p className="text-sm text-[#4a4a4a] whitespace-pre-wrap">
+                  <p className="text-sm text-[#5f5e5a] whitespace-pre-wrap">
                     {reply.message}
                   </p>
                 </div>
@@ -338,13 +338,13 @@ export default function AdminSupportPage() {
                   value={replyMessage}
                   onChange={(e) => setReplyMessage(e.target.value)}
                   rows={3}
-                  className="bg-white border-[#e8e0d4]"
+                  className="bg-white border-[#dfdedd]"
                 />
                 <Button
                   size="sm"
                   onClick={handleReply}
                   disabled={replying || !replyMessage}
-                  className="bg-[#0f1c2e] hover:bg-[#1a2d45]"
+                  className="bg-[#1A2640] hover:bg-[#2C3E5C]"
                 >
                   {replying && (
                     <Loader2 className="animate-spin mr-2 h-3 w-3" />

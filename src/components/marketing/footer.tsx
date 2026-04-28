@@ -39,7 +39,7 @@ export function MarketingFooter() {
   ];
 
   return (
-    <footer className="bg-[#0f1c2e] text-white">
+    <footer className="bg-[#1A2640] text-white">
       <div className="max-w-6xl mx-auto px-6 py-16">
         {/* Top section — 3-column grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
@@ -89,12 +89,12 @@ export function MarketingFooter() {
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 bg-white/10 border border-white/20 rounded px-3 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-[#b8860b] transition-colors"
+                className="flex-1 bg-white/10 border border-white/20 rounded px-3 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-[#B07D3A] transition-colors"
               />
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="bg-[#b8860b] hover:bg-[#a0750a] text-white px-4 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50"
+                className="bg-[#B07D3A] hover:bg-[#7A5520] text-white px-4 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50"
               >
                 {status === "loading" ? "..." : "Subscribe"}
               </button>

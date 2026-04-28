@@ -30,7 +30,7 @@ function permissionBadge(level: string) {
   };
 
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border border-[#e8e0d4] text-[#9a8c7a] bg-[#faf8f5]">
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border border-[#dfdedd] text-[#888780] bg-[#f5f5f3]">
       {labels[level] || level}
     </span>
   );
@@ -45,7 +45,7 @@ function DashboardSkeleton() {
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-xl border border-[#e8e0d4] p-6">
+          <div key={i} className="bg-white rounded-xl border border-[#dfdedd] p-6">
             <Skeleton className="h-5 w-36 mb-2" />
             <Skeleton className="h-4 w-24 mb-4" />
             <Skeleton className="h-3 w-20 mb-2" />
@@ -94,7 +94,7 @@ export default function AdvisorDashboardPage() {
   if (error) {
     return (
       <div className="p-8">
-        <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
+        <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
           <p className="text-red-600">{error}</p>
         </div>
       </div>
@@ -107,10 +107,10 @@ export default function AdvisorDashboardPage() {
     <div className="p-8 space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#1a1a1a]">
+        <h1 className="text-2xl font-bold tracking-tight text-[#1a1a18]">
           Your Clients
         </h1>
-        <p className="text-sm text-[#9a8c7a] mt-1">
+        <p className="text-sm text-[#888780] mt-1">
           {clients.length} client portfolio{clients.length !== 1 ? "s" : ""} you
           have access to.
         </p>
@@ -118,11 +118,11 @@ export default function AdvisorDashboardPage() {
 
       {/* Client cards */}
       {clients.length === 0 ? (
-        <div className="border-2 border-dashed border-[#d4c5a9] rounded-xl p-12 text-center">
-          <p className="text-sm font-medium text-[#4a4a4a] mb-1">
+        <div className="border-2 border-dashed border-[#888780] rounded-xl p-12 text-center">
+          <p className="text-sm font-medium text-[#5f5e5a] mb-1">
             No active client access.
           </p>
-          <p className="text-sm text-[#9a8c7a]">
+          <p className="text-sm text-[#888780]">
             Invitations will appear here once accepted.
           </p>
         </div>
@@ -131,13 +131,13 @@ export default function AdvisorDashboardPage() {
           {clients.map((client) => (
             <div
               key={client.id}
-              className="bg-white rounded-xl border border-[#e8e0d4] p-6 flex flex-col"
+              className="bg-white rounded-xl border border-[#dfdedd] p-6 flex flex-col"
             >
               {/* Client info */}
               <div className="mb-3">
-                <h3 className="font-semibold text-[#1a1a1a]">{client.name}</h3>
+                <h3 className="font-semibold text-[#1a1a18]">{client.name}</h3>
                 {client.company && (
-                  <p className="text-sm text-[#9a8c7a] mt-0.5">
+                  <p className="text-sm text-[#888780] mt-0.5">
                     {client.company}
                   </p>
                 )}
@@ -149,25 +149,25 @@ export default function AdvisorDashboardPage() {
               {/* Stats */}
               <div className="flex gap-6 mb-3">
                 <div>
-                  <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-wider uppercase">
+                  <p className="text-[10px] font-semibold text-[#888780] tracking-wider uppercase">
                     Invested
                   </p>
-                  <p className="text-sm font-semibold text-[#1a1a1a] tabular-nums">
+                  <p className="text-sm font-semibold text-[#1a1a18] tabular-nums">
                     {formatCurrency(client.totalInvested)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-wider uppercase">
+                  <p className="text-[10px] font-semibold text-[#888780] tracking-wider uppercase">
                     Current Value
                   </p>
-                  <p className="text-sm font-semibold text-[#1a1a1a] tabular-nums">
+                  <p className="text-sm font-semibold text-[#1a1a18] tabular-nums">
                     {formatCurrency(client.currentValue)}
                   </p>
                 </div>
               </div>
 
               {/* Expiry */}
-              <p className="text-xs text-[#9a8c7a] mb-4">
+              <p className="text-xs text-[#888780] mb-4">
                 {client.accessExpiry
                   ? `Expires: ${formatDateOnly(client.accessExpiry)}`
                   : "No expiration"}
@@ -176,7 +176,7 @@ export default function AdvisorDashboardPage() {
               {/* View button */}
               <Link
                 href={`/advisor/clients/${client.id}`}
-                className="mt-auto inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border border-[#b8860b] text-[#b8860b] hover:bg-[#b8860b] hover:text-white transition-colors"
+                className="mt-auto inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border border-[#B07D3A] text-[#B07D3A] hover:bg-[#B07D3A] hover:text-white transition-colors"
               >
                 View Portfolio
               </Link>

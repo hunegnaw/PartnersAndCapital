@@ -45,10 +45,13 @@ export default async function PortalLayout({
   return (
     <div className="flex min-h-screen flex-col">
       {/* Top nav bar */}
-      <header className="h-14 bg-[#0f1c2e] border-b border-white/10 flex items-center justify-between px-6">
-        <div className="flex items-center gap-2">
+      <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-6">
+        <div className="flex items-center gap-3">
           <span className="font-bold text-white text-sm tracking-widest uppercase">
             Partners + Capital
+          </span>
+          <span className="bg-[#B07D3A] text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full tracking-wider uppercase">
+            Client Portal
           </span>
         </div>
         <div className="flex items-center gap-5">
@@ -65,18 +68,18 @@ export default async function PortalLayout({
             Advisor Access
           </Link>
           <NotificationBell />
-          <div className="h-8 w-8 rounded-full bg-[#b8860b] flex items-center justify-center text-xs font-semibold text-white">
+          <div className="h-8 w-8 rounded-full bg-[#B07D3A] flex items-center justify-center text-xs font-semibold text-white">
             {initials}
           </div>
         </div>
       </header>
 
       <div className="flex flex-1">
-        {/* Light sidebar */}
-        <aside className="w-60 bg-white border-r border-[#e8e0d4] flex flex-col pt-6">
+        {/* Navy sidebar */}
+        <aside className="w-60 bg-[#2C3E5C] flex flex-col pt-6">
           <nav className="flex-1 px-4">
             {/* INVESTOR section */}
-            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3 px-3">
+            <p className="text-[10px] font-semibold text-white/25 tracking-widest uppercase mb-3 px-3">
               Investor
             </p>
             <ul className="space-y-0.5 mb-6">
@@ -84,9 +87,9 @@ export default async function PortalLayout({
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="sidebar-link flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#4a4a4a] hover:text-[#b8860b] hover:bg-[#faf8f5] transition-colors"
+                    className="sidebar-link flex items-center gap-3 px-3 py-2 text-sm rounded-md text-white/55 hover:text-[#E8D5B0] hover:bg-white/5 transition-colors"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#d4c5a9]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
                     {item.label}
                   </Link>
                 </li>
@@ -94,7 +97,7 @@ export default async function PortalLayout({
             </ul>
 
             {/* ACCOUNT section */}
-            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3 px-3">
+            <p className="text-[10px] font-semibold text-white/25 tracking-widest uppercase mb-3 px-3">
               Account
             </p>
             <ul className="space-y-0.5">
@@ -102,9 +105,9 @@ export default async function PortalLayout({
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="sidebar-link flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#4a4a4a] hover:text-[#b8860b] hover:bg-[#faf8f5] transition-colors"
+                    className="sidebar-link flex items-center gap-3 px-3 py-2 text-sm rounded-md text-white/55 hover:text-[#E8D5B0] hover:bg-white/5 transition-colors"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#d4c5a9]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
                     {item.label}
                   </Link>
                 </li>
@@ -112,9 +115,9 @@ export default async function PortalLayout({
               <li>
                 <Link
                   href="/api/auth/signout"
-                  className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#4a4a4a] hover:text-red-600 hover:bg-red-50 transition-colors"
+                  className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-white/55 hover:text-red-300 hover:bg-white/5 transition-colors"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#d4c5a9]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
                   Log Out
                 </Link>
               </li>
@@ -122,7 +125,7 @@ export default async function PortalLayout({
           </nav>
         </aside>
 
-        <main className="flex-1 bg-[#faf8f5] overflow-auto">{children}</main>
+        <main className="flex-1 bg-[#f5f5f3] overflow-auto">{children}</main>
       </div>
     </div>
   );

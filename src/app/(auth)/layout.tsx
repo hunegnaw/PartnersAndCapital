@@ -2,7 +2,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex min-h-screen">
       {/* Left panel - dark navy branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-[#0f1c2e] text-white flex-col justify-between p-12">
+      <div className="hidden lg:flex lg:w-1/2 bg-[#1A2640] text-white flex-col justify-between p-12">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Partners + Capital</h1>
           <p className="mt-4 text-lg text-white/70">Your capital. A clear view.</p>

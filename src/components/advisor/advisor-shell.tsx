@@ -20,17 +20,17 @@ export function AdvisorShell({ userName, initials, children }: AdvisorShellProps
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header */}
-      <header className="h-14 bg-[#0f1c2e] border-b border-white/10 flex items-center justify-between px-6">
-        <div className="flex items-center gap-2">
+      <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-6">
+        <div className="flex items-center gap-3">
           <span className="font-bold text-white text-sm tracking-widest uppercase">
             Partners + Capital
           </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#b8860b]/20 text-[#b8860b]">
+          <span className="bg-[#B07D3A] text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full tracking-wider uppercase">
             Advisor Portal
           </span>
-          <div className="h-8 w-8 rounded-full bg-[#b8860b] flex items-center justify-center text-xs font-semibold text-white">
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="h-8 w-8 rounded-full bg-[#B07D3A] flex items-center justify-center text-xs font-semibold text-white">
             {initials}
           </div>
         </div>
@@ -38,10 +38,10 @@ export function AdvisorShell({ userName, initials, children }: AdvisorShellProps
 
       <div className="flex flex-1">
         {/* Sidebar */}
-        <aside className="w-60 bg-white border-r border-[#e8e0d4] flex flex-col pt-6">
+        <aside className="w-60 bg-white border-r border-[#dfdedd] flex flex-col pt-6">
           <nav className="flex-1 px-4">
             {/* PORTFOLIO section */}
-            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3 px-3">
+            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3 px-3">
               Portfolio
             </p>
             <ul className="space-y-0.5 mb-6">
@@ -53,13 +53,13 @@ export function AdvisorShell({ userName, initials, children }: AdvisorShellProps
                       href={item.href}
                       className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors ${
                         isActive
-                          ? "border-l-2 border-[#b8860b] text-[#b8860b] font-medium bg-[#faf8f5]"
-                          : "text-[#4a4a4a] hover:text-[#b8860b] hover:bg-[#faf8f5]"
+                          ? "border-l-2 border-[#B07D3A] text-[#B07D3A] font-medium bg-[#f5f5f3]"
+                          : "text-[#5f5e5a] hover:text-[#B07D3A] hover:bg-[#f5f5f3]"
                       }`}
                     >
                       <span
                         className={`w-1.5 h-1.5 rounded-full ${
-                          isActive ? "bg-[#b8860b]" : "bg-[#d4c5a9]"
+                          isActive ? "bg-[#B07D3A]" : "bg-[#888780]"
                         }`}
                       />
                       {item.label}
@@ -70,16 +70,16 @@ export function AdvisorShell({ userName, initials, children }: AdvisorShellProps
             </ul>
 
             {/* ACCOUNT section */}
-            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3 px-3">
+            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3 px-3">
               Account
             </p>
             <ul className="space-y-0.5">
               <li>
                 <button
                   onClick={() => signOut({ callbackUrl: "/login" })}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#4a4a4a] hover:text-red-600 hover:bg-red-50 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#5f5e5a] hover:text-red-600 hover:bg-red-50 transition-colors text-left"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#d4c5a9]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#888780]" />
                   Log Out
                 </button>
               </li>
@@ -87,13 +87,13 @@ export function AdvisorShell({ userName, initials, children }: AdvisorShellProps
           </nav>
 
           {/* Logged in user */}
-          <div className="px-4 py-4 border-t border-[#e8e0d4]">
-            <p className="text-xs text-[#9a8c7a] truncate">{userName}</p>
+          <div className="px-4 py-4 border-t border-[#dfdedd]">
+            <p className="text-xs text-[#888780] truncate">{userName}</p>
           </div>
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 bg-[#faf8f5] overflow-auto">{children}</main>
+        <main className="flex-1 bg-[#f5f5f3] overflow-auto">{children}</main>
       </div>
     </div>
   );

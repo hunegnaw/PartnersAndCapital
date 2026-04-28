@@ -10,7 +10,7 @@ interface StatsBlockProps {
 export function StatsBlock({ props }: StatsBlockProps) {
   const heading = (props.heading as string) ?? "";
   const stats = (props.stats as Stat[]) ?? [];
-  const backgroundColor = (props.backgroundColor as string) ?? "#0f1c2e";
+  const backgroundColor = (props.backgroundColor as string) ?? "#1A2640";
 
   return (
     <section className="py-20" style={{ backgroundColor }}>
@@ -23,7 +23,7 @@ export function StatsBlock({ props }: StatsBlockProps) {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {stats.map((stat, index) => (
             <div key={index} className="text-center">
-              <div className="text-4xl font-bold text-[#b8860b]">
+              <div className="text-4xl font-bold text-[#B07D3A]">
                 {stat.value}
               </div>
               <div className="mt-2 text-white/70">{stat.label}</div>

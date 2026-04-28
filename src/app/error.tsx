@@ -14,8 +14,8 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center p-8">
-      <div className="bg-white rounded-xl border border-[#e8e0d4] p-8 max-w-md w-full text-center">
+    <div className="min-h-screen bg-[#f5f5f3] flex items-center justify-center p-8">
+      <div className="bg-white rounded-xl border border-[#dfdedd] p-8 max-w-md w-full text-center">
         <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
           <svg
             className="w-6 h-6 text-red-500"
@@ -31,16 +31,16 @@ export default function Error({
             />
           </svg>
         </div>
-        <h2 className="text-lg font-semibold text-[#1a1a1a] mb-2">
+        <h2 className="text-lg font-semibold text-[#1a1a18] mb-2">
           Something went wrong
         </h2>
-        <p className="text-sm text-[#9a8c7a] mb-6">
+        <p className="text-sm text-[#888780] mb-6">
           An unexpected error occurred. Please try again or contact support if
           the problem persists.
         </p>
         <button
           onClick={reset}
-          className="inline-flex items-center justify-center h-10 px-6 rounded-lg bg-[#0f1c2e] text-white text-sm font-medium hover:bg-[#1a2d45] transition-colors"
+          className="inline-flex items-center justify-center h-10 px-6 rounded-lg bg-[#1A2640] text-white text-sm font-medium hover:bg-[#2C3E5C] transition-colors"
         >
           Try again
         </button>

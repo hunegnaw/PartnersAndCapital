@@ -220,7 +220,7 @@ export default function AdminMediaPage() {
         </div>
         <Button
           onClick={() => setShowUpload(true)}
-          className="bg-[#b8860b] hover:bg-[#a07608] text-white"
+          className="bg-[#B07D3A] hover:bg-[#7A5520] text-white"
         >
           <Upload className="h-4 w-4" />
           Upload
@@ -290,7 +290,7 @@ export default function AdminMediaPage() {
                 key={item.id}
                 type="button"
                 onClick={() => openDetail(item)}
-                className="group relative aspect-square rounded-lg border border-gray-200 overflow-hidden bg-gray-50 hover:ring-2 hover:ring-[#b8860b] transition-all focus:outline-none focus:ring-2 focus:ring-[#b8860b]"
+                className="group relative aspect-square rounded-lg border border-gray-200 overflow-hidden bg-gray-50 hover:ring-2 hover:ring-[#B07D3A] transition-all focus:outline-none focus:ring-2 focus:ring-[#B07D3A]"
               >
                 {isImage(item.mimeType) ? (
                   <img
@@ -299,7 +299,7 @@ export default function AdminMediaPage() {
                     className="w-full h-full object-cover"
                   />
                 ) : isVideo(item.mimeType) ? (
-                  <div className="w-full h-full flex items-center justify-center bg-[#0f1c2e]">
+                  <div className="w-full h-full flex items-center justify-center bg-[#1A2640]">
                     <Film className="h-8 w-8 text-white/60" />
                   </div>
                 ) : (
@@ -376,7 +376,7 @@ export default function AdminMediaPage() {
                 multiple
                 onChange={handleUpload}
                 disabled={uploading}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#b8860b] file:text-white hover:file:bg-[#a07608] file:cursor-pointer"
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#B07D3A] file:text-white hover:file:bg-[#7A5520] file:cursor-pointer"
               />
             </div>
 
@@ -498,7 +498,7 @@ export default function AdminMediaPage() {
                   size="sm"
                   onClick={handleSaveMeta}
                   disabled={savingMeta}
-                  className="bg-[#b8860b] hover:bg-[#a07608] text-white"
+                  className="bg-[#B07D3A] hover:bg-[#7A5520] text-white"
                 >
                   {savingMeta && <Loader2 className="h-4 w-4 animate-spin" />}
                   {savingMeta ? "Saving..." : "Save Changes"}

@@ -105,7 +105,7 @@ export function MediaPicker({
               onClick={() => setTab("browse")}
               className={`px-3 py-1.5 text-sm rounded ${
                 tab === "browse"
-                  ? "bg-[#0f1c2e] text-white"
+                  ? "bg-[#1A2640] text-white"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
@@ -115,7 +115,7 @@ export function MediaPicker({
               onClick={() => setTab("upload")}
               className={`px-3 py-1.5 text-sm rounded ${
                 tab === "upload"
-                  ? "bg-[#0f1c2e] text-white"
+                  ? "bg-[#1A2640] text-white"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
@@ -136,7 +136,7 @@ export function MediaPicker({
                   setPage(1);
                 }}
                 placeholder="Search media..."
-                className="w-full pl-9 pr-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#b8860b]/50"
+                className="w-full pl-9 pr-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
               />
             </div>
           )}
@@ -152,7 +152,7 @@ export function MediaPicker({
               <p className="text-gray-600 mb-4">
                 Click to upload or drag and drop
               </p>
-              <label className="px-6 py-2 bg-[#b8860b] text-white rounded-lg cursor-pointer hover:bg-[#9a7209] transition-colors">
+              <label className="px-6 py-2 bg-[#B07D3A] text-white rounded-lg cursor-pointer hover:bg-[#7A5520] transition-colors">
                 {uploading ? "Uploading..." : "Choose File"}
                 <input
                   type="file"
@@ -174,7 +174,7 @@ export function MediaPicker({
             </div>
           ) : loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin h-8 w-8 border-2 border-[#b8860b] border-t-transparent rounded-full" />
+              <div className="animate-spin h-8 w-8 border-2 border-[#B07D3A] border-t-transparent rounded-full" />
             </div>
           ) : media.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-gray-400">
@@ -191,7 +191,7 @@ export function MediaPicker({
                       onSelect(item);
                       onClose();
                     }}
-                    className="group relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-[#b8860b] transition-colors bg-gray-100"
+                    className="group relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-[#B07D3A] transition-colors bg-gray-100"
                   >
                     {item.mimeType.startsWith("video/") ? (
                       <div className="w-full h-full flex items-center justify-center bg-gray-900">

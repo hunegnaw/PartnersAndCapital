@@ -13,7 +13,7 @@ interface OrgConfig {
 
 const defaultOrg: OrgConfig = {
   name: process.env.NEXT_PUBLIC_ORG_NAME || "Partners + Capital",
-  primaryColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR || "#1e3a5f",
+  primaryColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR || "#1A2640",
   secondaryColor: process.env.NEXT_PUBLIC_SECONDARY_COLOR || "#2563eb",
   accentColor: process.env.NEXT_PUBLIC_ACCENT_COLOR || "#f59e0b",
 };

@@ -120,14 +120,14 @@ export default function AdminBlogPage() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#0f1c2e]">Blog Posts</h1>
+          <h1 className="text-2xl font-bold text-[#1A2640]">Blog Posts</h1>
           <p className="text-muted-foreground mt-1">
             Create and manage blog content for your website.
           </p>
         </div>
         <Link
           href="/admin/blog/new"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-white text-sm font-medium bg-[#b8860b] hover:bg-[#9a7209] transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-white text-sm font-medium bg-[#B07D3A] hover:bg-[#7A5520] transition-colors"
         >
           <Plus className="h-4 w-4" />
           New Post
@@ -242,7 +242,7 @@ export default function AdminBlogPage() {
                         variant={post.status === "PUBLISHED" ? "default" : "secondary"}
                         className={
                           post.status === "PUBLISHED"
-                            ? "bg-green-100 text-green-800 hover:bg-green-100"
+                            ? "bg-[#eaf3de] text-[#3b6d11] hover:bg-[#eaf3de]"
                             : "bg-gray-100 text-gray-600 hover:bg-gray-100"
                         }
                       >

@@ -189,7 +189,7 @@ export function BlockEditor({ blocks, onChange }: BlockEditorProps) {
       <button
         type="button"
         onClick={() => setShowPicker(true)}
-        className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-[#b8860b] hover:text-[#b8860b] transition-colors flex items-center justify-center gap-2"
+        className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-[#B07D3A] hover:text-[#B07D3A] transition-colors flex items-center justify-center gap-2"
       >
         <Plus size={18} />
         Add Block

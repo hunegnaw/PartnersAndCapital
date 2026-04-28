@@ -45,11 +45,11 @@ interface RichTextEditorProps {
 }
 
 const COLORS = [
-  { label: "Navy", value: "#0f1c2e" },
-  { label: "Gold", value: "#b8860b" },
-  { label: "Dark", value: "#1a1a1a" },
+  { label: "Navy", value: "#1A2640" },
+  { label: "Gold", value: "#B07D3A" },
+  { label: "Dark", value: "#1a1a18" },
   { label: "White", value: "#ffffff" },
-  { label: "Gray", value: "#6b7280" },
+  { label: "Gray", value: "#5f5e5a" },
   { label: "Default", value: "" },
 ];
 
@@ -153,7 +153,7 @@ export function RichTextEditor({
       onClick={onClick}
       title={title}
       className={`p-1.5 rounded hover:bg-gray-200 transition-colors ${
-        active ? "bg-gray-200 text-[#0f1c2e]" : "text-gray-600"
+        active ? "bg-gray-200 text-[#1A2640]" : "text-gray-600"
       }`}
     >
       {children}

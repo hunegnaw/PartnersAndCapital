@@ -85,14 +85,14 @@ function typeLabel(type: string) {
 function fileTypeBadge(mimeType: string) {
   if (mimeType?.includes("pdf")) {
     return (
-      <span className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-red-100 text-red-600 text-[10px] font-bold">
+      <span className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-[#feecec] text-[#a32d2d] text-[10px] font-bold">
         PDF
       </span>
     );
   }
   if (mimeType?.includes("word") || mimeType?.includes("doc")) {
     return (
-      <span className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-blue-100 text-blue-600 text-[10px] font-bold">
+      <span className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-[#e6f1fb] text-[#185fa5] text-[10px] font-bold">
         DOC
       </span>
     );
@@ -259,30 +259,30 @@ export default function DocumentsPage() {
     <div className="p-8 space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#1a1a1a]">
+        <h1 className="text-2xl font-bold tracking-tight text-[#1a1a18]">
           Documents
         </h1>
-        <p className="text-[#6b7280] text-sm mt-1">
+        <p className="text-[#5f5e5a] text-sm mt-1">
           Everything you need. Nothing buried.
         </p>
       </div>
 
       {/* CPA Access Banner */}
       {advisorAccess && (
-        <div className="bg-white rounded-xl border border-[#e8e0d4] p-4 flex items-center justify-between">
+        <div className="bg-white rounded-xl border border-[#dfdedd] p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-[#f5f0e8] flex items-center justify-center text-xs font-semibold text-[#b8860b]">
+            <div className="h-8 w-8 rounded-full bg-[#eeece8] flex items-center justify-center text-xs font-semibold text-[#B07D3A]">
               {advisorAccess.name?.[0]?.toUpperCase() || "A"}
             </div>
             <div>
-              <p className="text-sm font-medium text-[#1a1a1a]">
+              <p className="text-sm font-medium text-[#1a1a18]">
                 {advisorAccess.name} ({advisorAccess.type || "Advisor"}) has
                 access to{" "}
                 {advisorAccess.permissionLevel === "DASHBOARD_AND_TAX_DOCUMENTS"
                   ? "tax documents"
                   : "all documents"}
               </p>
-              <p className="text-xs text-[#9a8c7a]">
+              <p className="text-xs text-[#888780]">
                 View + Download
                 {advisorAccess.expiresAt &&
                   ` \u00b7 Expires ${formatDateOnly(advisorAccess.expiresAt)}`}
@@ -291,7 +291,7 @@ export default function DocumentsPage() {
           </div>
           <Link
             href="/advisors"
-            className="text-xs text-[#b8860b] hover:underline font-medium shrink-0"
+            className="text-xs text-[#B07D3A] hover:underline font-medium shrink-0"
           >
             Manage access
           </Link>
@@ -303,7 +303,7 @@ export default function DocumentsPage() {
         <div className="hidden lg:block w-56 shrink-0 space-y-6">
           {/* Categories */}
           <div>
-            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3">
+            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3">
               Categories
             </p>
             <nav className="space-y-0.5">
@@ -317,12 +317,12 @@ export default function DocumentsPage() {
                   className={cn(
                     "flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-colors text-left",
                     selectedCategory === cat.key
-                      ? "bg-[#faf8f5] text-[#b8860b] font-medium"
-                      : "text-[#6b7280] hover:text-[#1a1a1a] hover:bg-[#faf8f5]"
+                      ? "bg-[#f5f5f3] text-[#B07D3A] font-medium"
+                      : "text-[#5f5e5a] hover:text-[#1a1a18] hover:bg-[#f5f5f3]"
                   )}
                 >
                   <span>{cat.label}</span>
-                  <span className="text-xs tabular-nums text-[#9a8c7a]">
+                  <span className="text-xs tabular-nums text-[#888780]">
                     {cat.count}
                   </span>
                 </button>
@@ -333,7 +333,7 @@ export default function DocumentsPage() {
           {/* By Investment */}
           {investmentCounts.length > 0 && (
             <div>
-              <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3">
+              <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3">
                 By Investment
               </p>
               <nav className="space-y-0.5">
@@ -349,12 +349,12 @@ export default function DocumentsPage() {
                     className={cn(
                       "flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-colors text-left",
                       selectedInvestment === inv.name
-                        ? "bg-[#faf8f5] text-[#b8860b] font-medium"
-                        : "text-[#6b7280] hover:text-[#1a1a1a] hover:bg-[#faf8f5]"
+                        ? "bg-[#f5f5f3] text-[#B07D3A] font-medium"
+                        : "text-[#5f5e5a] hover:text-[#1a1a18] hover:bg-[#f5f5f3]"
                     )}
                   >
                     <span className="truncate">{inv.name}</span>
-                    <span className="text-xs tabular-nums text-[#9a8c7a]">
+                    <span className="text-xs tabular-nums text-[#888780]">
                       {inv.count}
                     </span>
                   </button>
@@ -369,12 +369,12 @@ export default function DocumentsPage() {
           {/* Search + Filters */}
           <div className="space-y-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9a8c7a]" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#888780]" />
               <Input
                 placeholder="Search documents..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-9 bg-white border-[#e8e0d4]"
+                className="pl-9 bg-white border-[#dfdedd]"
               />
             </div>
             <div className="flex flex-wrap gap-3">
@@ -385,7 +385,7 @@ export default function DocumentsPage() {
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="w-full sm:w-[180px] bg-white border-[#e8e0d4]">
+                <SelectTrigger className="w-full sm:w-[180px] bg-white border-[#dfdedd]">
                   <SelectValue placeholder="All years" />
                 </SelectTrigger>
                 <SelectContent>
@@ -405,7 +405,7 @@ export default function DocumentsPage() {
                     setPage(1);
                   }}
                 >
-                  <SelectTrigger className="w-[180px] bg-white border-[#e8e0d4]">
+                  <SelectTrigger className="w-[180px] bg-white border-[#dfdedd]">
                     <SelectValue placeholder="All types" />
                   </SelectTrigger>
                   <SelectContent>
@@ -427,7 +427,7 @@ export default function DocumentsPage() {
                     setPage(1);
                   }}
                 >
-                  <SelectTrigger className="w-[200px] bg-white border-[#e8e0d4]">
+                  <SelectTrigger className="w-[200px] bg-white border-[#dfdedd]">
                     <SelectValue placeholder="All investments" />
                   </SelectTrigger>
                   <SelectContent>
@@ -445,13 +445,13 @@ export default function DocumentsPage() {
 
           {/* Document List */}
           {loading ? (
-            <div className="bg-white rounded-xl border border-[#e8e0d4] divide-y divide-[#f5f0e8]">
+            <div className="bg-white rounded-xl border border-[#dfdedd] divide-y divide-[#eeece8]">
               {Array.from({ length: 5 }).map((_, i) => (
                 <DocumentSkeleton key={i} />
               ))}
             </div>
           ) : error ? (
-            <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
+            <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
               <p className="text-red-600">{error}</p>
             </div>
           ) : documents.length > 0 ? (
@@ -461,27 +461,27 @@ export default function DocumentsPage() {
                   CATEGORY_GROUPS[groupKey]?.label || "Other Documents";
                 return (
                   <div key={groupKey}>
-                    <h3 className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3">
+                    <h3 className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3">
                       {groupLabel}
                     </h3>
-                    <div className="bg-white rounded-xl border border-[#e8e0d4] divide-y divide-[#f5f0e8]">
+                    <div className="bg-white rounded-xl border border-[#dfdedd] divide-y divide-[#eeece8]">
                       {docs.map((doc) => (
                         <div
                           key={doc.id}
-                          className="flex items-center gap-4 p-4 hover:bg-[#faf8f5] transition-colors"
+                          className="flex items-center gap-4 p-4 hover:bg-[#f5f5f3] transition-colors"
                         >
                           {fileTypeBadge(doc.mimeType)}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-[#1a1a1a] truncate">
+                            <p className="text-sm font-medium text-[#1a1a18] truncate">
                               {doc.name}
                             </p>
-                            <div className="flex items-center gap-2 text-xs text-[#9a8c7a] mt-0.5">
+                            <div className="flex items-center gap-2 text-xs text-[#888780] mt-0.5">
                               <span>Uploaded {formatDate(doc.createdAt)}</span>
                               <span>&middot;</span>
                               <span>{formatFileSize(doc.fileSize)}</span>
                             </div>
                             {doc.advisorVisible && (
-                              <p className="text-xs text-[#b8860b] mt-0.5">
+                              <p className="text-xs text-[#B07D3A] mt-0.5">
                                 Visible to CPA
                               </p>
                             )}
@@ -489,12 +489,12 @@ export default function DocumentsPage() {
                           <div className="flex items-center gap-2 shrink-0">
                             <Badge
                               variant="outline"
-                              className="border-[#e8e0d4] text-[#6b7280] text-[10px]"
+                              className="border-[#dfdedd] text-[#5f5e5a] text-[10px]"
                             >
                               {typeLabel(doc.type)}
                             </Badge>
                             {isNew(doc.createdAt) && (
-                              <Badge className="bg-[#b8860b] text-white text-[10px] hover:bg-[#9a7209]">
+                              <Badge className="bg-[#B07D3A] text-white text-[10px] hover:bg-[#7A5520]">
                                 New
                               </Badge>
                             )}
@@ -506,7 +506,7 @@ export default function DocumentsPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="border-[#e8e0d4] text-[#4a4a4a] text-xs"
+                                className="border-[#dfdedd] text-[#5f5e5a] text-xs"
                               >
                                 Download
                               </Button>
@@ -522,7 +522,7 @@ export default function DocumentsPage() {
               {/* Pagination */}
               {data && data.total > data.pageSize && (
                 <div className="flex items-center justify-between pt-4">
-                  <p className="text-sm text-[#9a8c7a]">
+                  <p className="text-sm text-[#888780]">
                     Showing {(data.page - 1) * data.pageSize + 1}
                     {" - "}
                     {Math.min(data.page * data.pageSize, data.total)} of{" "}
@@ -534,7 +534,7 @@ export default function DocumentsPage() {
                       size="sm"
                       disabled={data.page <= 1}
                       onClick={() => setPage((p) => p - 1)}
-                      className="border-[#e8e0d4]"
+                      className="border-[#dfdedd]"
                     >
                       Previous
                     </Button>
@@ -543,7 +543,7 @@ export default function DocumentsPage() {
                       size="sm"
                       disabled={data.page * data.pageSize >= data.total}
                       onClick={() => setPage((p) => p + 1)}
-                      className="border-[#e8e0d4]"
+                      className="border-[#dfdedd]"
                     >
                       Next
                     </Button>
@@ -552,13 +552,13 @@ export default function DocumentsPage() {
               )}
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
+            <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
               <div className="text-center py-12">
-                <FolderOpen className="h-12 w-12 text-[#d4c5a9] mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-[#1a1a1a] mb-2">
+                <FolderOpen className="h-12 w-12 text-[#888780] mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-[#1a1a18] mb-2">
                   No Documents Found
                 </h3>
-                <p className="text-sm text-[#6b7280] max-w-md mx-auto">
+                <p className="text-sm text-[#5f5e5a] max-w-md mx-auto">
                   {search || selectedCategory !== "all" || selectedYear !== "all"
                     ? "No documents match your current filters. Try adjusting your search criteria."
                     : "Documents will appear here once they are uploaded by your advisor."}

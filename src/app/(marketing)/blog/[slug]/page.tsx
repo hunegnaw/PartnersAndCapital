@@ -61,7 +61,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     : [];
 
   return (
-    <div className="bg-[#faf8f5] min-h-screen">
+    <div className="bg-[#f5f5f3] min-h-screen">
       {/* Hero */}
       {post.heroImageUrl ? (
         <div className="relative h-[50vh] min-h-[400px]">
@@ -76,7 +76,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               {post.category && (
                 <span
                   className="text-xs font-medium px-2.5 py-1 rounded-full text-white"
-                  style={{ backgroundColor: post.category.color || "#b8860b" }}
+                  style={{ backgroundColor: post.category.color || "#B07D3A" }}
                 >
                   {post.category.name}
                 </span>
@@ -88,12 +88,12 @@ export default async function BlogPostPage({ params }: PageProps) {
           </div>
         </div>
       ) : (
-        <div className="bg-[#0f1c2e] py-20">
+        <div className="bg-[#1A2640] py-20">
           <div className="max-w-4xl mx-auto px-6">
             {post.category && (
               <span
                 className="text-xs font-medium px-2.5 py-1 rounded-full text-white inline-block mb-4"
-                style={{ backgroundColor: post.category.color || "#b8860b" }}
+                style={{ backgroundColor: post.category.color || "#B07D3A" }}
               >
                 {post.category.name}
               </span>
@@ -108,9 +108,9 @@ export default async function BlogPostPage({ params }: PageProps) {
       {/* Breadcrumbs + Meta */}
       <div className="max-w-4xl mx-auto px-6 pt-8">
         <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-          <Link href="/" className="hover:text-[#b8860b]">Home</Link>
+          <Link href="/" className="hover:text-[#B07D3A]">Home</Link>
           <span>/</span>
-          <Link href="/blog" className="hover:text-[#b8860b]">Partner Thoughts</Link>
+          <Link href="/blog" className="hover:text-[#B07D3A]">Partner Thoughts</Link>
           <span>/</span>
           <span className="text-gray-600 truncate">{post.title}</span>
         </nav>
@@ -137,7 +137,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       {/* Content */}
       <article className="max-w-4xl mx-auto px-6 pb-16">
         <div
-          className="prose prose-lg max-w-none prose-headings:text-[#0f1c2e] prose-a:text-[#b8860b] prose-strong:text-[#0f1c2e]"
+          className="prose prose-lg max-w-none prose-headings:text-[#1A2640] prose-a:text-[#B07D3A] prose-strong:text-[#1A2640]"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
@@ -163,7 +163,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       {relatedPosts.length > 0 && (
         <section className="bg-white py-16">
           <div className="max-w-6xl mx-auto px-6">
-            <h2 className="text-2xl font-bold text-[#0f1c2e] mb-8">
+            <h2 className="text-2xl font-bold text-[#1A2640] mb-8">
               Related Posts
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -182,11 +182,11 @@ export default async function BlogPostPage({ params }: PageProps) {
                       />
                     </div>
                   ) : (
-                    <div className="aspect-[16/10] rounded-lg bg-gradient-to-br from-[#0f1c2e] to-[#1e3a5f] flex items-center justify-center mb-3">
+                    <div className="aspect-[16/10] rounded-lg bg-gradient-to-br from-[#1A2640] to-[#1A2640] flex items-center justify-center mb-3">
                       <span className="text-white/20 text-4xl font-bold">P+C</span>
                     </div>
                   )}
-                  <h3 className="font-semibold text-[#0f1c2e] group-hover:text-[#b8860b] transition-colors">
+                  <h3 className="font-semibold text-[#1A2640] group-hover:text-[#B07D3A] transition-colors">
                     {rp.title}
                   </h3>
                   {rp.publishedAt && (

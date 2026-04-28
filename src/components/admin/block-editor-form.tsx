@@ -43,7 +43,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
         value={(props[field] as string) || ""}
         onChange={(e) => updateProp(field, e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#b8860b]/50"
+        className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
       />
     </div>
   );
@@ -64,7 +64,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       <select
         value={(props[field] as string) || ""}
         onChange={(e) => updateProp(field, e.target.value)}
-        className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#b8860b]/50"
+        className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -94,7 +94,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           value={(props[field] as string) || ""}
           onChange={(e) => updateProp(field, e.target.value)}
           placeholder="URL or select from media"
-          className="flex-1 px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#b8860b]/50"
+          className="flex-1 px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
         />
         <button
           type="button"
@@ -322,7 +322,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               onClick={() =>
                 updateProp("logos", [...logos, { imageUrl: "", alt: "" }])
               }
-              className="flex items-center gap-1 text-xs text-[#b8860b] hover:underline"
+              className="flex items-center gap-1 text-xs text-[#B07D3A] hover:underline"
             >
               <Plus size={12} /> Add Logo
             </button>
@@ -387,7 +387,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               onClick={() =>
                 updateProp("stats", [...stats, { value: "", label: "" }])
               }
-              className="flex items-center gap-1 text-xs text-[#b8860b] hover:underline"
+              className="flex items-center gap-1 text-xs text-[#B07D3A] hover:underline"
             >
               <Plus size={12} /> Add Stat
             </button>
@@ -454,7 +454,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               value={(props.text as string) || ""}
               onChange={(e) => updateProp("text", e.target.value)}
               rows={3}
-              className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#b8860b]/50"
+              className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
             />
           </div>
           <InputField label="Attribution" field="attribution" />

@@ -70,7 +70,7 @@ export function BlockTypePicker({
                     onSelect(type);
                     onClose();
                   }}
-                  className="flex flex-col items-center gap-2 p-4 rounded-lg border border-gray-200 hover:border-[#b8860b] hover:bg-[#faf8f5] transition-colors text-center"
+                  className="flex flex-col items-center gap-2 p-4 rounded-lg border border-gray-200 hover:border-[#B07D3A] hover:bg-[#f5f5f3] transition-colors text-center"
                 >
                   <Icon size={24} />
                   <span className="text-sm font-medium">{config.label}</span>

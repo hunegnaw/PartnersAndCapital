@@ -183,15 +183,15 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#1a1a1a]">
+          <h1 className="text-2xl font-bold text-[#1a1a18]">
             Client Management
           </h1>
-          <p className="text-sm text-[#6b7280] mt-1">
+          <p className="text-sm text-[#5f5e5a] mt-1">
             Add, update, and manage investor profiles. Records are archived, not
             deleted.
           </p>
         </div>
-        <Button onClick={handleAdd} className="bg-[#0f1c2e] hover:bg-[#1a2d45]">
+        <Button onClick={handleAdd} className="bg-[#1A2640] hover:bg-[#2C3E5C]">
           <Plus className="h-4 w-4 mr-1" />
           Add Client
         </Button>
@@ -206,54 +206,54 @@ export default function AdminDashboard() {
 
       {/* 3 Stat Cards */}
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="bg-white rounded-xl border border-[#e8e0d4] p-5">
-          <p className="text-xs text-[#9a8c7a] font-medium uppercase tracking-wider mb-1">
+        <div className="bg-white rounded-xl border border-[#dfdedd] p-5">
+          <p className="text-xs text-[#888780] font-medium uppercase tracking-wider mb-1">
             Total Clients
           </p>
           {statsLoading ? (
             <Skeleton className="h-8 w-20" />
           ) : (
             <>
-              <p className="text-2xl font-bold text-[#1a1a1a]">
+              <p className="text-2xl font-bold text-[#1a1a18]">
                 {stats?.totalClients ?? 0}
               </p>
-              <p className="text-xs text-[#9a8c7a] mt-1">
+              <p className="text-xs text-[#888780] mt-1">
                 +{stats?.newClientsThisMonth ?? 0} this month
               </p>
             </>
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-[#e8e0d4] p-5">
-          <p className="text-xs text-[#9a8c7a] font-medium uppercase tracking-wider mb-1">
+        <div className="bg-white rounded-xl border border-[#dfdedd] p-5">
+          <p className="text-xs text-[#888780] font-medium uppercase tracking-wider mb-1">
             Active Portals
           </p>
           {statsLoading ? (
             <Skeleton className="h-8 w-20" />
           ) : (
             <>
-              <p className="text-2xl font-bold text-[#1a1a1a]">
+              <p className="text-2xl font-bold text-[#1a1a18]">
                 {stats?.activePortals ?? 0}
               </p>
-              <p className="text-xs text-[#9a8c7a] mt-1">
+              <p className="text-xs text-[#888780] mt-1">
                 {stats?.pendingSetupClients ?? 0} pending setup
               </p>
             </>
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-[#e8e0d4] p-5">
-          <p className="text-xs text-[#9a8c7a] font-medium uppercase tracking-wider mb-1">
+        <div className="bg-white rounded-xl border border-[#dfdedd] p-5">
+          <p className="text-xs text-[#888780] font-medium uppercase tracking-wider mb-1">
             AUM (Total)
           </p>
           {statsLoading ? (
             <Skeleton className="h-8 w-32" />
           ) : (
             <>
-              <p className="text-2xl font-bold text-[#1a1a1a]">
+              <p className="text-2xl font-bold text-[#1a1a18]">
                 {formatCurrency(stats?.totalAUM ?? 0)}
               </p>
-              <p className="text-xs text-[#9a8c7a] mt-1">
+              <p className="text-xs text-[#888780] mt-1">
                 Across {stats?.activeInvestments ?? 0} deals
               </p>
             </>
@@ -262,9 +262,9 @@ export default function AdminDashboard() {
       </div>
 
       {/* Audit status bar */}
-      <div className="bg-white rounded-xl border border-[#e8e0d4] px-5 py-3 flex items-center gap-3">
+      <div className="bg-white rounded-xl border border-[#dfdedd] px-5 py-3 flex items-center gap-3">
         <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
-        <p className="text-sm text-[#4a4a4a]">
+        <p className="text-sm text-[#5f5e5a]">
           Audit log active — all changes tracked.
           {stats?.latestAuditEntry && (
             <>
@@ -280,12 +280,12 @@ export default function AdminDashboard() {
       {/* Search + Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9a8c7a]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#888780]" />
           <Input
             placeholder="Search clients..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="pl-9 bg-white border-[#e8e0d4]"
+            className="pl-9 bg-white border-[#dfdedd]"
           />
         </div>
         <Select
@@ -295,7 +295,7 @@ export default function AdminDashboard() {
             setPage(1);
           }}
         >
-          <SelectTrigger className="w-[160px] bg-white border-[#e8e0d4]">
+          <SelectTrigger className="w-[160px] bg-white border-[#dfdedd]">
             <SelectValue placeholder="All statuses" />
           </SelectTrigger>
           <SelectContent>
@@ -308,7 +308,7 @@ export default function AdminDashboard() {
           value={roleFilter}
           onValueChange={(v) => setRoleFilter(v ?? "all")}
         >
-          <SelectTrigger className="w-[160px] bg-white border-[#e8e0d4]">
+          <SelectTrigger className="w-[160px] bg-white border-[#dfdedd]">
             <SelectValue placeholder="All roles" />
           </SelectTrigger>
           <SelectContent>
@@ -317,7 +317,7 @@ export default function AdminDashboard() {
           </SelectContent>
         </Select>
         <a href="/api/admin/clients/export" target="_blank" rel="noopener noreferrer">
-          <Button variant="outline" className="border-[#e8e0d4]">
+          <Button variant="outline" className="border-[#dfdedd]">
             <Download className="h-4 w-4 mr-1" />
             Export CSV
           </Button>
@@ -332,7 +332,7 @@ export default function AdminDashboard() {
           setPage(1);
         }}
       >
-        <TabsList className="bg-white border border-[#e8e0d4]">
+        <TabsList className="bg-white border border-[#dfdedd]">
           <TabsTrigger value="all">All Clients</TabsTrigger>
           <TabsTrigger value="pending">Pending Setup</TabsTrigger>
           <TabsTrigger value="active">Active</TabsTrigger>
@@ -341,27 +341,27 @@ export default function AdminDashboard() {
       </Tabs>
 
       {/* Client Table */}
-      <div className="bg-white rounded-xl border border-[#e8e0d4] overflow-hidden">
+      <div className="bg-white rounded-xl border border-[#dfdedd] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#e8e0d4]">
-                <th className="text-left text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase px-4 py-3">
+              <tr className="border-b border-[#dfdedd]">
+                <th className="text-left text-[10px] font-semibold text-[#888780] tracking-widest uppercase px-4 py-3">
                   Client
                 </th>
-                <th className="text-right text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase px-4 py-3 hidden md:table-cell">
+                <th className="text-right text-[10px] font-semibold text-[#888780] tracking-widest uppercase px-4 py-3 hidden md:table-cell">
                   Invested
                 </th>
-                <th className="text-right text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase px-4 py-3 hidden md:table-cell">
+                <th className="text-right text-[10px] font-semibold text-[#888780] tracking-widest uppercase px-4 py-3 hidden md:table-cell">
                   Current Value
                 </th>
-                <th className="text-left text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase px-4 py-3 hidden lg:table-cell">
+                <th className="text-left text-[10px] font-semibold text-[#888780] tracking-widest uppercase px-4 py-3 hidden lg:table-cell">
                   Last Login
                 </th>
-                <th className="text-left text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase px-4 py-3">
+                <th className="text-left text-[10px] font-semibold text-[#888780] tracking-widest uppercase px-4 py-3">
                   Status
                 </th>
-                <th className="text-right text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase px-4 py-3">
+                <th className="text-right text-[10px] font-semibold text-[#888780] tracking-widest uppercase px-4 py-3">
                   Actions
                 </th>
               </tr>
@@ -369,7 +369,7 @@ export default function AdminDashboard() {
             <tbody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} className="border-b border-[#f5f0e8]">
+                  <tr key={i} className="border-b border-[#eeece8]">
                     <td className="px-4 py-3">
                       <Skeleton className="h-4 w-32" />
                     </td>
@@ -394,7 +394,7 @@ export default function AdminDashboard() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="text-center py-12 text-[#9a8c7a]"
+                    className="text-center py-12 text-[#888780]"
                   >
                     {search
                       ? "No clients match your search."
@@ -405,27 +405,27 @@ export default function AdminDashboard() {
                 clients.map((client) => (
                   <tr
                     key={client.id}
-                    className="border-b border-[#f5f0e8] last:border-0 cursor-pointer hover:bg-[#faf8f5] transition-colors"
+                    className="border-b border-[#eeece8] last:border-0 cursor-pointer hover:bg-[#f5f5f3] transition-colors"
                     onClick={() => router.push(`/admin/clients/${client.id}`)}
                   >
                     <td className="px-4 py-3">
                       <div>
-                        <p className="font-medium text-[#1a1a1a]">
+                        <p className="font-medium text-[#1a1a18]">
                           {client.name}
                         </p>
-                        <p className="text-xs text-[#9a8c7a]">
+                        <p className="text-xs text-[#888780]">
                           {client.email}
                           {client.company && ` \u00b7 ${client.company}`}
                         </p>
                       </div>
                     </td>
-                    <td className="text-right px-4 py-3 hidden md:table-cell tabular-nums text-[#4a4a4a]">
+                    <td className="text-right px-4 py-3 hidden md:table-cell tabular-nums text-[#5f5e5a]">
                       {client._count.clientInvestments > 0 ? "—" : "—"}
                     </td>
-                    <td className="text-right px-4 py-3 hidden md:table-cell tabular-nums text-[#4a4a4a]">
+                    <td className="text-right px-4 py-3 hidden md:table-cell tabular-nums text-[#5f5e5a]">
                       —
                     </td>
-                    <td className="px-4 py-3 hidden lg:table-cell text-[#9a8c7a]">
+                    <td className="px-4 py-3 hidden lg:table-cell text-[#888780]">
                       {client.lastLoginAt
                         ? formatDate(client.lastLoginAt)
                         : "Never"}
@@ -435,10 +435,10 @@ export default function AdminDashboard() {
                         className={cn(
                           "text-[10px] font-medium border",
                           client.deletedAt
-                            ? "border-red-200 text-red-600 bg-red-50"
+                            ? "border-[#a32d2d]/20 text-[#a32d2d] bg-[#feecec]"
                             : client._count.clientInvestments > 0
-                              ? "border-green-300 text-green-700 bg-green-50"
-                              : "border-amber-300 text-amber-700 bg-amber-50"
+                              ? "border-[#3b6d11]/20 text-[#3b6d11] bg-[#eaf3de]"
+                              : "border-[#7A5520]/20 text-[#7A5520] bg-[#FDF5E8]"
                         )}
                       >
                         {client.deletedAt
@@ -466,7 +466,7 @@ export default function AdminDashboard() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-8 w-8 p-0 text-[#9a8c7a] hover:text-red-600"
+                              className="h-8 w-8 p-0 text-[#888780] hover:text-red-600"
                               onClick={() => handleArchive(client.id)}
                               disabled={archiving === client.id}
                             >
@@ -487,7 +487,7 @@ export default function AdminDashboard() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-[#9a8c7a]">
+          <p className="text-sm text-[#888780]">
             Showing {(page - 1) * pageSize + 1}—
             {Math.min(page * pageSize, total)} of {total}
           </p>
@@ -497,7 +497,7 @@ export default function AdminDashboard() {
               size="sm"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="border-[#e8e0d4]"
+              className="border-[#dfdedd]"
             >
               <ChevronLeft className="h-4 w-4" />
               Previous
@@ -507,7 +507,7 @@ export default function AdminDashboard() {
               size="sm"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="border-[#e8e0d4]"
+              className="border-[#dfdedd]"
             >
               Next
               <ChevronRight className="h-4 w-4" />

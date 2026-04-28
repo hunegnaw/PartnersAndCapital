@@ -28,7 +28,7 @@ export function LogoGalleryBlock({ props }: LogoGalleryBlockProps) {
     <section className="py-16">
       <div className="mx-auto max-w-6xl px-6">
         {heading && (
-          <h2 className="mb-12 text-center text-3xl font-bold text-[#0f1c2e]">
+          <h2 className="mb-12 text-center text-3xl font-bold text-[#1A2640]">
             {heading}
           </h2>
         )}

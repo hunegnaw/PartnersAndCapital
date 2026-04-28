@@ -7,7 +7,7 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
   const text = (props.text as string) ?? "";
   const ctaText = (props.ctaText as string) ?? "";
   const ctaUrl = (props.ctaUrl as string) ?? "";
-  const backgroundColor = (props.backgroundColor as string) ?? "#0f1c2e";
+  const backgroundColor = (props.backgroundColor as string) ?? "#1A2640";
 
   return (
     <section className="py-20" style={{ backgroundColor }}>
@@ -19,7 +19,7 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
         {ctaText && ctaUrl && (
           <a
             href={ctaUrl}
-            className="mt-8 inline-block rounded-full bg-white px-8 py-3 text-lg font-semibold text-[#0f1c2e] transition hover:bg-white/90"
+            className="mt-8 inline-block rounded-full bg-white px-8 py-3 text-lg font-semibold text-[#1A2640] transition hover:bg-white/90"
           >
             {ctaText}
           </a>

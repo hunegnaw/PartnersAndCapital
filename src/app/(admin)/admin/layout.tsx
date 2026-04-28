@@ -65,12 +65,12 @@ export default async function AdminLayout({
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header */}
-      <header className="h-14 bg-[#0f1c2e] border-b border-white/10 flex items-center justify-between px-6">
+      <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-6">
         <div className="flex items-center gap-3">
           <span className="font-bold text-white text-sm tracking-widest uppercase">
             Partners + Capital
           </span>
-          <span className="bg-[#b8860b] text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full tracking-wider uppercase">
+          <span className="bg-[#B07D3A] text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full tracking-wider uppercase">
             Admin Portal
           </span>
         </div>
@@ -87,7 +87,7 @@ export default async function AdminLayout({
           >
             Settings
           </Link>
-          <div className="h-8 w-8 rounded-full bg-[#b8860b] flex items-center justify-center text-xs font-semibold text-white">
+          <div className="h-8 w-8 rounded-full bg-[#B07D3A] flex items-center justify-center text-xs font-semibold text-white">
             {initials}
           </div>
         </div>
@@ -95,10 +95,10 @@ export default async function AdminLayout({
 
       <div className="flex flex-1">
         {/* Light sidebar */}
-        <aside className="w-60 bg-white border-r border-[#e8e0d4] flex flex-col pt-6">
+        <aside className="w-60 bg-white border-r border-[#dfdedd] flex flex-col pt-6">
           <nav className="flex-1 px-4">
             {/* MANAGE section */}
-            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3 px-3">
+            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3 px-3">
               Manage
             </p>
             <ul className="space-y-0.5 mb-6">
@@ -106,14 +106,14 @@ export default async function AdminLayout({
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="flex items-center justify-between px-3 py-2 text-sm rounded-md text-[#4a4a4a] hover:text-[#b8860b] hover:bg-[#faf8f5] transition-colors"
+                    className="flex items-center justify-between px-3 py-2 text-sm rounded-md text-[#5f5e5a] hover:text-[#7A5520] hover:bg-[#FDF5E8] transition-colors"
                   >
                     <span className="flex items-center gap-3">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#d4c5a9]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#B07D3A] opacity-40" />
                       {item.label}
                     </span>
                     {item.count !== undefined && (
-                      <span className="text-[10px] bg-[#f5f0e8] text-[#9a8c7a] px-2 py-0.5 rounded-full tabular-nums">
+                      <span className="text-[10px] bg-[#f5f5f3] text-[#888780] px-2 py-0.5 rounded-full tabular-nums">
                         {item.count}
                       </span>
                     )}
@@ -123,7 +123,7 @@ export default async function AdminLayout({
             </ul>
 
             {/* WEBSITE section */}
-            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3 px-3">
+            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3 px-3">
               Website
             </p>
             <ul className="space-y-0.5 mb-6">
@@ -131,14 +131,14 @@ export default async function AdminLayout({
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="flex items-center justify-between px-3 py-2 text-sm rounded-md text-[#4a4a4a] hover:text-[#b8860b] hover:bg-[#faf8f5] transition-colors"
+                    className="flex items-center justify-between px-3 py-2 text-sm rounded-md text-[#5f5e5a] hover:text-[#7A5520] hover:bg-[#FDF5E8] transition-colors"
                   >
                     <span className="flex items-center gap-3">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#d4c5a9]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#B07D3A] opacity-40" />
                       {item.label}
                     </span>
                     {item.count !== undefined && (
-                      <span className="text-[10px] bg-[#f5f0e8] text-[#9a8c7a] px-2 py-0.5 rounded-full tabular-nums">
+                      <span className="text-[10px] bg-[#f5f5f3] text-[#888780] px-2 py-0.5 rounded-full tabular-nums">
                         {item.count}
                       </span>
                     )}
@@ -148,7 +148,7 @@ export default async function AdminLayout({
             </ul>
 
             {/* SYSTEM section */}
-            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3 px-3">
+            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3 px-3">
               System
             </p>
             <ul className="space-y-0.5 mb-6">
@@ -156,9 +156,9 @@ export default async function AdminLayout({
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#4a4a4a] hover:text-[#b8860b] hover:bg-[#faf8f5] transition-colors"
+                    className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#5f5e5a] hover:text-[#7A5520] hover:bg-[#FDF5E8] transition-colors"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#d4c5a9]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#B07D3A] opacity-40" />
                     {item.label}
                   </Link>
                 </li>
@@ -166,26 +166,26 @@ export default async function AdminLayout({
             </ul>
 
             {/* Back to portal */}
-            <div className="px-3 pt-4 border-t border-[#e8e0d4]">
+            <div className="px-3 pt-4 border-t border-[#dfdedd]">
               <Link
                 href="/"
-                className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#9a8c7a] hover:text-[#4a4a4a] transition-colors"
+                className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#888780] hover:text-[#5f5e5a] transition-colors"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#d4c5a9]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#B07D3A] opacity-40" />
                 Back to Portal
               </Link>
               <Link
                 href="/api/auth/signout"
-                className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#4a4a4a] hover:text-red-600 hover:bg-red-50 transition-colors"
+                className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#5f5e5a] hover:text-[#a32d2d] hover:bg-red-50 transition-colors"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#d4c5a9]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#B07D3A] opacity-40" />
                 Log Out
               </Link>
             </div>
           </nav>
         </aside>
 
-        <main className="flex-1 bg-[#faf8f5] overflow-auto">{children}</main>
+        <main className="flex-1 bg-[#f5f5f3] overflow-auto">{children}</main>
       </div>
     </div>
   );
