@@ -32,7 +32,7 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
-import { formatDate, cn } from "@/lib/utils";
+import { formatDate, formatDateOnly, cn } from "@/lib/utils";
 
 interface AdvisorAccess {
   permissionLevel: string;
@@ -577,7 +577,7 @@ export default function AdvisorsPage() {
                       {advisor.status === "ACTIVE" ? (
                         <>
                           {access?.expiresAt &&
-                            `Expires ${formatDate(access.expiresAt)}`}
+                            `Expires ${formatDateOnly(access.expiresAt)}`}
                           {access?.expiresAt &&
                             advisor.lastViewedAt &&
                             " \u00b7 "}

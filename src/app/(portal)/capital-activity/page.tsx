@@ -24,7 +24,7 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
-import { formatCurrency, formatDate, cn } from "@/lib/utils";
+import { formatCurrency, formatDateOnly, cn } from "@/lib/utils";
 
 interface Contribution {
   id: string;
@@ -139,7 +139,7 @@ function ActivityTable({ rows }: { rows: ActivityRow[] }) {
         {rows.map((row) => (
           <TableRow key={`${row.type}-${row.id}`}>
             <TableCell className="text-sm whitespace-nowrap">
-              {formatDate(row.date)}
+              {formatDateOnly(row.date)}
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-1.5">

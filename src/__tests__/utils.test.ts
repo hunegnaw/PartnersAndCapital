@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatCurrency, formatCurrencyDetailed, formatPercentage, formatDate, formatDateTime, formatMonthYear, formatTimeAgo } from "@/lib/utils";
+import { formatCurrency, formatCurrencyDetailed, formatPercentage, formatDate, formatDateOnly, formatDateTime, formatMonthYear, formatTimeAgo } from "@/lib/utils";
 
 describe("formatCurrency", () => {
   it("formats whole dollar amounts", () => {
@@ -32,18 +32,29 @@ describe("formatPercentage", () => {
 });
 
 describe("formatDate", () => {
-  it("formats dates in America/New_York timezone", () => {
-    const result = formatDate(new Date("2025-01-15T12:00:00Z"));
+  it("includes date, time, and ET timezone", () => {
+    const result = formatDate(new Date("2025-01-15T17:30:00Z"));
     expect(result).toContain("Jan");
     expect(result).toContain("2025");
+    expect(result).toContain("ET");
+  });
+});
+
+describe("formatDateOnly", () => {
+  it("formats date without time", () => {
+    const result = formatDateOnly(new Date("2025-01-15T12:00:00Z"));
+    expect(result).toContain("Jan");
+    expect(result).toContain("2025");
+    expect(result).not.toContain("ET");
   });
 });
 
 describe("formatDateTime", () => {
-  it("formats date with time", () => {
-    const result = formatDateTime(new Date("2025-06-15T18:30:00Z"));
+  it("includes seconds and ET timezone", () => {
+    const result = formatDateTime(new Date("2025-06-15T18:30:45Z"));
     expect(result).toContain("Jun");
     expect(result).toContain("2025");
+    expect(result).toContain("ET");
   });
 });
 

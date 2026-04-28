@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, FolderOpen } from "lucide-react";
-import { formatDate, cn } from "@/lib/utils";
+import { formatDate, formatDateOnly, cn } from "@/lib/utils";
 
 interface Document {
   id: string;
@@ -285,7 +285,7 @@ export default function DocumentsPage() {
               <p className="text-xs text-[#9a8c7a]">
                 View + Download
                 {advisorAccess.expiresAt &&
-                  ` \u00b7 Expires ${formatDate(advisorAccess.expiresAt)}`}
+                  ` \u00b7 Expires ${formatDateOnly(advisorAccess.expiresAt)}`}
               </p>
             </div>
           </div>

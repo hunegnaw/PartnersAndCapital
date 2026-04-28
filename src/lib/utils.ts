@@ -32,7 +32,21 @@ export function formatPercentage(value: number | string): string {
 
 const TZ = "America/New_York";
 
+/** Date + time: "Jan 15, 2025, 2:30 PM ET" — default for all UI timestamps */
 export function formatDate(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: TZ,
+  }).format(d) + " ET";
+}
+
+/** Date only: "Jan 15, 2025" — for investment dates, expiration dates, etc. */
+export function formatDateOnly(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
@@ -42,17 +56,18 @@ export function formatDate(date: Date | string): string {
   }).format(d);
 }
 
+/** Full precision: "Jan 15, 2025, 2:30:45 PM ET" — for audit logs, activity feeds */
 export function formatDateTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
-    hour: "2-digit",
+    hour: "numeric",
     minute: "2-digit",
     second: "2-digit",
     timeZone: TZ,
-  }).format(d);
+  }).format(d) + " ET";
 }
 
 export function formatMonthYear(date: Date | string): string {

@@ -20,7 +20,7 @@ import { InvestmentFormDialog } from "@/components/admin/investment-form-dialog"
 import { ClientInvestmentDialog } from "@/components/admin/client-investment-dialog"
 import { DealRoomUpdateDialog } from "@/components/admin/deal-room-update-dialog"
 import { DocumentUploadDialog } from "@/components/admin/document-upload-dialog"
-import { formatCurrency, formatDate, formatPercentage } from "@/lib/utils"
+import { formatCurrency, formatDate, formatDateOnly, formatPercentage } from "@/lib/utils"
 import {
   ArrowLeft,
   Pencil,
@@ -317,13 +317,13 @@ export default function AdminInvestmentDetailPage({
                 <div>
                   <p className="text-sm text-muted-foreground">Start Date</p>
                   <p className="text-sm mt-1">
-                    {investment.startDate ? formatDate(investment.startDate) : "--"}
+                    {investment.startDate ? formatDateOnly(investment.startDate) : "--"}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">End Date</p>
                   <p className="text-sm mt-1">
-                    {investment.endDate ? formatDate(investment.endDate) : "--"}
+                    {investment.endDate ? formatDateOnly(investment.endDate) : "--"}
                   </p>
                 </div>
                 <div>
@@ -394,7 +394,7 @@ export default function AdminInvestmentDetailPage({
                         <TableCell className="text-right">
                           {formatCurrency(ci.currentValue)}
                         </TableCell>
-                        <TableCell>{formatDate(ci.investmentDate)}</TableCell>
+                        <TableCell>{formatDateOnly(ci.investmentDate)}</TableCell>
                       </TableRow>
                     ))
                   )}

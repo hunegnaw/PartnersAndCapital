@@ -14,7 +14,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { formatCurrency, formatDate, formatMonthYear, formatShortDate, cn } from "@/lib/utils";
+import { formatCurrency, formatDate, formatDateOnly, formatMonthYear, formatShortDate, cn } from "@/lib/utils";
 
 interface InvestmentDetail {
   id: string;
@@ -195,7 +195,7 @@ export default function InvestmentDetailPage({
     { label: "Location", value: data.investment.location },
     {
       label: "Investment date",
-      value: data.investmentDate ? formatDate(data.investmentDate) : null,
+      value: data.investmentDate ? formatDateOnly(data.investmentDate) : null,
     },
     { label: "Target hold", value: data.investment.targetHoldPeriod },
     {
@@ -267,7 +267,7 @@ export default function InvestmentDetailPage({
               {formatCurrency(data.amountInvested)}
             </p>
             <p className="text-xs text-[#9a8c7a] mt-0.5">
-              {data.investmentDate ? formatDate(data.investmentDate) : ""}
+              {data.investmentDate ? formatDateOnly(data.investmentDate) : ""}
             </p>
           </div>
 

@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { ClientFormDialog } from "@/components/admin/client-form-dialog"
-import { cn, formatCurrency, formatDate } from "@/lib/utils"
+import { cn, formatCurrency, formatDate, formatDateOnly } from "@/lib/utils"
 import {
   ArrowLeft,
   Pencil,
@@ -296,7 +296,7 @@ export default function AdminClientDetailPage({
                         <TableCell className="text-right">
                           {formatCurrency(ci.currentValue)}
                         </TableCell>
-                        <TableCell>{formatDate(ci.investmentDate)}</TableCell>
+                        <TableCell>{formatDateOnly(ci.investmentDate)}</TableCell>
                       </TableRow>
                     ))
                   )}
