@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createBulkNotifications } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
 import { ticketReplyEmail } from "@/lib/email-templates";
+import { getEffectiveUserId, requireNotImpersonating } from "@/lib/impersonation";
 
 export async function GET(
   request: Request,
@@ -13,10 +14,11 @@ export async function GET(
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 
+    const { userId } = await getEffectiveUserId();
     const { id } = await params;
 
     const ticket = await prisma.supportTicket.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId },
       include: {
         replies: {
           include: {
@@ -46,6 +48,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const blocked = await requireNotImpersonating();
+    if (blocked) return blocked;
+
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 

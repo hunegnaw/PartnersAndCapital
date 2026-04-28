@@ -2,11 +2,14 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { getEffectiveUserId, requireNotImpersonating } from "@/lib/impersonation";
 
 export async function GET(request: Request) {
   try {
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
+
+    const { userId } = await getEffectiveUserId();
 
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
@@ -17,7 +20,7 @@ export async function GET(request: Request) {
     const unreadOnly = searchParams.get("unreadOnly") === "true";
 
     const where: Prisma.NotificationWhereInput = {
-      userId: user.id,
+      userId,
       ...(unreadOnly ? { read: false } : {}),
     };
 
@@ -35,7 +38,7 @@ export async function GET(request: Request) {
     const unreadCount = unreadOnly
       ? total
       : await prisma.notification.count({
-          where: { userId: user.id, read: false },
+          where: { userId, read: false },
         });
 
     return NextResponse.json({
@@ -56,6 +59,9 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
+    const blocked = await requireNotImpersonating();
+    if (blocked) return blocked;
+
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 

@@ -6,14 +6,17 @@ import { createNotification } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
 import { advisorInviteEmail } from "@/lib/email-templates";
 import crypto from "crypto";
+import { getEffectiveUserId, requireNotImpersonating } from "@/lib/impersonation";
 
 export async function GET() {
   try {
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 
+    const { userId } = await getEffectiveUserId();
+
     const advisors = await prisma.advisor.findMany({
-      where: { clientId: user.id },
+      where: { clientId: userId },
       include: {
         accesses: {
           select: {
@@ -68,7 +71,7 @@ export async function GET() {
           { action: "REVOKE_ADVISOR" },
           { action: "RESEND_ADVISOR_INVITE" },
         ],
-        userId: user.id,
+        userId: userId,
       },
       orderBy: { createdAt: "desc" },
       take: 10,
@@ -98,6 +101,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const blocked = await requireNotImpersonating();
+    if (blocked) return blocked;
+
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 

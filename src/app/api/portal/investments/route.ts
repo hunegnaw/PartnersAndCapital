@@ -1,15 +1,18 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { getEffectiveUserId } from "@/lib/impersonation";
 
 export async function GET() {
   try {
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 
+    const { userId } = await getEffectiveUserId();
+
     const investments = await prisma.clientInvestment.findMany({
       where: {
-        userId: user.id,
+        userId,
         deletedAt: null,
         investment: { deletedAt: null },
       },

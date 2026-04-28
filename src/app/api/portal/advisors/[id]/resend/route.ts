@@ -5,12 +5,16 @@ import { createAuditLog } from "@/lib/audit";
 import { sendEmail } from "@/lib/email";
 import { advisorInviteEmail } from "@/lib/email-templates";
 import crypto from "crypto";
+import { requireNotImpersonating } from "@/lib/impersonation";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const blocked = await requireNotImpersonating();
+    if (blocked) return blocked;
+
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 

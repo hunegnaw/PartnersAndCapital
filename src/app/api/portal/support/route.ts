@@ -2,14 +2,17 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createBulkNotifications } from "@/lib/notifications";
+import { getEffectiveUserId, requireNotImpersonating } from "@/lib/impersonation";
 
 export async function GET() {
   try {
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 
+    const { userId } = await getEffectiveUserId();
+
     const tickets = await prisma.supportTicket.findMany({
-      where: { userId: user.id },
+      where: { userId },
       include: {
         _count: { select: { replies: true } },
       },
@@ -28,6 +31,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const blocked = await requireNotImpersonating();
+    if (blocked) return blocked;
+
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 

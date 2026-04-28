@@ -1,15 +1,18 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { getEffectiveUserId } from "@/lib/impersonation";
 
 export async function GET() {
   try {
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 
+    const { userId } = await getEffectiveUserId();
+
     // Get all client investments for scoping
     const clientInvestmentIds = await prisma.clientInvestment.findMany({
-      where: { userId: user.id, deletedAt: null },
+      where: { userId, deletedAt: null },
       select: { id: true },
     });
     const ciIds = clientInvestmentIds.map((ci) => ci.id);
@@ -17,7 +20,7 @@ export async function GET() {
     const [contributions, distributions] = await Promise.all([
       prisma.contribution.findMany({
         where: {
-          userId: user.id,
+          userId,
           clientInvestmentId: { in: ciIds },
           deletedAt: null,
         },
@@ -34,7 +37,7 @@ export async function GET() {
       }),
       prisma.distribution.findMany({
         where: {
-          userId: user.id,
+          userId,
           clientInvestmentId: { in: ciIds },
           deletedAt: null,
         },

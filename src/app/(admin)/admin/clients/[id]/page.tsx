@@ -31,6 +31,7 @@ import {
   Briefcase,
   FileText,
   UserCog,
+  Eye,
 } from "lucide-react"
 
 interface ClientInvestment {
@@ -84,6 +85,7 @@ export default function AdminClientDetailPage({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
+  const [impersonating, setImpersonating] = useState(false)
 
   const fetchClient = useCallback(async () => {
     setLoading(true)
@@ -164,10 +166,39 @@ export default function AdminClientDetailPage({
           <h1 className="text-2xl font-bold">{client.name}</h1>
           <p className="text-muted-foreground mt-1">Client account details</p>
         </div>
-        <Button onClick={() => setEditOpen(true)}>
-          <Pencil className="h-4 w-4" />
-          Edit Client
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            disabled={impersonating}
+            onClick={async () => {
+              setImpersonating(true)
+              try {
+                const res = await fetch("/api/admin/impersonate", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ clientId: id }),
+                })
+                if (res.ok) {
+                  router.push("/dashboard")
+                } else {
+                  const data = await res.json()
+                  setError(data.error || "Failed to start impersonation")
+                  setImpersonating(false)
+                }
+              } catch {
+                setError("Failed to start impersonation")
+                setImpersonating(false)
+              }
+            }}
+          >
+            <Eye className="h-4 w-4" />
+            {impersonating ? "Loading..." : "View as Client"}
+          </Button>
+          <Button onClick={() => setEditOpen(true)}>
+            <Pencil className="h-4 w-4" />
+            Edit Client
+          </Button>
+        </div>
       </div>
 
       {/* Profile Card */}

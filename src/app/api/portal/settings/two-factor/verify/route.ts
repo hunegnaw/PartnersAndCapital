@@ -5,9 +5,13 @@ import { createAuditLog } from "@/lib/audit";
 import { verifyTOTP } from "@/lib/two-factor";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
+import { requireNotImpersonating } from "@/lib/impersonation";
 
 export async function POST(request: Request) {
   try {
+    const blocked = await requireNotImpersonating();
+    if (blocked) return blocked;
+
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 

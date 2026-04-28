@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { getEffectiveUserId } from "@/lib/impersonation";
 
 // Allocation color mapping
 const ASSET_CLASS_COLORS: Record<string, string> = {
@@ -15,9 +16,11 @@ export async function GET() {
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 
+    const { userId } = await getEffectiveUserId();
+
     // Get user's active client investments with asset class info
     const clientInvestments = await prisma.clientInvestment.findMany({
-      where: { userId: user.id, deletedAt: null },
+      where: { userId, deletedAt: null },
       include: {
         investment: {
           include: { assetClass: true },
@@ -46,7 +49,7 @@ export async function GET() {
     // Total completed distributions
     const distributions = await prisma.distribution.findMany({
       where: {
-        userId: user.id,
+        userId,
         status: "COMPLETED",
         deletedAt: null,
       },
@@ -107,7 +110,7 @@ export async function GET() {
     const [contributions, allDistributions] = await Promise.all([
       prisma.contribution.findMany({
         where: {
-          userId: user.id,
+          userId,
           status: "COMPLETED",
           deletedAt: null,
           date: { gte: twelveMonthsAgo },
@@ -116,7 +119,7 @@ export async function GET() {
       }),
       prisma.distribution.findMany({
         where: {
-          userId: user.id,
+          userId,
           status: "COMPLETED",
           deletedAt: null,
           date: { gte: twelveMonthsAgo },
@@ -136,7 +139,7 @@ export async function GET() {
     // Compute baseline (value before the 12-month window)
     const priorContributions = await prisma.contribution.aggregate({
       where: {
-        userId: user.id,
+        userId,
         status: "COMPLETED",
         deletedAt: null,
         date: { lt: twelveMonthsAgo },
@@ -145,7 +148,7 @@ export async function GET() {
     });
     const priorDistributions = await prisma.distribution.aggregate({
       where: {
-        userId: user.id,
+        userId,
         status: "COMPLETED",
         deletedAt: null,
         date: { lt: twelveMonthsAgo },
@@ -213,7 +216,7 @@ export async function GET() {
       where: {
         deletedAt: null,
         OR: [
-          { userId: user.id },
+          { userId },
           { investmentId: { in: clientInvestmentIds } },
         ],
       },
@@ -238,7 +241,7 @@ export async function GET() {
         deletedAt: null,
         OR: [
           { isBroadcast: true },
-          { targetUserId: user.id },
+          { targetUserId: userId },
         ],
       },
       select: {

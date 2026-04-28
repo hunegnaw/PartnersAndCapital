@@ -2,6 +2,9 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { NotificationBell } from "@/components/portal/notification-bell";
+import { getImpersonationContext } from "@/lib/impersonation";
+import { ImpersonationBanner } from "@/components/impersonation-banner";
+import { prisma } from "@/lib/prisma";
 
 const investorNav = [
   { href: "/dashboard", label: "Dashboard" },
@@ -27,16 +30,33 @@ export default async function PortalLayout({
     redirect("/login");
   }
 
-  if (session.user.role !== "CLIENT") {
+  const impersonation = await getImpersonationContext();
+
+  if (session.user.role !== "CLIENT" && !impersonation) {
     if (session.user.role === "ADVISOR") {
       redirect("/advisor/dashboard");
     }
+    // Admin/Super_Admin without impersonation — redirect to admin
+    redirect("/admin");
   }
 
-  const initials = session.user.name
-    ? session.user.name
+  // When impersonating, look up the client's name for the banner and initials
+  let impersonatedClient: { id: string; name: string | null } | null = null;
+  if (impersonation) {
+    impersonatedClient = await prisma.user.findUnique({
+      where: { id: impersonation.clientId },
+      select: { id: true, name: true },
+    });
+  }
+
+  const displayName = impersonation
+    ? impersonatedClient?.name || "Client"
+    : session.user.name;
+
+  const initials = displayName
+    ? displayName
         .split(" ")
-        .map((n) => n[0])
+        .map((n: string) => n[0])
         .join("")
         .toUpperCase()
         .slice(0, 2)
@@ -44,6 +64,12 @@ export default async function PortalLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
+      {impersonation && impersonatedClient && (
+        <ImpersonationBanner
+          clientName={impersonatedClient.name || "Client"}
+          clientId={impersonation.clientId}
+        />
+      )}
       {/* Top nav bar */}
       <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-6">
         <div className="flex items-center gap-3">

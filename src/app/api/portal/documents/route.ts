@@ -2,11 +2,14 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { getEffectiveUserId } from "@/lib/impersonation";
 
 export async function GET(request: Request) {
   try {
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
+
+    const { userId } = await getEffectiveUserId();
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
@@ -21,7 +24,7 @@ export async function GET(request: Request) {
 
     // Get user's investment IDs for scoping
     const clientInvestments = await prisma.clientInvestment.findMany({
-      where: { userId: user.id, deletedAt: null },
+      where: { userId, deletedAt: null },
       select: {
         investmentId: true,
         investment: { select: { id: true, name: true } },
@@ -32,7 +35,7 @@ export async function GET(request: Request) {
     // Base ownership filter: documents assigned to user OR to user's investments
     const ownershipFilter: Prisma.DocumentWhereInput = {
       OR: [
-        { userId: user.id },
+        { userId },
         { investmentId: { in: investmentIds } },
       ],
     };
@@ -118,7 +121,7 @@ export async function GET(request: Request) {
     // Get advisor info for CPA banner
     const advisorWithAccess = await prisma.advisor.findFirst({
       where: {
-        clientId: user.id,
+        clientId: userId,
         status: "ACTIVE",
         accesses: {
           some: {

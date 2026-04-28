@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { getDecryptedFile } from "@/lib/upload";
+import { getEffectiveUserId } from "@/lib/impersonation";
 
 export async function GET(
   request: Request,
@@ -12,6 +13,7 @@ export async function GET(
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 
+    const { userId } = await getEffectiveUserId();
     const { id } = await params;
 
     // Fetch the document
@@ -29,12 +31,12 @@ export async function GET(
     // Verify ownership: document belongs to user directly or via investment
     let hasAccess = false;
 
-    if (document.userId === user.id) {
+    if (document.userId === userId) {
       hasAccess = true;
     } else if (document.investmentId) {
       const clientInvestment = await prisma.clientInvestment.findFirst({
         where: {
-          userId: user.id,
+          userId,
           investmentId: document.investmentId,
           deletedAt: null,
         },

@@ -3,9 +3,13 @@ import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { hashPassword, verifyPassword } from "@/lib/auth";
+import { requireNotImpersonating } from "@/lib/impersonation";
 
 export async function POST(request: Request) {
   try {
+    const blocked = await requireNotImpersonating();
+    if (blocked) return blocked;
+
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 

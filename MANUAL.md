@@ -20,7 +20,8 @@ This manual covers setup, administration, and usage of the Partners + Capital in
 12. [Deployment Basics](#deployment-basics)
 13. [Production Seeding](#production-seeding)
 14. [Troubleshooting](#troubleshooting)
-15. [Feature Roadmap](#feature-roadmap)
+15. [Admin "View as Client"](#admin-view-as-client-impersonation)
+16. [Feature Roadmap](#feature-roadmap)
 
 ---
 
@@ -148,6 +149,7 @@ The admin landing page at `/admin` is the Client Management view. It provides:
 | `/admin/audit-log`     | View audit trail of all system actions                |
 | `/admin/api-keys`      | Create and manage API keys for external integrations |
 | `/admin/settings`      | Organization settings (branding, colors, 2FA policy) |
+| `/admin/clients/[id]`  | Client detail with "View as Client" impersonation    |
 
 ### Admin Roles
 
@@ -907,6 +909,65 @@ The portal uses a refined color palette throughout all components:
 
 ---
 
+## Admin "View as Client" (Impersonation)
+
+### Overview
+
+Admins can view the client portal exactly as a specific client sees it -- same layout, data, and experience -- without being able to modify anything. This is useful for support, troubleshooting, and verifying a client's view.
+
+### Starting Impersonation
+
+1. Navigate to `/admin/clients/[id]` (the client detail page).
+2. Click the **"View as Client"** button next to "Edit Client."
+3. The browser redirects to the client's `/dashboard`, showing their portal with all their data.
+4. An **amber banner** appears at the top of every page: "Viewing as [Client Name] -- Read-only mode" with an **Exit** button.
+
+### Read-Only Enforcement
+
+While impersonating, **all write operations are blocked** with a 403 error:
+
+- Profile updates (name, phone, company)
+- Password changes
+- 2FA setup, verify, and disable
+- Support ticket creation and replies
+- Advisor invitations, edits, revocations, and resends
+- Marking notifications as read
+
+All read operations work normally -- the admin can browse the dashboard, portfolio, documents, distributions, advisors, notifications, settings, and support tickets as the client sees them.
+
+### Exiting Impersonation
+
+Click the **"Exit"** button in the amber banner. The admin is redirected back to the client's admin detail page (`/admin/clients/[id]`).
+
+Impersonation also expires automatically after 1 hour.
+
+### Audit Trail
+
+Two audit log entries are created for each impersonation session:
+
+| Action | Logged When |
+|--------|------------|
+| `IMPERSONATE_START` | Admin clicks "View as Client" |
+| `IMPERSONATE_END` | Admin clicks "Exit" |
+
+Both entries record the admin's user ID and the target client ID.
+
+### Security
+
+- Only users with `ADMIN` or `SUPER_ADMIN` role can impersonate.
+- The impersonation cookie is HTTP-only, secure (in production), and scoped to the session.
+- The server validates the admin's real JWT role on every request -- the cookie alone is not sufficient.
+- Non-admin users cannot set or use the impersonation cookie.
+
+### API Route
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/api/admin/impersonate` | POST | Start impersonation (body: `{ clientId }`) |
+| `/api/admin/impersonate` | DELETE | End impersonation (clears cookie) |
+
+---
+
 ## Feature Roadmap
 
 | Phase | Name                         | Status      |
@@ -957,3 +1018,4 @@ The portal uses a refined color palette throughout all components:
 - Portal-identifying header badges (Client Portal, Admin Portal, Advisor Portal)
 - Consistent status badge colors across all pages (green/blue/gold/red palette)
 - Login redirect fix: authenticated users without homepage redirect to their portal
+- Admin "View as Client" impersonation with read-only enforcement and audit logging

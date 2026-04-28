@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { getEffectiveUserId } from "@/lib/impersonation";
 
 export async function GET(
   request: Request,
@@ -10,12 +11,13 @@ export async function GET(
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 
+    const { userId } = await getEffectiveUserId();
     const { id } = await params;
 
     const clientInvestment = await prisma.clientInvestment.findFirst({
       where: {
         id,
-        userId: user.id,
+        userId,
         deletedAt: null,
       },
       include: {
