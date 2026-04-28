@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
+import { passwordResetEmail } from "@/lib/email-templates";
 import crypto from "crypto";
 
 export async function POST(request: Request) {
@@ -37,12 +38,7 @@ export async function POST(request: Request) {
     await sendEmail({
       to: email,
       subject: "Reset Your Password",
-      html: `
-        <p>You requested a password reset.</p>
-        <p><a href="${resetUrl}">Click here to reset your password</a></p>
-        <p>This link expires in 1 hour.</p>
-        <p>If you didn't request this, you can safely ignore this email.</p>
-      `,
+      html: passwordResetEmail({ userName: user.name || "Investor", resetUrl }),
     });
 
     return NextResponse.json({ message: "If an account exists, a reset link has been sent." });

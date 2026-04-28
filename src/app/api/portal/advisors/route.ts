@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
+import { sendEmail } from "@/lib/email";
+import { advisorInviteEmail } from "@/lib/email-templates";
 import crypto from "crypto";
 
 export async function GET() {
@@ -161,6 +163,28 @@ export async function POST(request: Request) {
       targetId: advisor.id,
       details: { email, name, permissionLevel },
       request,
+    });
+
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const acceptUrl = `${baseUrl}/advisor-accept?token=${invitationToken}`;
+
+    const permissionLabels: Record<string, string> = {
+      DASHBOARD_ONLY: "Dashboard only — portfolio summary and performance numbers",
+      DASHBOARD_AND_TAX_DOCUMENTS: "Dashboard + tax documents (K-1s and 1099s)",
+      DASHBOARD_AND_DOCUMENTS: "Dashboard + all documents",
+      SPECIFIC_INVESTMENT: "Specific investment access only",
+    };
+
+    await sendEmail({
+      to: email,
+      subject: `${user.name || "An investor"} has invited you to view their portfolio`,
+      html: advisorInviteEmail({
+        clientName: user.name || "An investor",
+        advisorName: name || "Advisor",
+        permissionLevel: permissionLabels[permissionLevel] || permissionLevel,
+        expiresAt: expiresAt || null,
+        acceptUrl,
+      }),
     });
 
     return NextResponse.json(advisor, { status: 201 });
