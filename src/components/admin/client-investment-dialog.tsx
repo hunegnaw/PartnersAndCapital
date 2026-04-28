@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { DatePicker } from "@/components/ui/date-picker"
 import {
   Select,
   SelectContent,
@@ -145,12 +146,12 @@ export function ClientInvestmentDialog({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="ci-date">Investment Date</Label>
-              <Input
-                id="ci-date"
-                type="date"
+              <Label>Investment Date</Label>
+              <DatePicker
                 value={investmentDate}
-                onChange={(e) => setInvestmentDate(e.target.value)}
+                onChange={setInvestmentDate}
+                placeholder="Select date"
+                clearable
               />
             </div>
           </div>

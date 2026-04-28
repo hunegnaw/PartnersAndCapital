@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Loader2 } from "lucide-react"
+import { DatePicker } from "@/components/ui/date-picker"
 
 interface AssetClassOption {
   id: string
@@ -290,22 +291,21 @@ export function InvestmentFormDialog({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="inv-start-date">Start Date</Label>
-                <Input
-                  id="inv-start-date"
-                  type="date"
+                <Label>Start Date</Label>
+                <DatePicker
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
+                  onChange={setStartDate}
+                  placeholder="Select start date"
                 />
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="inv-end-date">End Date</Label>
-                <Input
-                  id="inv-end-date"
-                  type="date"
+                <Label>End Date</Label>
+                <DatePicker
                   value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
+                  onChange={setEndDate}
+                  placeholder="Select end date"
+                  clearable
                 />
               </div>
             </div>

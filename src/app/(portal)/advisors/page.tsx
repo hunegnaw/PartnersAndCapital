@@ -33,6 +33,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { formatDate, formatDateOnly, cn } from "@/lib/utils";
+import { DatePicker } from "@/components/ui/date-picker";
 
 interface AdvisorAccess {
   permissionLevel: string;
@@ -441,22 +442,21 @@ export default function AdvisorsPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label className="text-sm text-[#4a4a4a]">Access start date</Label>
-                <Input
-                  type="date"
+                <DatePicker
                   value={inviteAccessStart}
-                  onChange={(e) => setInviteAccessStart(e.target.value)}
-                  className="bg-white border-[#e8e0d4]"
+                  onChange={setInviteAccessStart}
+                  placeholder="Select start date"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-sm text-[#4a4a4a]">
                   Expiration date (optional)
                 </Label>
-                <Input
-                  type="date"
+                <DatePicker
                   value={inviteExpiration}
-                  onChange={(e) => setInviteExpiration(e.target.value)}
-                  className="bg-white border-[#e8e0d4]"
+                  onChange={setInviteExpiration}
+                  placeholder="No expiration"
+                  clearable
                 />
               </div>
             </div>

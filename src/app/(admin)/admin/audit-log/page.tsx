@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { formatDateTime } from "@/lib/utils"
+import { DatePicker } from "@/components/ui/date-picker"
 import {
   Table,
   TableBody,
@@ -149,26 +150,26 @@ export default function AdminAuditLogPage() {
         </Select>
 
         <div className="flex items-center gap-2">
-          <Input
-            type="date"
+          <DatePicker
             value={fromDate}
-            onChange={(e) => {
-              setFromDate(e.target.value)
+            onChange={(v) => {
+              setFromDate(v)
               setPage(1)
             }}
             placeholder="From"
-            className="w-[160px]"
+            clearable
+            className="w-[200px]"
           />
           <span className="text-muted-foreground text-sm">to</span>
-          <Input
-            type="date"
+          <DatePicker
             value={toDate}
-            onChange={(e) => {
-              setToDate(e.target.value)
+            onChange={(v) => {
+              setToDate(v)
               setPage(1)
             }}
             placeholder="To"
-            className="w-[160px]"
+            clearable
+            className="w-[200px]"
           />
         </div>
 
