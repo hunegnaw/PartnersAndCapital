@@ -69,6 +69,8 @@ model User {
   activityFeedTarget ActivityFeed[]    @relation("ActivityFeedTarget")
   supportTickets    SupportTicket[]
   ticketReplies     TicketReply[]
+  mediaUploads      Media[]
+  blogPosts         BlogPost[]
 
   @@index([email])
   @@index([role])
@@ -694,4 +696,188 @@ model TicketReply {
 
   @@index([ticketId])
   @@index([userId])
+}
+
+// ============================================================
+// MEDIA LIBRARY
+// ============================================================
+
+model Media {
+  id         String    @id @default(cuid())
+  fileName   String
+  filePath   String
+  fileSize   Int
+  mimeType   String
+  width      Int?
+  height     Int?
+  alt        String?
+  caption    String?   @db.Text
+  uploadedBy String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  uploader   User        @relation(fields: [uploadedBy], references: [id])
+  pageBlocks PageBlock[]
+
+  @@index([uploadedBy])
+  @@index([mimeType])
+  @@index([deletedAt])
+}
+
+// ============================================================
+// BLOG SYSTEM
+// ============================================================
+
+model BlogPost {
+  id           String    @id @default(cuid())
+  title        String
+  slug         String    @unique
+  content      String    @db.LongText
+  excerpt      String?   @db.Text
+  heroImageUrl String?
+  authorId     String
+  categoryId   String?
+  viewCount    Int       @default(0)
+  readTime     Int?
+  isPublished  Boolean   @default(false)
+  isDraft      Boolean   @default(true)
+  publishedAt  DateTime?
+  // SEO
+  metaTitle       String?
+  metaDescription String? @db.Text
+  ogImageUrl      String?
+  // Timestamps
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  author   User          @relation(fields: [authorId], references: [id])
+  category BlogCategory? @relation(fields: [categoryId], references: [id])
+  tags     BlogPostTag[]
+
+  @@index([slug])
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([isPublished])
+  @@index([publishedAt])
+  @@index([deletedAt])
+}
+
+model BlogCategory {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  color     String?
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  posts BlogPost[]
+
+  @@index([slug])
+  @@index([deletedAt])
+}
+
+model BlogTag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  color     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  posts BlogPostTag[]
+
+  @@index([slug])
+}
+
+model BlogPostTag {
+  id     String @id @default(cuid())
+  postId String
+  tagId  String
+
+  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, tagId])
+  @@index([postId])
+  @@index([tagId])
+}
+
+// ============================================================
+// CMS PAGES
+// ============================================================
+
+enum PageStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Page {
+  id         String     @id @default(cuid())
+  title      String
+  slug       String     @unique
+  status     PageStatus @default(DRAFT)
+  isHomepage Boolean    @default(false)
+  // SEO
+  metaTitle       String?
+  metaDescription String? @db.Text
+  ogImageUrl      String?
+  // Timestamps
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  deletedAt  DateTime?
+
+  blocks PageBlock[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([isHomepage])
+  @@index([deletedAt])
+}
+
+model PageBlock {
+  id        String   @id @default(cuid())
+  pageId    String
+  type      String
+  props     Json
+  sortOrder Int      @default(0)
+  mediaId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  page  Page   @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  media Media? @relation(fields: [mediaId], references: [id])
+
+  @@index([pageId])
+  @@index([sortOrder])
+  @@index([mediaId])
+}
+
+// ============================================================
+// CONTACT & NEWSLETTER
+// ============================================================
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String   @db.Text
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+model NewsletterSubscriber {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  subscribedAt   DateTime  @default(now())
+  unsubscribedAt DateTime?
+
+  @@index([email])
 }

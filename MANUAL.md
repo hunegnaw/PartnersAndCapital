@@ -8,15 +8,19 @@ This manual covers setup, administration, and usage of the Partners + Capital in
 
 1. [Getting Started](#getting-started)
 2. [Admin Guide](#admin-guide)
-3. [Client Portal Guide](#client-portal-guide)
-4. [Support Ticket System](#support-ticket-system)
-5. [Advisor Access](#advisor-access)
-6. [Two-Factor Authentication (2FA)](#two-factor-authentication-2fa)
-7. [Default Credentials](#default-credentials)
-8. [Deployment Basics](#deployment-basics)
-9. [Production Seeding](#production-seeding)
-10. [Troubleshooting](#troubleshooting)
-11. [Feature Roadmap](#feature-roadmap)
+3. [Public Website](#public-website)
+4. [Blog System](#blog-system)
+5. [Page Builder](#page-builder)
+6. [Media Library](#media-library)
+7. [Client Portal Guide](#client-portal-guide)
+8. [Support Ticket System](#support-ticket-system)
+9. [Advisor Access](#advisor-access)
+10. [Two-Factor Authentication (2FA)](#two-factor-authentication-2fa)
+11. [Default Credentials](#default-credentials)
+12. [Deployment Basics](#deployment-basics)
+13. [Production Seeding](#production-seeding)
+14. [Troubleshooting](#troubleshooting)
+15. [Feature Roadmap](#feature-roadmap)
 
 ---
 
@@ -108,6 +112,7 @@ The admin panel features a light sidebar with grouped navigation sections:
 **Sidebar sections:**
 
 - **MANAGE:** Clients (with count), Investments (with count), Documents (with count), Advisors (with count), Activity Feed, Support (with open ticket count)
+- **WEBSITE:** Pages (with count), Blog Posts (with count), Blog Categories, Media Library (with count)
 - **SYSTEM:** Admin Users, Audit Log, Settings
 
 ### Client Management (Admin Dashboard)
@@ -126,6 +131,14 @@ The admin landing page at `/admin` is the Client Management view. It provides:
 | Route                  | Purpose                                              |
 | ---------------------- | ---------------------------------------------------- |
 | `/admin`               | Client Management dashboard with stats and table     |
+| `/admin/pages`         | CMS page builder -- list, create, edit pages         |
+| `/admin/pages/new`     | Create a new CMS page with block editor              |
+| `/admin/pages/[id]/edit` | Edit an existing page with drag-and-drop blocks    |
+| `/admin/blog`          | Blog post management -- list, create, edit posts     |
+| `/admin/blog/new`      | Create a blog post with rich text editor             |
+| `/admin/blog/[id]/edit` | Edit an existing blog post                          |
+| `/admin/blog/categories` | Manage blog categories (CRUD)                      |
+| `/admin/media`         | Media library -- upload, browse, edit, delete media  |
 | `/admin/investments`   | Manage investments, funds, and asset classes          |
 | `/admin/documents`     | Upload and manage documents (K-1s, reports, PPMs)    |
 | `/admin/activity`      | Manage activity feed posts and deal room updates     |
@@ -143,6 +156,150 @@ The system supports multiple admin access levels:
   - **FULL_ACCESS** -- Same as SUPER_ADMIN but cannot modify system-level settings.
   - **READ_ONLY** -- Can view all admin panels but cannot create, edit, or delete data.
   - **DATA_ENTRY** -- Can create and edit investments, contributions, and distributions but cannot manage users or settings.
+
+---
+
+## Public Website
+
+The public-facing marketing site replaces the previous Squarespace website. It runs on the same Next.js application as the investor portal.
+
+### Marketing Layout
+
+All public pages share a common layout with:
+
+- **Header:** Sticky dark navy bar with "PARTNERS + CAPITAL" logo, navigation links (Home, Partner Thoughts, Contact), and a gold-outlined "Investor Login" button with LogIn icon. On the homepage, the header starts transparent and transitions to solid on scroll.
+- **Footer:** Dark navy background with 3-column grid (branding + address, navigation links, newsletter signup form), copyright line, and legal disclaimer.
+
+### Public Routes
+
+| Route | Purpose |
+|-------|---------|
+| `/` | Homepage -- rendered from CMS page builder (isHomepage flag) |
+| `/blog` | Blog listing -- 3-column grid, 9 posts per page, category/tag filters |
+| `/blog/[slug]` | Individual blog post with hero image, prose content, related posts |
+| `/contact` | Contact page -- rendered from CMS page builder |
+| `/[slug]` | Dynamic CMS pages -- any published page by slug |
+
+### Homepage
+
+The root route (`/`) renders the CMS page marked as homepage. If no homepage exists, it falls back to redirecting to `/login`. Authenticated users see a floating "Go to Portal" button in the bottom-right corner.
+
+---
+
+## Blog System
+
+### Overview
+
+The blog (called "Partner Thoughts" publicly) provides article publishing with categories, tags, rich text editing, and SEO metadata.
+
+### Admin Blog Management
+
+**Post List** (`/admin/blog`): Search, filter by status (published/draft) and category, paginated table with title, category, status, view count, published date, and edit/delete actions.
+
+**Create/Edit Post** (`/admin/blog/new`, `/admin/blog/[id]/edit`): Two-column editor with:
+- **Main area:** Title (auto-generates slug), excerpt, Tiptap rich text editor with full toolbar (bold, italic, underline, strikethrough, headings, lists, alignment, colors, links, images via media picker, blockquotes, code blocks, tables, undo/redo, HTML source toggle)
+- **Sidebar:** Publish settings (draft/publish toggle), category dropdown, tag checkboxes, hero image (via media picker), SEO fields (meta title, meta description)
+
+**Categories** (`/admin/blog/categories`): CRUD management with name, slug, color, and sort order.
+
+### Public Blog
+
+**Listing** (`/blog`): Navy hero banner, category filter pills, 3-column responsive post grid with cards showing hero image, category badge, title, excerpt, date, and read time. Tag filter section at bottom. Server-side pagination.
+
+**Post Detail** (`/blog/[slug]`): Hero image or navy fallback, breadcrumb navigation, author/date/read-time/view-count metadata, full prose content, tags, share button (clipboard + native share API), up to 3 related posts. Full SEO metadata via `generateMetadata()`.
+
+### Blog API Routes
+
+| Route | Methods | Auth |
+|-------|---------|------|
+| `/api/admin/blog` | GET, POST | Admin |
+| `/api/admin/blog/[id]` | GET, PATCH, DELETE | Admin |
+| `/api/admin/blog/categories` | GET, POST | Admin |
+| `/api/admin/blog/categories/[id]` | PATCH, DELETE | Admin |
+| `/api/admin/blog/tags` | GET, POST | Admin |
+| `/api/admin/blog/tags/[id]` | PATCH, DELETE | Admin |
+| `/api/blog` | GET | Public |
+| `/api/blog/[slug]` | GET | Public |
+| `/api/blog/recent` | GET | Public |
+
+---
+
+## Page Builder
+
+### Overview
+
+The page builder allows admins to create and edit CMS pages using drag-and-drop content blocks. Pages are rendered on the public site at their slug URL.
+
+### Block Types
+
+| Type | Description |
+|------|-------------|
+| Hero (Video) | Full-viewport video background with overlay text and CTA |
+| Hero (Image) | Image background with overlay text and CTA |
+| Text Section | Rich HTML content with configurable width, padding, colors |
+| Logo Gallery | Grid of logos/images with optional grayscale effect |
+| Stats | Number cards row (values + labels) on dark background |
+| CTA Banner | Full-width call-to-action with heading, text, and button |
+| Two Column | Side-by-side rich text content areas |
+| Contact Form | Name/email/message form posting to `/api/contact` |
+| Newsletter Signup | Email signup form posting to `/api/newsletter` |
+| Quote | Blockquote with attribution and role |
+| Image | Single image with alt text and caption |
+| Video Embed | YouTube/Vimeo responsive iframe |
+| Spacer | Vertical spacing (sm/md/lg/xl) |
+
+### Admin Page Editor
+
+**Page List** (`/admin/pages`): Table showing title, slug, status (Draft/Published/Archived), homepage indicator, block count, last updated, and edit/delete actions.
+
+**Create/Edit Page** (`/admin/pages/new`, `/admin/pages/[id]/edit`): Two-column layout with:
+- **Main area:** Title, slug, and block editor with drag-and-drop reordering (@dnd-kit). Add blocks via a picker dialog showing all 13 block types. Each block expands/collapses to show its editor form.
+- **Sidebar:** Status dropdown, homepage checkbox, SEO fields, save button.
+
+Pages are saved atomically: page metadata and all blocks are updated in a single database transaction.
+
+### Page API Routes
+
+| Route | Methods | Auth |
+|-------|---------|------|
+| `/api/admin/pages` | GET, POST | Admin |
+| `/api/admin/pages/[id]` | GET, PATCH, DELETE | Admin |
+
+---
+
+## Media Library
+
+### Overview
+
+The media library manages public images and videos used across blog posts and CMS pages. Files are stored unencrypted in `public/uploads/media/YYYY/` and served directly by Next.js.
+
+### Admin Media Browser (`/admin/media`)
+
+- **Upload:** Drag-and-drop or file picker. Images up to 10MB, videos up to 100MB.
+- **Browse:** Grid of thumbnails with search and type filter (Images/Videos/All). Paginated.
+- **Edit:** Click any media item to update alt text and caption.
+- **Delete:** Soft delete (sets deletedAt, removes file from disk).
+- **Supported formats:** JPEG, PNG, GIF, WebP, SVG (images); MP4, WebM, MOV (videos).
+
+### Media Picker Component
+
+A reusable dialog component (`MediaPicker`) that can be opened from any admin form. Provides browse and upload tabs, returns the selected media object. Used in the blog post editor, page block editor, and anywhere images/videos are needed.
+
+### Media API Routes
+
+| Route | Methods | Auth |
+|-------|---------|------|
+| `/api/admin/media` | GET, POST | Admin |
+| `/api/admin/media/[id]` | GET, PATCH, DELETE | Admin |
+
+### Contact Form & Newsletter
+
+| Route | Methods | Auth | Rate Limit |
+|-------|---------|------|------------|
+| `/api/contact` | POST | Public | 5/hour per IP |
+| `/api/newsletter` | POST | Public | 10/hour per IP |
+
+Contact submissions are stored in the `ContactSubmission` table and trigger an email notification to the organization email. Newsletter subscriptions use upsert logic -- re-subscribing a previously unsubscribed email reactivates it.
 
 ---
 
@@ -712,6 +869,7 @@ A branded 404 page showing "Page not found" with a link back to the dashboard. M
 | 4     | Advisor Sharing              | Completed   |
 | 5     | Integrations & Notifications | Completed   |
 | 6     | Hardening & Analytics        | Completed   |
+| 7     | Blog, Page Builder & Marketing Site | Completed |
 
 ### Completed Features
 
@@ -736,3 +894,11 @@ A branded 404 page showing "Page not found" with a link back to the dashboard. M
 - Production-aware database seeding
 - All timestamps standardized to America/New_York (ET) timezone
 - Custom branded date picker component (react-day-picker v9)
+- Public marketing website with header, footer, and newsletter signup
+- Blog system ("Partner Thoughts") with categories, tags, rich text editor, SEO metadata
+- Page builder with 13 drag-and-drop block types and live preview
+- Media library with upload, browse, and picker integration
+- Contact form with rate limiting and email notification
+- Marketing header with transparent-to-solid scroll effect
+- Tiptap rich text editor with full toolbar and media picker integration
+- 11 seed blog posts and 2 seed CMS pages (homepage + contact)

@@ -19,13 +19,16 @@ export default async function AdminLayout({
   }
 
   // Fetch sidebar counts
-  const [clientCount, investmentCount, documentCount, advisorCount, ticketCount] =
+  const [clientCount, investmentCount, documentCount, advisorCount, ticketCount, pageCount, blogPostCount, mediaCount] =
     await Promise.all([
       prisma.user.count({ where: { role: "CLIENT", deletedAt: null } }),
       prisma.investment.count({ where: { deletedAt: null } }),
       prisma.document.count({ where: { deletedAt: null } }),
       prisma.advisor.count(),
       prisma.supportTicket.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } }),
+      prisma.page.count({ where: { deletedAt: null } }),
+      prisma.blogPost.count({ where: { deletedAt: null } }),
+      prisma.media.count({ where: { deletedAt: null } }),
     ]);
 
   const manageNav = [
@@ -35,6 +38,13 @@ export default async function AdminLayout({
     { href: "/admin/advisors", label: "Advisors", count: advisorCount },
     { href: "/admin/activity", label: "Activity Feed" },
     { href: "/admin/support", label: "Support", count: ticketCount > 0 ? ticketCount : undefined },
+  ];
+
+  const websiteNav = [
+    { href: "/admin/pages", label: "Pages", count: pageCount },
+    { href: "/admin/blog", label: "Blog Posts", count: blogPostCount },
+    { href: "/admin/blog/categories", label: "Blog Categories" },
+    { href: "/admin/media", label: "Media Library", count: mediaCount },
   ];
 
   const systemNav = [
@@ -93,6 +103,31 @@ export default async function AdminLayout({
             </p>
             <ul className="space-y-0.5 mb-6">
               {manageNav.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="flex items-center justify-between px-3 py-2 text-sm rounded-md text-[#4a4a4a] hover:text-[#b8860b] hover:bg-[#faf8f5] transition-colors"
+                  >
+                    <span className="flex items-center gap-3">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#d4c5a9]" />
+                      {item.label}
+                    </span>
+                    {item.count !== undefined && (
+                      <span className="text-[10px] bg-[#f5f0e8] text-[#9a8c7a] px-2 py-0.5 rounded-full tabular-nums">
+                        {item.count}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+
+            {/* WEBSITE section */}
+            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3 px-3">
+              Website
+            </p>
+            <ul className="space-y-0.5 mb-6">
+              {websiteNav.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
