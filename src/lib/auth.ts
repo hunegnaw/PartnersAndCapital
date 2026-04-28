@@ -56,6 +56,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (user.twoFactorEnabled) {
           const twoFactorCode = credentials.twoFactorCode as string | undefined;
           if (!twoFactorCode) {
+            // Send SMS code automatically
+            const { sendTwoFactorCode } = await import("@/lib/two-factor");
+            sendTwoFactorCode(user.id).catch(console.error);
+
             // Return user with a flag indicating 2FA is needed
             return {
               id: user.id,

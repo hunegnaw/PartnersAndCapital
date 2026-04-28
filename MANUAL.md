@@ -100,7 +100,7 @@ This manual covers setup, administration, and usage of the Partners + Capital in
 
 1. Navigate to `/login` in your browser.
 2. Enter the admin email and password (see [Default Credentials](#default-credentials) below).
-3. If two-factor authentication is enabled on the account, you will be prompted for a TOTP code from your authenticator app.
+3. If two-factor authentication is enabled on the account, a verification code will be sent to your phone via SMS.
 4. After successful login, admins are redirected to the admin panel at `/admin`.
 
 ### Admin Layout
@@ -438,7 +438,7 @@ Below the active advisors, an access log shows advisor-related activity with tim
 
 ## Two-Factor Authentication (2FA)
 
-Partners + Capital supports TOTP-based two-factor authentication (Time-based One-Time Password), compatible with authenticator apps such as Google Authenticator, Authy, 1Password, and Microsoft Authenticator.
+Partners + Capital supports SMS-based two-factor authentication. When enabled, a 6-digit verification code is sent to the user's phone via text message on each login.
 
 ### Organization 2FA Policy
 
@@ -452,18 +452,32 @@ The organization-level 2FA policy (configured in `/admin/settings`) controls how
 
 1. Navigate to `/settings` (or `/admin/settings` for admins).
 2. Find the "Two-Factor Authentication" section.
-3. Click "Enable 2FA."
-4. A QR code will be displayed. Scan it with your authenticator app.
-5. Enter the 6-digit code from your authenticator app to verify.
-6. 2FA is now active on your account. You will be prompted for a code on each login.
+3. Click "Set up two-factor authentication."
+4. Enter your phone number (with country code, e.g., +1 for US/Canada).
+5. A 6-digit verification code will be sent via SMS. Enter the code to verify.
+6. Save your backup codes in a safe place (10 one-time codes for emergency access).
+7. 2FA is now active on your account. A code will be sent to your phone on each login.
+
+### Login with 2FA
+
+1. Enter email and password as normal.
+2. A verification code is automatically sent to your phone via SMS.
+3. Enter the 6-digit code to complete login.
+4. Alternatively, use a backup code if you cannot access your phone.
+
+### Disabling 2FA
+
+1. Navigate to `/settings` and click "Disable 2FA."
+2. A verification code will be sent to your phone for confirmation.
+3. Enter the code to disable 2FA.
 
 ### Technical Details
 
-- TOTP secrets are stored encrypted in the `TwoFactorSecret` table.
+- TOTP secrets are stored in the `TwoFactorSecret` table (used server-side to generate time-based codes).
 - The `twoFactorEnabled` flag on the User model tracks whether 2FA is active.
-- The `twoFactorVerified` flag confirms the user has successfully completed 2FA setup.
-- QR codes are generated server-side using the `qrcode` library.
+- SMS is sent via Twilio. When `TWILIO_ACCOUNT_SID` is not set, codes are logged to the console (development/stub mode).
 - TOTP generation and verification is handled by the `otpauth` library.
+- Backup codes are hashed with bcrypt and stored in the `BackupCode` table.
 
 ---
 

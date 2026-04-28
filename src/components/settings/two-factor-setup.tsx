@@ -10,8 +10,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TwoFactorInput } from "@/components/auth/two-factor-input";
 import {
@@ -22,11 +23,11 @@ import {
   CheckCircle2,
   AlertCircle,
   KeyRound,
-  QrCode,
+  Smartphone,
   ArrowRight,
 } from "lucide-react";
 
-type Step = "intro" | "qr" | "verify" | "backup";
+type Step = "intro" | "phone" | "verify" | "backup";
 
 interface TwoFactorSetupProps {
   onComplete: () => void;
@@ -37,9 +38,8 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // QR step state
-  const [secret, setSecret] = useState("");
-  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  // Phone step state
+  const [phone, setPhone] = useState("");
 
   // Verify step state
   const [verifyCode, setVerifyCode] = useState("");
@@ -49,26 +49,54 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
   const [codesSaved, setCodesSaved] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const handleSetupStart = useCallback(async () => {
+  const handleSendCode = useCallback(async () => {
+    if (!phone.trim()) {
+      setError("Please enter a phone number");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
     try {
       const response = await fetch("/api/portal/settings/two-factor/setup", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: phone.trim() }),
       });
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to initialize 2FA setup");
+        throw new Error(data.error || "Failed to send verification code");
       }
 
-      const data = await response.json();
-      setSecret(data.secret);
-      setQrCodeUrl(data.qrCodeUrl);
-      setStep("qr");
+      setStep("verify");
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  }, [phone]);
+
+  const handleResendCode = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/portal/settings/two-factor/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to resend code");
+      }
+
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to resend code");
     } finally {
       setLoading(false);
     }
@@ -112,7 +140,6 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback for older browsers
       const textarea = document.createElement("textarea");
       textarea.value = codesText;
       document.body.appendChild(textarea);
@@ -163,8 +190,8 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
         </CardTitle>
         <CardDescription>
           {step === "intro" && "Add an extra layer of security to your account"}
-          {step === "qr" && "Step 1 of 3: Scan the QR code"}
-          {step === "verify" && "Step 2 of 3: Verify your setup"}
+          {step === "phone" && "Step 1 of 3: Enter your phone number"}
+          {step === "verify" && "Step 2 of 3: Verify your phone"}
           {step === "backup" && "Step 3 of 3: Save your backup codes"}
         </CardDescription>
       </CardHeader>
@@ -183,18 +210,17 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
               Two-factor authentication adds an additional layer of security to your
-              account by requiring a verification code from your phone in addition to
-              your password.
+              account by requiring a verification code sent to your phone via text
+              message in addition to your password.
             </p>
 
             <div className="space-y-3">
               <div className="flex items-start gap-3 rounded-lg border border-border p-3">
-                <QrCode className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+                <Smartphone className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Authenticator app</p>
+                  <p className="text-sm font-medium">Text message verification</p>
                   <p className="text-sm text-muted-foreground">
-                    Use Google Authenticator, Authy, or any TOTP-compatible app to
-                    generate verification codes.
+                    Receive a 6-digit code via SMS each time you sign in.
                   </p>
                 </div>
               </div>
@@ -205,7 +231,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
                   <p className="text-sm font-medium">Backup codes</p>
                   <p className="text-sm text-muted-foreground">
                     You will receive 10 one-time backup codes in case you lose access to
-                    your authenticator app.
+                    your phone.
                   </p>
                 </div>
               </div>
@@ -213,39 +239,27 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
           </div>
         )}
 
-        {/* Step: QR Code */}
-        {step === "qr" && (
+        {/* Step: Phone */}
+        {step === "phone" && (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Scan this QR code with your authenticator app, or enter the secret key
-              manually.
+              Enter the phone number where you would like to receive verification codes.
             </p>
 
-            <div className="flex justify-center rounded-lg border border-border bg-white p-4">
-              {qrCodeUrl ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={qrCodeUrl}
-                  alt="Two-factor authentication QR code"
-                  className="size-48"
-                  draggable={false}
-                />
-              ) : (
-                <div className="flex size-48 items-center justify-center">
-                  <Loader2 className="size-8 animate-spin text-muted-foreground" />
-                </div>
-              )}
-            </div>
-
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">
-                Manual entry key
-              </Label>
-              <div className="rounded-lg border border-border bg-muted/50 px-3 py-2">
-                <code className="select-all break-all text-xs font-mono tracking-wider">
-                  {secret}
-                </code>
-              </div>
+              <Label htmlFor="phone-number">Phone number</Label>
+              <Input
+                id="phone-number"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+1 (555) 123-4567"
+                disabled={loading}
+                autoFocus
+              />
+              <p className="text-xs text-muted-foreground">
+                Include country code (e.g., +1 for US/Canada)
+              </p>
             </div>
           </div>
         )}
@@ -254,7 +268,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
         {step === "verify" && (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Enter the 6-digit code from your authenticator app to verify the setup.
+              Enter the 6-digit code we sent to your phone.
             </p>
 
             <div className="py-2">
@@ -264,6 +278,18 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
                 disabled={loading}
                 autoFocus
               />
+            </div>
+
+            <div className="text-center">
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                onClick={handleResendCode}
+                disabled={loading}
+              >
+                Resend code
+              </Button>
             </div>
           </div>
         )}
@@ -275,9 +301,8 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
               <AlertCircle className="size-4" />
               <AlertTitle>Save your backup codes</AlertTitle>
               <AlertDescription>
-                These codes can be used to access your account if you lose your
-                authenticator device. Each code can only be used once. Store them
-                somewhere safe.
+                These codes can be used to access your account if you lose access to
+                your phone. Each code can only be used once. Store them somewhere safe.
               </AlertDescription>
             </Alert>
 
@@ -335,20 +360,20 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 
       <CardFooter className="justify-end gap-2">
         {step === "intro" && (
-          <Button onClick={handleSetupStart} disabled={loading}>
-            {loading ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              <ShieldCheck />
-            )}
+          <Button onClick={() => setStep("phone")}>
+            <ShieldCheck />
             Set up two-factor authentication
           </Button>
         )}
 
-        {step === "qr" && (
-          <Button onClick={() => setStep("verify")}>
-            Next
-            <ArrowRight />
+        {step === "phone" && (
+          <Button onClick={handleSendCode} disabled={loading || !phone.trim()}>
+            {loading ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              <ArrowRight />
+            )}
+            Send code
           </Button>
         )}
 

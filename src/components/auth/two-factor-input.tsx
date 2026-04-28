@@ -152,7 +152,7 @@ export function TwoFactorInput({
               }}
               disabled={disabled}
             >
-              Use authenticator code instead
+              Use SMS code instead
             </Button>
           </div>
         )}

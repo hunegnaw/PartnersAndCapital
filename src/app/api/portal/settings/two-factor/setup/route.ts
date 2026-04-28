@@ -1,35 +1,85 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
-import { generateTOTPSecret } from "@/lib/two-factor";
-import QRCode from "qrcode";
+import { generateTOTPSecret, generateTOTPCode } from "@/lib/two-factor";
+import { sendSMS } from "@/lib/sms";
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 
-    // Generate TOTP secret
-    const { secret, uri } = generateTOTPSecret(user.email);
+    const body = await request.json().catch(() => ({}));
+    const { phone } = body;
 
-    // Generate QR code as data URL
-    const qrCodeUrl = await QRCode.toDataURL(uri);
+    // If phone is provided, this is a new setup — generate secret and send code
+    // If no phone, this is a resend — use existing secret and phone on file
+    if (phone) {
+      // Generate TOTP secret
+      const { secret } = generateTOTPSecret(user.email);
 
-    // Upsert TwoFactorSecret (unverified)
-    await prisma.twoFactorSecret.upsert({
+      // Upsert TwoFactorSecret (unverified)
+      await prisma.twoFactorSecret.upsert({
+        where: { userId: user.id },
+        update: { secret, verified: false },
+        create: { userId: user.id, secret, verified: false },
+      });
+
+      // Update user's phone number
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { phone },
+      });
+
+      // Generate current code and send via SMS
+      const code = generateTOTPCode(secret);
+      const sent = await sendSMS(phone, `Your verification code is: ${code}`);
+
+      if (!sent) {
+        return NextResponse.json(
+          { error: "Failed to send verification code" },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({ codeSent: true });
+    }
+
+    // Resend: use existing secret + phone
+    const twoFactorSecret = await prisma.twoFactorSecret.findUnique({
       where: { userId: user.id },
-      update: {
-        secret,
-        verified: false,
-      },
-      create: {
-        userId: user.id,
-        secret,
-        verified: false,
-      },
     });
 
-    return NextResponse.json({ secret, qrCodeUrl });
+    if (!twoFactorSecret) {
+      return NextResponse.json(
+        { error: "No 2FA setup in progress. Please provide a phone number." },
+        { status: 400 }
+      );
+    }
+
+    const fullUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { phone: true },
+    });
+
+    if (!fullUser?.phone) {
+      return NextResponse.json(
+        { error: "No phone number on file" },
+        { status: 400 }
+      );
+    }
+
+    const code = generateTOTPCode(twoFactorSecret.secret);
+    const sent = await sendSMS(fullUser.phone, `Your verification code is: ${code}`);
+
+    if (!sent) {
+      return NextResponse.json(
+        { error: "Failed to send verification code" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ codeSent: true });
   } catch (error) {
     console.error("Error setting up 2FA:", error);
     return NextResponse.json(

@@ -406,7 +406,7 @@ export default function AdminSettingsPage() {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Controls whether two-factor authentication is required, optional, or disabled for all users.
+                Controls whether SMS-based two-factor authentication is required, optional, or disabled for all users.
               </p>
             </div>
           </CardContent>

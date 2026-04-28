@@ -42,6 +42,7 @@ export function TwoFactorManage({ onDisabled }: TwoFactorManageProps) {
   const [disableLoading, setDisableLoading] = useState(false);
   const [disableError, setDisableError] = useState("");
   const [isBackupMode, setIsBackupMode] = useState(false);
+  const [disableCodeSent, setDisableCodeSent] = useState(false);
 
   // Regenerate backup codes state
   const [regenOpen, setRegenOpen] = useState(false);
@@ -49,9 +50,36 @@ export function TwoFactorManage({ onDisabled }: TwoFactorManageProps) {
   const [regenLoading, setRegenLoading] = useState(false);
   const [regenError, setRegenError] = useState("");
   const [regenIsBackupMode, setRegenIsBackupMode] = useState(false);
+  const [regenCodeSent, setRegenCodeSent] = useState(false);
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [showNewCodes, setShowNewCodes] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const handleSendDisableCode = useCallback(async () => {
+    setDisableLoading(true);
+    setDisableError("");
+
+    try {
+      const response = await fetch("/api/portal/settings/two-factor/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send code");
+      }
+
+      setDisableCodeSent(true);
+    } catch (err) {
+      setDisableError(
+        err instanceof Error ? err.message : "Failed to send code"
+      );
+    } finally {
+      setDisableLoading(false);
+    }
+  }, []);
 
   const handleDisable = useCallback(async () => {
     if (!disableCode) {
@@ -85,6 +113,32 @@ export function TwoFactorManage({ onDisabled }: TwoFactorManageProps) {
       setDisableLoading(false);
     }
   }, [disableCode, onDisabled]);
+
+  const handleSendRegenCode = useCallback(async () => {
+    setRegenLoading(true);
+    setRegenError("");
+
+    try {
+      const response = await fetch("/api/portal/settings/two-factor/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send code");
+      }
+
+      setRegenCodeSent(true);
+    } catch (err) {
+      setRegenError(
+        err instanceof Error ? err.message : "Failed to send code"
+      );
+    } finally {
+      setRegenLoading(false);
+    }
+  }, []);
 
   const handleRegenerateCodes = useCallback(async () => {
     if (!regenCode) {
@@ -173,12 +227,14 @@ export function TwoFactorManage({ onDisabled }: TwoFactorManageProps) {
     setDisableCode("");
     setDisableError("");
     setIsBackupMode(false);
+    setDisableCodeSent(false);
   }, []);
 
   const resetRegenDialog = useCallback(() => {
     setRegenCode("");
     setRegenError("");
     setRegenIsBackupMode(false);
+    setRegenCodeSent(false);
     setBackupCodes([]);
     setShowNewCodes(false);
   }, []);
@@ -195,7 +251,7 @@ export function TwoFactorManage({ onDisabled }: TwoFactorManageProps) {
               <div>
                 <CardTitle>Two-Factor Authentication</CardTitle>
                 <CardDescription className="mt-1">
-                  Your account is protected with an authenticator app
+                  Your account is protected with SMS verification
                 </CardDescription>
               </div>
             </div>
@@ -245,8 +301,9 @@ export function TwoFactorManage({ onDisabled }: TwoFactorManageProps) {
           <DialogHeader>
             <DialogTitle>Disable Two-Factor Authentication</DialogTitle>
             <DialogDescription>
-              Enter your verification code to confirm. This will make your account
-              less secure.
+              {disableCodeSent
+                ? "Enter the verification code sent to your phone. This will make your account less secure."
+                : "We will send a verification code to your phone to confirm this action."}
             </DialogDescription>
           </DialogHeader>
 
@@ -258,38 +315,63 @@ export function TwoFactorManage({ onDisabled }: TwoFactorManageProps) {
             </Alert>
           )}
 
-          <div className="py-2">
-            <TwoFactorInput
-              value={disableCode}
-              onChange={setDisableCode}
-              disabled={disableLoading}
-              autoFocus
-              showBackupOption
-              isBackupMode={isBackupMode}
-              onBackupMode={setIsBackupMode}
-            />
-          </div>
+          {disableCodeSent ? (
+            <>
+              <div className="py-2">
+                <TwoFactorInput
+                  value={disableCode}
+                  onChange={setDisableCode}
+                  disabled={disableLoading}
+                  autoFocus
+                  showBackupOption
+                  isBackupMode={isBackupMode}
+                  onBackupMode={setIsBackupMode}
+                />
+              </div>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setDisableOpen(false);
-                resetDisableDialog();
-              }}
-              disabled={disableLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDisable}
-              disabled={disableLoading || !disableCode}
-            >
-              {disableLoading && <Loader2 className="animate-spin" />}
-              Disable 2FA
-            </Button>
-          </DialogFooter>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setDisableOpen(false);
+                    resetDisableDialog();
+                  }}
+                  disabled={disableLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDisable}
+                  disabled={disableLoading || !disableCode}
+                >
+                  {disableLoading && <Loader2 className="animate-spin" />}
+                  Disable 2FA
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDisableOpen(false);
+                  resetDisableDialog();
+                }}
+                disabled={disableLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleSendDisableCode}
+                disabled={disableLoading}
+              >
+                {disableLoading && <Loader2 className="animate-spin" />}
+                Send code
+              </Button>
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -309,7 +391,9 @@ export function TwoFactorManage({ onDisabled }: TwoFactorManageProps) {
             <DialogDescription>
               {showNewCodes
                 ? "Your previous backup codes have been invalidated. Save these new codes in a safe place."
-                : "Enter your verification code to generate new backup codes. This will invalidate all existing codes."}
+                : regenCodeSent
+                  ? "Enter the verification code sent to your phone. This will invalidate all existing backup codes."
+                  : "We will send a verification code to your phone to confirm this action."}
             </DialogDescription>
           </DialogHeader>
 
@@ -322,19 +406,41 @@ export function TwoFactorManage({ onDisabled }: TwoFactorManageProps) {
           )}
 
           {!showNewCodes ? (
-            <>
-              <div className="py-2">
-                <TwoFactorInput
-                  value={regenCode}
-                  onChange={setRegenCode}
-                  disabled={regenLoading}
-                  autoFocus
-                  showBackupOption
-                  isBackupMode={regenIsBackupMode}
-                  onBackupMode={setRegenIsBackupMode}
-                />
-              </div>
+            regenCodeSent ? (
+              <>
+                <div className="py-2">
+                  <TwoFactorInput
+                    value={regenCode}
+                    onChange={setRegenCode}
+                    disabled={regenLoading}
+                    autoFocus
+                    showBackupOption
+                    isBackupMode={regenIsBackupMode}
+                    onBackupMode={setRegenIsBackupMode}
+                  />
+                </div>
 
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setRegenOpen(false);
+                      resetRegenDialog();
+                    }}
+                    disabled={regenLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleRegenerateCodes}
+                    disabled={regenLoading || !regenCode}
+                  >
+                    {regenLoading && <Loader2 className="animate-spin" />}
+                    Regenerate
+                  </Button>
+                </DialogFooter>
+              </>
+            ) : (
               <DialogFooter>
                 <Button
                   variant="outline"
@@ -347,14 +453,14 @@ export function TwoFactorManage({ onDisabled }: TwoFactorManageProps) {
                   Cancel
                 </Button>
                 <Button
-                  onClick={handleRegenerateCodes}
-                  disabled={regenLoading || !regenCode}
+                  onClick={handleSendRegenCode}
+                  disabled={regenLoading}
                 >
                   {regenLoading && <Loader2 className="animate-spin" />}
-                  Regenerate
+                  Send code
                 </Button>
               </DialogFooter>
-            </>
+            )
           ) : (
             <>
               <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-muted/50 p-4">

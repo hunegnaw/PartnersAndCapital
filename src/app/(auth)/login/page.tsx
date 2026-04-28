@@ -151,6 +151,22 @@ export default function LoginPage() {
     }
   }
 
+  async function handleResendCode() {
+    setError("");
+    setLoading(true);
+    try {
+      await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+    } catch {
+      // Ignore — the point is to re-trigger the SMS send
+    } finally {
+      setLoading(false);
+    }
+  }
+
   if (step === "2fa") {
     return (
       <div>
@@ -177,7 +193,7 @@ export default function LoginPage() {
           <p className="text-sm text-muted-foreground mt-2">
             {useBackupCode
               ? "Enter one of your backup codes to sign in."
-              : "Enter the 6-digit code from your authenticator app."}
+              : "We sent a 6-digit code to your phone number on file."}
           </p>
         </div>
 
@@ -214,7 +230,17 @@ export default function LoginPage() {
             Verify
           </Button>
 
-          <div className="text-center">
+          <div className="text-center space-y-1">
+            {!useBackupCode && (
+              <button
+                type="button"
+                onClick={handleResendCode}
+                disabled={loading}
+                className="text-sm text-muted-foreground hover:text-foreground underline block mx-auto"
+              >
+                Resend code
+              </button>
+            )}
             <button
               type="button"
               onClick={() => {
@@ -223,7 +249,7 @@ export default function LoginPage() {
               }}
               className="text-sm text-muted-foreground hover:text-foreground underline"
             >
-              {useBackupCode ? "Use authenticator app instead" : "Use a backup code instead"}
+              {useBackupCode ? "Use SMS code instead" : "Use a backup code instead"}
             </button>
           </div>
         </form>
