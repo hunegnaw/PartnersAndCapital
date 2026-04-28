@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
+// Allocation color mapping
+const ASSET_CLASS_COLORS: Record<string, string> = {
+  "Oil & Gas": "#b8860b",
+  "Real Estate": "#1e3a5f",
+  "Private Credit": "#4a5568",
+  Specialty: "#a0aec0",
+};
+
 export async function GET() {
   try {
     const user = await requireAuth();
@@ -29,6 +37,11 @@ export async function GET() {
     const activeInvestments = clientInvestments.filter(
       (ci) => ci.status === "ACTIVE"
     ).length;
+    const totalGain = currentValue - totalInvested;
+    const totalReturnPct =
+      totalInvested > 0
+        ? Math.round((totalGain / totalInvested) * 10000) / 100
+        : 0;
 
     // Total completed distributions
     const distributions = await prisma.distribution.findMany({
@@ -42,6 +55,18 @@ export async function GET() {
       (sum, d) => sum + Number(d.amount),
       0
     );
+
+    // Weighted average IRR
+    let weightedIrr = 0;
+    let totalWeight = 0;
+    for (const ci of clientInvestments) {
+      if (ci.irr != null) {
+        const weight = Number(ci.amountInvested);
+        weightedIrr += Number(ci.irr) * weight;
+        totalWeight += weight;
+      }
+    }
+    const netIRR = totalWeight > 0 ? Math.round((weightedIrr / totalWeight) * 100) / 100 : 0;
 
     // Allocation by asset class
     const allocationMap = new Map<
@@ -68,6 +93,7 @@ export async function GET() {
         totalAllocationValue > 0
           ? Math.round((a.value / totalAllocationValue) * 10000) / 100
           : 0,
+      color: ASSET_CLASS_COLORS[a.name] || "#718096",
     }));
 
     // Growth data: last 12 months of portfolio value
@@ -166,6 +192,21 @@ export async function GET() {
       });
     }
 
+    // Recent investments with amountInvested
+    const recentInvestments = clientInvestments
+      .filter((ci) => ci.status === "ACTIVE")
+      .map((ci) => ({
+        id: ci.id,
+        investment: {
+          name: ci.investment.name,
+          assetClass: { name: ci.investment.assetClass.name },
+        },
+        amountInvested: Number(ci.amountInvested),
+        currentValue: Number(ci.currentValue),
+        returnPercentage: Number(ci.returnPercentage),
+        status: ci.status,
+      }));
+
     // Recent documents (last 5)
     const clientInvestmentIds = clientInvestments.map((ci) => ci.investmentId);
     const recentDocuments = await prisma.document.findMany({
@@ -183,6 +224,9 @@ export async function GET() {
         year: true,
         createdAt: true,
         mimeType: true,
+        investment: {
+          select: { name: true },
+        },
       },
       orderBy: { createdAt: "desc" },
       take: 5,
@@ -211,17 +255,23 @@ export async function GET() {
       take: 5,
     });
 
+    // Last updated timestamp
+    const lastUpdated = now.toISOString();
+
     return NextResponse.json({
-      kpis: {
-        totalInvested,
-        currentValue,
-        totalDistributions,
-        activeInvestments,
-      },
+      totalInvested,
+      currentValue,
+      totalDistributions,
+      activeInvestments,
+      totalGain,
+      totalReturnPct,
+      netIRR,
       allocation,
       growth: monthlyData,
+      recentInvestments,
       recentDocuments,
       recentActivity,
+      lastUpdated,
     });
   } catch (error) {
     console.error("Error fetching dashboard:", error);

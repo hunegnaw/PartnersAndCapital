@@ -17,6 +17,7 @@ export async function GET() {
             id: true,
             permissionLevel: true,
             investmentId: true,
+            accessStartAt: true,
             expiresAt: true,
             revokedAt: true,
             createdAt: true,
@@ -29,7 +30,60 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ advisors });
+    // Get last viewed dates from audit log for each advisor
+    const advisorEmails = advisors
+      .filter((a) => a.advisorUser)
+      .map((a) => a.advisorUser!.id);
+
+    const lastViewed: Record<string, string> = {};
+    if (advisorEmails.length > 0) {
+      const viewLogs = await prisma.auditLog.findMany({
+        where: {
+          userId: { in: advisorEmails },
+          action: { in: ["AUTH_LOGIN", "VIEW_DASHBOARD", "VIEW_DOCUMENT", "DOWNLOAD_DOCUMENT"] },
+        },
+        orderBy: { createdAt: "desc" },
+        distinct: ["userId"],
+        select: {
+          userId: true,
+          createdAt: true,
+        },
+      });
+      for (const log of viewLogs) {
+        if (log.userId) {
+          lastViewed[log.userId] = log.createdAt.toISOString();
+        }
+      }
+    }
+
+    // Get recent access log entries
+    const accessLog = await prisma.auditLog.findMany({
+      where: {
+        targetType: "Advisor",
+        OR: [
+          { action: "INVITE_ADVISOR" },
+          { action: "REVOKE_ADVISOR" },
+          { action: "RESEND_ADVISOR_INVITE" },
+        ],
+        userId: user.id,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: {
+        action: true,
+        details: true,
+        createdAt: true,
+      },
+    });
+
+    const enrichedAdvisors = advisors.map((a) => ({
+      ...a,
+      lastViewedAt: a.advisorUser
+        ? lastViewed[a.advisorUser.id] || null
+        : null,
+    }));
+
+    return NextResponse.json({ advisors: enrichedAdvisors, accessLog });
   } catch (error) {
     console.error("Error listing advisors:", error);
     return NextResponse.json(
@@ -52,6 +106,7 @@ export async function POST(request: Request) {
       advisorType,
       permissionLevel,
       investmentId,
+      accessStartAt,
       expiresAt,
     } = body;
 
@@ -89,6 +144,7 @@ export async function POST(request: Request) {
             userId: user.id,
             permissionLevel,
             investmentId: investmentId || null,
+            accessStartAt: accessStartAt ? new Date(accessStartAt) : null,
             expiresAt: expiresAt ? new Date(expiresAt) : null,
           },
         },

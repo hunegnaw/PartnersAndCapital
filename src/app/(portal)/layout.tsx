@@ -1,23 +1,19 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import {
-  LayoutDashboard,
-  Briefcase,
-  FileText,
-  DollarSign,
-  Users,
-  Settings,
-  LogOut,
-} from "lucide-react";
+import { NotificationBell } from "@/components/portal/notification-bell";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/investments", label: "Portfolio", icon: Briefcase },
-  { href: "/documents", label: "Documents", icon: FileText },
-  { href: "/capital-activity", label: "Distributions", icon: DollarSign },
-  { href: "/advisors", label: "Advisors", icon: Users },
-  { href: "/settings", label: "Settings", icon: Settings },
+const investorNav = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/investments", label: "Portfolio" },
+  { href: "/documents", label: "Documents" },
+  { href: "/capital-activity", label: "Distributions" },
+  { href: "/advisors", label: "Advisor Access" },
+];
+
+const accountNav = [
+  { href: "/settings", label: "Settings" },
+  { href: "/support", label: "Support" },
 ];
 
 export default async function PortalLayout({
@@ -37,50 +33,96 @@ export default async function PortalLayout({
     }
   }
 
+  const initials = session.user.name
+    ? session.user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "U";
+
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Top nav bar */}
       <header className="h-14 bg-[#0f1c2e] border-b border-white/10 flex items-center justify-between px-6">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-white text-lg">
+          <span className="font-bold text-white text-sm tracking-widest uppercase">
             Partners + Capital
           </span>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-white/80">
-            <div className="h-7 w-7 rounded-full bg-white/20 flex items-center justify-center text-xs font-medium text-white">
-              {session.user.name?.[0]?.toUpperCase() || "U"}
-            </div>
-            <span className="text-sm">{session.user.name}</span>
-          </div>
+        <div className="flex items-center gap-5">
           <Link
-            href="/api/auth/signout"
-            className="text-white/40 hover:text-white transition-colors"
+            href="/documents"
+            className="text-white/60 hover:text-white text-sm transition-colors"
           >
-            <LogOut className="h-4 w-4" />
+            Documents
           </Link>
+          <Link
+            href="/advisors"
+            className="text-white/60 hover:text-white text-sm transition-colors"
+          >
+            Advisor Access
+          </Link>
+          <NotificationBell />
+          <div className="h-8 w-8 rounded-full bg-[#b8860b] flex items-center justify-center text-xs font-semibold text-white">
+            {initials}
+          </div>
         </div>
       </header>
 
       <div className="flex flex-1">
-        <aside className="w-64 bg-[#0f1c2e] text-white flex flex-col">
-          <nav className="flex-1 p-4">
-            <ul className="space-y-1">
-              {navItems.map((item) => (
+        {/* Light sidebar */}
+        <aside className="w-60 bg-white border-r border-[#e8e0d4] flex flex-col pt-6">
+          <nav className="flex-1 px-4">
+            {/* INVESTOR section */}
+            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3 px-3">
+              Investor
+            </p>
+            <ul className="space-y-0.5 mb-6">
+              {investorNav.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm rounded-md text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                    className="sidebar-link flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#4a4a4a] hover:text-[#b8860b] hover:bg-[#faf8f5] transition-colors"
                   >
-                    <item.icon className="h-4 w-4" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#d4c5a9]" />
                     {item.label}
                   </Link>
                 </li>
               ))}
             </ul>
+
+            {/* ACCOUNT section */}
+            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3 px-3">
+              Account
+            </p>
+            <ul className="space-y-0.5">
+              {accountNav.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="sidebar-link flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#4a4a4a] hover:text-[#b8860b] hover:bg-[#faf8f5] transition-colors"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#d4c5a9]" />
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <Link
+                  href="/api/auth/signout"
+                  className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-[#4a4a4a] hover:text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#d4c5a9]" />
+                  Log Out
+                </Link>
+              </li>
+            </ul>
           </nav>
         </aside>
 
-        <main className="flex-1 bg-gray-50 overflow-auto">{children}</main>
+        <main className="flex-1 bg-[#faf8f5] overflow-auto">{children}</main>
       </div>
     </div>
   );

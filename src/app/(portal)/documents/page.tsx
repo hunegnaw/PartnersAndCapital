@@ -1,12 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,13 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  FileText,
-  Download,
-  Search,
-  FolderOpen,
-  Filter,
-} from "lucide-react";
+import { Search, FolderOpen } from "lucide-react";
 import { formatDate, cn } from "@/lib/utils";
 
 interface Document {
@@ -33,64 +22,131 @@ interface Document {
   type: string;
   year: number | null;
   description: string | null;
-  investment: { name: string } | null;
+  mimeType: string;
+  fileSize: number;
+  advisorVisible: boolean;
+  investment: { id: string; name: string } | null;
   createdAt: string;
+}
+
+interface AdvisorAccess {
+  name: string | null;
+  type: string | null;
+  permissionLevel: string;
+  expiresAt: string | null;
 }
 
 interface DocumentsResponse {
   documents: Document[];
   categoryCounts: Record<string, number>;
+  investmentCounts: { name: string; count: number }[];
   total: number;
   page: number;
   pageSize: number;
+  advisorAccess: AdvisorAccess | null;
 }
 
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   K1: "K-1",
+  TAX_1099: "1099",
   QUARTERLY_REPORT: "Quarterly Report",
   ANNUAL_REPORT: "Annual Report",
-  CAPITAL_CALL: "Capital Call",
+  CAPITAL_CALL_NOTICE: "Capital Call",
   DISTRIBUTION_NOTICE: "Distribution Notice",
-  TAX_DOCUMENT: "Tax Document",
   SUBSCRIPTION_AGREEMENT: "Subscription Agreement",
-  FINANCIAL_STATEMENT: "Financial Statement",
   PPM: "PPM",
+  INVESTOR_LETTER: "Investor Letter",
   OTHER: "Other",
+};
+
+const CATEGORY_GROUPS: Record<string, { label: string; types: string[] }> = {
+  TAX: {
+    label: "Tax Documents",
+    types: ["K1", "TAX_1099"],
+  },
+  REPORTS: {
+    label: "Quarterly Reports",
+    types: ["QUARTERLY_REPORT", "ANNUAL_REPORT"],
+  },
+  LEGAL: {
+    label: "Legal & Agreements",
+    types: ["SUBSCRIPTION_AGREEMENT", "PPM", "INVESTOR_LETTER"],
+  },
+  CAPITAL: {
+    label: "Capital Notices",
+    types: ["CAPITAL_CALL_NOTICE", "DISTRIBUTION_NOTICE"],
+  },
 };
 
 function typeLabel(type: string) {
   return DOCUMENT_TYPE_LABELS[type] || type.replace(/_/g, " ");
 }
 
-function typeBadgeVariant(type: string) {
-  switch (type) {
-    case "K1":
-    case "TAX_DOCUMENT":
-      return "destructive" as const;
-    case "QUARTERLY_REPORT":
-    case "ANNUAL_REPORT":
-      return "default" as const;
-    case "CAPITAL_CALL":
-    case "DISTRIBUTION_NOTICE":
-      return "secondary" as const;
-    default:
-      return "outline" as const;
+function fileTypeBadge(mimeType: string) {
+  if (mimeType?.includes("pdf")) {
+    return (
+      <span className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-red-100 text-red-600 text-[10px] font-bold">
+        PDF
+      </span>
+    );
   }
+  if (mimeType?.includes("word") || mimeType?.includes("doc")) {
+    return (
+      <span className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-blue-100 text-blue-600 text-[10px] font-bold">
+        DOC
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-gray-100 text-gray-500 text-[10px] font-bold">
+      FILE
+    </span>
+  );
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes >= 1048576) return `${(bytes / 1048576).toFixed(1)} MB`;
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${bytes} B`;
+}
+
+function isNew(dateStr: string): boolean {
+  const uploaded = new Date(dateStr);
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  return uploaded > weekAgo;
 }
 
 function DocumentSkeleton() {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-border p-4">
-      <div className="flex items-center gap-3 flex-1">
-        <Skeleton className="h-9 w-9 rounded" />
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-48" />
-          <Skeleton className="h-3 w-64" />
-        </div>
+    <div className="flex items-center gap-3 p-4">
+      <Skeleton className="h-8 w-8 rounded-lg" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-4 w-48" />
+        <Skeleton className="h-3 w-64" />
       </div>
-      <Skeleton className="h-8 w-8" />
+      <Skeleton className="h-8 w-20" />
     </div>
   );
+}
+
+// Group documents by their category
+function groupDocumentsByCategory(documents: Document[]) {
+  const groups: Record<string, Document[]> = {};
+
+  for (const doc of documents) {
+    let groupKey = "OTHER";
+    for (const [key, group] of Object.entries(CATEGORY_GROUPS)) {
+      if (group.types.includes(doc.type)) {
+        groupKey = key;
+        break;
+      }
+    }
+    if (!groups[groupKey]) groups[groupKey] = [];
+    groups[groupKey].push(doc);
+  }
+
+  return groups;
 }
 
 export default function DocumentsPage() {
@@ -100,7 +156,7 @@ export default function DocumentsPage() {
 
   // Filters
   const [search, setSearch] = useState("");
-  const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [selectedInvestment, setSelectedInvestment] = useState<string>("all");
   const [page, setPage] = useState(1);
@@ -110,16 +166,23 @@ export default function DocumentsPage() {
       setLoading(true);
       const params = new URLSearchParams();
       if (search) params.set("search", search);
-      if (selectedType !== "all") params.set("type", selectedType);
+      // Map sidebar category to type filter
+      if (selectedCategory !== "all") {
+        const group = CATEGORY_GROUPS[selectedCategory];
+        if (group) {
+          // Use the first type as filter (API will need to handle multiple)
+          params.set("type", group.types[0]);
+        } else {
+          params.set("type", selectedCategory);
+        }
+      }
       if (selectedYear !== "all") params.set("year", selectedYear);
       if (selectedInvestment !== "all")
         params.set("investment", selectedInvestment);
       params.set("page", String(page));
 
       const res = await fetch(`/api/portal/documents?${params.toString()}`);
-      if (!res.ok) {
-        throw new Error("Failed to load documents");
-      }
+      if (!res.ok) throw new Error("Failed to load documents");
       const json = await res.json();
       setData(json);
     } catch (err) {
@@ -127,7 +190,7 @@ export default function DocumentsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, selectedType, selectedYear, selectedInvestment, page]);
+  }, [search, selectedCategory, selectedYear, selectedInvestment, page]);
 
   useEffect(() => {
     Promise.resolve().then(() => fetchDocuments());
@@ -143,234 +206,323 @@ export default function DocumentsPage() {
     return () => clearTimeout(timeout);
   }, [searchInput]);
 
-  // Extract unique years and investments for filters
-  const years = data?.documents
-    ? [...new Set(data.documents.map((d) => d.year).filter(Boolean))]
-        .sort((a, b) => (b || 0) - (a || 0))
-    : [];
-
-  const investments = data?.documents
-    ? [...new Set(data.documents.filter((d) => d.investment).map((d) => d.investment!.name))]
-        .sort()
-    : [];
-
   const categoryCounts = data?.categoryCounts || {};
   const totalDocuments = Object.values(categoryCounts).reduce(
     (sum, count) => sum + count,
     0
   );
 
-  const categories = [
-    { key: "all", label: "All Documents", count: totalDocuments },
-    ...Object.entries(categoryCounts).map(([key, count]) => ({
-      key,
-      label: typeLabel(key),
-      count,
-    })),
+  // Compute category sidebar counts
+  const sidebarCategories = [
+    {
+      key: "all",
+      label: "All Documents",
+      count: totalDocuments,
+    },
+    {
+      key: "TAX",
+      label: "Tax Documents",
+      count: (categoryCounts["K1"] || 0) + (categoryCounts["TAX_1099"] || 0),
+    },
+    {
+      key: "REPORTS",
+      label: "Quarterly Reports",
+      count:
+        (categoryCounts["QUARTERLY_REPORT"] || 0) +
+        (categoryCounts["ANNUAL_REPORT"] || 0),
+    },
+    {
+      key: "LEGAL",
+      label: "Legal & Agreements",
+      count:
+        (categoryCounts["SUBSCRIPTION_AGREEMENT"] || 0) +
+        (categoryCounts["PPM"] || 0) +
+        (categoryCounts["INVESTOR_LETTER"] || 0),
+    },
+    {
+      key: "CAPITAL",
+      label: "Capital Notices",
+      count:
+        (categoryCounts["CAPITAL_CALL_NOTICE"] || 0) +
+        (categoryCounts["DISTRIBUTION_NOTICE"] || 0),
+    },
   ];
+
+  const investmentCounts = data?.investmentCounts || [];
+  const advisorAccess = data?.advisorAccess;
+
+  // Group documents by category for display
+  const documents = data?.documents || [];
+  const grouped = groupDocumentsByCategory(documents);
 
   return (
     <div className="p-8 space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Documents</h1>
-        <p className="text-muted-foreground">
-          Access your K-1s, reports, and investment documents
+        <h1 className="text-2xl font-bold tracking-tight text-[#1a1a1a]">
+          Documents
+        </h1>
+        <p className="text-[#6b7280] text-sm mt-1">
+          Everything you need. Nothing buried.
         </p>
       </div>
 
+      {/* CPA Access Banner */}
+      {advisorAccess && (
+        <div className="bg-white rounded-xl border border-[#e8e0d4] p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-[#f5f0e8] flex items-center justify-center text-xs font-semibold text-[#b8860b]">
+              {advisorAccess.name?.[0]?.toUpperCase() || "A"}
+            </div>
+            <div>
+              <p className="text-sm font-medium text-[#1a1a1a]">
+                {advisorAccess.name} ({advisorAccess.type || "Advisor"}) has
+                access to{" "}
+                {advisorAccess.permissionLevel === "DASHBOARD_AND_TAX_DOCUMENTS"
+                  ? "tax documents"
+                  : "all documents"}
+              </p>
+              <p className="text-xs text-[#9a8c7a]">
+                View + Download
+                {advisorAccess.expiresAt &&
+                  ` \u00b7 Expires ${formatDate(advisorAccess.expiresAt)}`}
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/advisors"
+            className="text-xs text-[#b8860b] hover:underline font-medium shrink-0"
+          >
+            Manage access
+          </Link>
+        </div>
+      )}
+
       <div className="flex gap-6">
-        {/* Left Sidebar - Categories */}
-        <div className="hidden lg:block w-56 shrink-0">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                Categories
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pb-3">
+        {/* Left Sidebar */}
+        <div className="hidden lg:block w-56 shrink-0 space-y-6">
+          {/* Categories */}
+          <div>
+            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3">
+              Categories
+            </p>
+            <nav className="space-y-0.5">
+              {sidebarCategories.map((cat) => (
+                <button
+                  key={cat.key}
+                  onClick={() => {
+                    setSelectedCategory(cat.key);
+                    setPage(1);
+                  }}
+                  className={cn(
+                    "flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-colors text-left",
+                    selectedCategory === cat.key
+                      ? "bg-[#faf8f5] text-[#b8860b] font-medium"
+                      : "text-[#6b7280] hover:text-[#1a1a1a] hover:bg-[#faf8f5]"
+                  )}
+                >
+                  <span>{cat.label}</span>
+                  <span className="text-xs tabular-nums text-[#9a8c7a]">
+                    {cat.count}
+                  </span>
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          {/* By Investment */}
+          {investmentCounts.length > 0 && (
+            <div>
+              <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3">
+                By Investment
+              </p>
               <nav className="space-y-0.5">
-                {categories.map((cat) => (
+                {investmentCounts.map((inv) => (
                   <button
-                    key={cat.key}
+                    key={inv.name}
                     onClick={() => {
-                      setSelectedType(cat.key);
+                      setSelectedInvestment(
+                        selectedInvestment === inv.name ? "all" : inv.name
+                      );
                       setPage(1);
                     }}
                     className={cn(
                       "flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-colors text-left",
-                      selectedType === cat.key
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      selectedInvestment === inv.name
+                        ? "bg-[#faf8f5] text-[#b8860b] font-medium"
+                        : "text-[#6b7280] hover:text-[#1a1a1a] hover:bg-[#faf8f5]"
                     )}
                   >
-                    <span>{cat.label}</span>
-                    <span
-                      className={cn(
-                        "text-xs tabular-nums",
-                        selectedType === cat.key
-                          ? "text-primary"
-                          : "text-muted-foreground"
-                      )}
-                    >
-                      {cat.count}
+                    <span className="truncate">{inv.name}</span>
+                    <span className="text-xs tabular-nums text-[#9a8c7a]">
+                      {inv.count}
                     </span>
                   </button>
                 ))}
               </nav>
-            </CardContent>
-          </Card>
+            </div>
+          )}
         </div>
 
         {/* Main Content */}
         <div className="flex-1 space-y-4">
-          {/* Filters */}
-          <div className="flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          {/* Search + Filters */}
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9a8c7a]" />
               <Input
                 placeholder="Search documents..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-9"
+                className="pl-9 bg-white border-[#e8e0d4]"
               />
             </div>
-
-            {/* Mobile category filter */}
-            <div className="lg:hidden">
-              <Select
-                value={selectedType}
-                onValueChange={(val) => {
-                  setSelectedType(val ?? "");
-                  setPage(1);
-                }}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.key} value={cat.key}>
-                      {cat.label} ({cat.count})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {years.length > 0 && (
+            <div className="flex flex-wrap gap-3">
               <Select
                 value={selectedYear}
                 onValueChange={(val) => {
-                  setSelectedYear(val ?? "");
+                  setSelectedYear(val ?? "all");
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="Year" />
+                <SelectTrigger className="w-full sm:w-[180px] bg-white border-[#e8e0d4]">
+                  <SelectValue placeholder="All years" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Years</SelectItem>
-                  {years.map((year) => (
-                    <SelectItem key={year} value={String(year)}>
-                      {year}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="all">All years</SelectItem>
+                  <SelectItem value="2025">2025</SelectItem>
+                  <SelectItem value="2024">2024</SelectItem>
+                  <SelectItem value="2023">2023</SelectItem>
                 </SelectContent>
               </Select>
-            )}
 
-            {investments.length > 0 && (
-              <Select
-                value={selectedInvestment}
-                onValueChange={(val) => {
-                  setSelectedInvestment(val ?? "");
-                  setPage(1);
-                }}
-              >
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Investment" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Investments</SelectItem>
-                  {investments.map((name) => (
-                    <SelectItem key={name} value={name}>
-                      {name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+              {/* Mobile category */}
+              <div className="lg:hidden">
+                <Select
+                  value={selectedCategory}
+                  onValueChange={(val) => {
+                    setSelectedCategory(val ?? "all");
+                    setPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-[180px] bg-white border-[#e8e0d4]">
+                    <SelectValue placeholder="All types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sidebarCategories.map((cat) => (
+                      <SelectItem key={cat.key} value={cat.key}>
+                        {cat.label} ({cat.count})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Mobile investment filter */}
+              <div className="lg:hidden">
+                <Select
+                  value={selectedInvestment}
+                  onValueChange={(val) => {
+                    setSelectedInvestment(val ?? "all");
+                    setPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-[200px] bg-white border-[#e8e0d4]">
+                    <SelectValue placeholder="All investments" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All investments</SelectItem>
+                    {investmentCounts.map((inv) => (
+                      <SelectItem key={inv.name} value={inv.name}>
+                        {inv.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
 
           {/* Document List */}
           {loading ? (
-            <div className="space-y-3">
+            <div className="bg-white rounded-xl border border-[#e8e0d4] divide-y divide-[#f5f0e8]">
               {Array.from({ length: 5 }).map((_, i) => (
                 <DocumentSkeleton key={i} />
               ))}
             </div>
           ) : error ? (
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-destructive">{error}</p>
-              </CardContent>
-            </Card>
-          ) : data && data.documents.length > 0 ? (
-            <>
-              <div className="space-y-2">
-                {data.documents.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="flex items-center justify-between rounded-lg border border-border p-4 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-medium truncate">
-                            {doc.name}
-                          </p>
-                          <Badge variant={typeBadgeVariant(doc.type)}>
-                            {typeLabel(doc.type)}
-                          </Badge>
+            <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
+              <p className="text-red-600">{error}</p>
+            </div>
+          ) : documents.length > 0 ? (
+            <div className="space-y-6">
+              {Object.entries(grouped).map(([groupKey, docs]) => {
+                const groupLabel =
+                  CATEGORY_GROUPS[groupKey]?.label || "Other Documents";
+                return (
+                  <div key={groupKey}>
+                    <h3 className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3">
+                      {groupLabel}
+                    </h3>
+                    <div className="bg-white rounded-xl border border-[#e8e0d4] divide-y divide-[#f5f0e8]">
+                      {docs.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="flex items-center gap-4 p-4 hover:bg-[#faf8f5] transition-colors"
+                        >
+                          {fileTypeBadge(doc.mimeType)}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-[#1a1a1a] truncate">
+                              {doc.name}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-[#9a8c7a] mt-0.5">
+                              <span>Uploaded {formatDate(doc.createdAt)}</span>
+                              <span>&middot;</span>
+                              <span>{formatFileSize(doc.fileSize)}</span>
+                            </div>
+                            {doc.advisorVisible && (
+                              <p className="text-xs text-[#b8860b] mt-0.5">
+                                Visible to CPA
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Badge
+                              variant="outline"
+                              className="border-[#e8e0d4] text-[#6b7280] text-[10px]"
+                            >
+                              {typeLabel(doc.type)}
+                            </Badge>
+                            {isNew(doc.createdAt) && (
+                              <Badge className="bg-[#b8860b] text-white text-[10px] hover:bg-[#9a7209]">
+                                New
+                              </Badge>
+                            )}
+                            <a
+                              href={`/api/portal/documents/${doc.id}/download`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-[#e8e0d4] text-[#4a4a4a] text-xs"
+                              >
+                                Download
+                              </Button>
+                            </a>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                          {doc.year && <span>{doc.year}</span>}
-                          {doc.year && doc.investment && (
-                            <span>&middot;</span>
-                          )}
-                          {doc.investment && (
-                            <span>{doc.investment.name}</span>
-                          )}
-                          {(doc.year || doc.investment) && (
-                            <span>&middot;</span>
-                          )}
-                          <span>{formatDate(doc.createdAt)}</span>
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                    <a
-                      href={`/api/portal/documents/${doc.id}/download`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="ml-4 shrink-0"
-                    >
-                      <Button variant="outline" size="sm">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </a>
                   </div>
-                ))}
-              </div>
+                );
+              })}
 
               {/* Pagination */}
-              {data.total > data.pageSize && (
+              {data && data.total > data.pageSize && (
                 <div className="flex items-center justify-between pt-4">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-[#9a8c7a]">
                     Showing {(data.page - 1) * data.pageSize + 1}
                     {" - "}
                     {Math.min(data.page * data.pageSize, data.total)} of{" "}
@@ -382,6 +534,7 @@ export default function DocumentsPage() {
                       size="sm"
                       disabled={data.page <= 1}
                       onClick={() => setPage((p) => p - 1)}
+                      className="border-[#e8e0d4]"
                     >
                       Previous
                     </Button>
@@ -390,29 +543,28 @@ export default function DocumentsPage() {
                       size="sm"
                       disabled={data.page * data.pageSize >= data.total}
                       onClick={() => setPage((p) => p + 1)}
+                      className="border-[#e8e0d4]"
                     >
                       Next
                     </Button>
                   </div>
                 </div>
               )}
-            </>
+            </div>
           ) : (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center py-12">
-                  <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">
-                    No Documents Found
-                  </h3>
-                  <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                    {search || selectedType !== "all" || selectedYear !== "all"
-                      ? "No documents match your current filters. Try adjusting your search criteria."
-                      : "Documents will appear here once they are uploaded by your advisor."}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
+              <div className="text-center py-12">
+                <FolderOpen className="h-12 w-12 text-[#d4c5a9] mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-[#1a1a1a] mb-2">
+                  No Documents Found
+                </h3>
+                <p className="text-sm text-[#6b7280] max-w-md mx-auto">
+                  {search || selectedCategory !== "all" || selectedYear !== "all"
+                    ? "No documents match your current filters. Try adjusting your search criteria."
+                    : "Documents will appear here once they are uploaded by your advisor."}
+                </p>
+              </div>
+            </div>
           )}
         </div>
       </div>

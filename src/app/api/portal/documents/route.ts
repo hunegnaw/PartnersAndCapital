@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
     const type = searchParams.get("type") || "";
     const year = searchParams.get("year") || "";
-    const investmentId = searchParams.get("investmentId") || "";
+    const investmentFilter = searchParams.get("investment") || "";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const pageSize = Math.min(
       100,
@@ -22,7 +22,10 @@ export async function GET(request: Request) {
     // Get user's investment IDs for scoping
     const clientInvestments = await prisma.clientInvestment.findMany({
       where: { userId: user.id, deletedAt: null },
-      select: { investmentId: true },
+      select: {
+        investmentId: true,
+        investment: { select: { id: true, name: true } },
+      },
     });
     const investmentIds = clientInvestments.map((ci) => ci.investmentId);
 
@@ -38,9 +41,11 @@ export async function GET(request: Request) {
       deletedAt: null,
       ...ownershipFilter,
       ...(search ? { name: { contains: search } } : {}),
-      ...(type ? { type: type as Prisma.EnumDocumentTypeFilter["equals"] } : {}),
-      ...(year ? { year: parseInt(year) } : {}),
-      ...(investmentId ? { investmentId } : {}),
+      ...(type && type !== "all" ? { type: type as Prisma.EnumDocumentTypeFilter["equals"] } : {}),
+      ...(year && year !== "all" ? { year: parseInt(year) } : {}),
+      ...(investmentFilter && investmentFilter !== "all"
+        ? { investment: { name: investmentFilter } }
+        : {}),
     };
 
     const [documents, total] = await Promise.all([
@@ -55,6 +60,7 @@ export async function GET(request: Request) {
           type: true,
           year: true,
           description: true,
+          advisorVisible: true,
           createdAt: true,
           investment: {
             select: { id: true, name: true },
@@ -84,12 +90,76 @@ export async function GET(request: Request) {
       categoryCounts[group.type] = group._count.type;
     }
 
+    // Investment document counts for "By Investment" sidebar
+    const investmentDocs = await prisma.document.groupBy({
+      by: ["investmentId"],
+      where: {
+        deletedAt: null,
+        investmentId: { in: investmentIds },
+      },
+      _count: { investmentId: true },
+    });
+
+    const investmentCounts: { name: string; count: number }[] = [];
+    for (const group of investmentDocs) {
+      if (group.investmentId) {
+        const ci = clientInvestments.find(
+          (c) => c.investmentId === group.investmentId
+        );
+        if (ci) {
+          investmentCounts.push({
+            name: ci.investment.name,
+            count: group._count.investmentId,
+          });
+        }
+      }
+    }
+
+    // Get advisor info for CPA banner
+    const advisorWithAccess = await prisma.advisor.findFirst({
+      where: {
+        clientId: user.id,
+        status: "ACTIVE",
+        accesses: {
+          some: {
+            permissionLevel: {
+              in: [
+                "DASHBOARD_AND_TAX_DOCUMENTS",
+                "DASHBOARD_AND_DOCUMENTS",
+              ],
+            },
+            revokedAt: null,
+          },
+        },
+      },
+      select: {
+        name: true,
+        advisorType: true,
+        accesses: {
+          where: { revokedAt: null },
+          select: {
+            permissionLevel: true,
+            expiresAt: true,
+          },
+        },
+      },
+    });
+
     return NextResponse.json({
       documents,
       total,
       page,
       pageSize,
       categoryCounts,
+      investmentCounts,
+      advisorAccess: advisorWithAccess
+        ? {
+            name: advisorWithAccess.name,
+            type: advisorWithAccess.advisorType,
+            permissionLevel: advisorWithAccess.accesses[0]?.permissionLevel,
+            expiresAt: advisorWithAccess.accesses[0]?.expiresAt,
+          }
+        : null,
     });
   } catch (error) {
     console.error("Error listing documents:", error);

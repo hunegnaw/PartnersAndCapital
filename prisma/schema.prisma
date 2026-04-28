@@ -67,6 +67,8 @@ model User {
   apiKeys           ApiKey[]
   activityFeeds     ActivityFeed[]     @relation("ActivityFeedAuthor")
   activityFeedTarget ActivityFeed[]    @relation("ActivityFeedTarget")
+  supportTickets    SupportTicket[]
+  ticketReplies     TicketReply[]
 
   @@index([email])
   @@index([role])
@@ -417,6 +419,7 @@ model Advisor {
 
 enum AdvisorPermissionLevel {
   DASHBOARD_ONLY
+  DASHBOARD_AND_TAX_DOCUMENTS
   DASHBOARD_AND_DOCUMENTS
   SPECIFIC_INVESTMENT
 }
@@ -427,6 +430,7 @@ model AdvisorAccess {
   userId          String
   permissionLevel AdvisorPermissionLevel @default(DASHBOARD_ONLY)
   investmentId    String?
+  accessStartAt   DateTime?
   expiresAt       DateTime?
   revokedAt       DateTime?
   createdAt       DateTime               @default(now())
@@ -639,4 +643,54 @@ model SystemSetting {
   updatedAt DateTime @updatedAt
 
   @@index([key])
+}
+
+// ============================================================
+// SUPPORT TICKETS
+// ============================================================
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model SupportTicket {
+  id          String         @id @default(cuid())
+  userId      String
+  subject     String
+  message     String         @db.Text
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+  category    String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id])
+  replies  TicketReply[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model TicketReply {
+  id        String   @id @default(cuid())
+  ticketId  String
+  userId    String
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id])
+  user   User          @relation(fields: [userId], references: [id])
+
+  @@index([ticketId])
+  @@index([userId])
 }

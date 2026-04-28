@@ -2,39 +2,19 @@
 
 import { useEffect, useState, useCallback, use } from "react";
 import Link from "next/link";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DollarSign,
-  TrendingUp,
-  Percent,
-  Banknote,
-  BarChart3,
-  ChevronRight,
-  FileText,
-  Download,
-  Clock,
-  ArrowUpRight,
-  ArrowDownLeft,
-  Info,
-} from "lucide-react";
-import { formatCurrency, formatDate, formatPercentage, cn } from "@/lib/utils";
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
+import { formatCurrency, formatDate, cn } from "@/lib/utils";
 
 interface InvestmentDetail {
   id: string;
@@ -92,40 +72,56 @@ function DetailSkeleton() {
   return (
     <div className="p-8 space-y-6">
       <Skeleton className="h-4 w-48" />
-      <Skeleton className="h-8 w-64" />
+      <div className="bg-[#0f1c2e] rounded-2xl p-8">
+        <Skeleton className="h-8 w-64 bg-white/10" />
+      </div>
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Card key={i}>
-            <CardContent className="pt-6">
-              <Skeleton className="h-3 w-20 mb-2" />
-              <Skeleton className="h-6 w-28" />
-            </CardContent>
-          </Card>
+          <div key={i} className="bg-white rounded-xl border border-[#e8e0d4] p-4">
+            <Skeleton className="h-3 w-20 mb-2" />
+            <Skeleton className="h-6 w-28" />
+          </div>
         ))}
       </div>
-      <Card>
-        <CardContent className="pt-6">
-          <Skeleton className="h-64 w-full" />
-        </CardContent>
-      </Card>
     </div>
   );
 }
 
-function statusBadgeVariant(status: string) {
-  switch (status?.toUpperCase()) {
-    case "ACTIVE":
-    case "FUNDED":
-    case "COMPLETED":
-      return "default";
-    case "PENDING":
-      return "secondary";
-    case "EXITED":
-    case "CLOSED":
-      return "outline";
-    default:
-      return "secondary";
+// Generate growth data from contributions/distributions
+function generateGrowthData(
+  contributions: { amount: number; date: string }[],
+  distributions: { amount: number; date: string }[],
+  currentValue: number
+) {
+  const all = [
+    ...contributions.map((c) => ({ date: c.date, amount: Number(c.amount), type: "contrib" })),
+    ...distributions.map((d) => ({ date: d.date, amount: Number(d.amount), type: "dist" })),
+  ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  if (all.length === 0) return [];
+
+  const points: { date: string; value: number }[] = [];
+  let cumulative = 0;
+
+  for (const item of all) {
+    if (item.type === "contrib") cumulative += item.amount;
+    else cumulative -= item.amount;
+    points.push({
+      date: new Date(item.date).toLocaleDateString("en-US", {
+        month: "short",
+        year: "2-digit",
+      }),
+      value: cumulative,
+    });
   }
+
+  // Add current value as final point
+  points.push({
+    date: "Now",
+    value: currentValue,
+  });
+
+  return points;
 }
 
 export default function InvestmentDetailPage({
@@ -142,9 +138,7 @@ export default function InvestmentDetailPage({
     try {
       setLoading(true);
       const res = await fetch(`/api/portal/investments/${id}`);
-      if (!res.ok) {
-        throw new Error("Failed to load investment details");
-      }
+      if (!res.ok) throw new Error("Failed to load investment details");
       const json = await res.json();
       setData(json);
     } catch (err) {
@@ -158,360 +152,389 @@ export default function InvestmentDetailPage({
     Promise.resolve().then(() => fetchDetail());
   }, [fetchDetail]);
 
-  if (loading) {
-    return <DetailSkeleton />;
-  }
+  if (loading) return <DetailSkeleton />;
 
   if (error || !data) {
     return (
       <div className="p-8">
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-destructive">{error || "Investment not found"}</p>
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
+          <p className="text-red-600">{error || "Investment not found"}</p>
+        </div>
       </div>
     );
   }
 
-  const metricCards = [
-    {
-      label: "Amount Invested",
-      value: formatCurrency(data.amountInvested),
-      icon: DollarSign,
-    },
-    {
-      label: "Current Value",
-      value: formatCurrency(data.currentValue),
-      icon: TrendingUp,
-    },
-    {
-      label: "Total Return",
-      value: formatPercentage(data.returnPercentage),
-      icon: Percent,
-      positive: data.returnPercentage >= 0,
-    },
-    {
-      label: "IRR",
-      value: data.irr != null ? formatPercentage(data.irr) : "N/A",
-      icon: BarChart3,
-      positive: data.irr != null ? data.irr >= 0 : undefined,
-    },
-    {
-      label: "Cash Distributed",
-      value: formatCurrency(data.cashDistributed),
-      icon: Banknote,
-    },
-  ];
+  const gain = data.currentValue - data.amountInvested;
+  const distributionCount = data.distributions.length;
+  const investmentDate = data.investmentDate
+    ? new Date(data.investmentDate)
+    : null;
+  const holdingMonths = investmentDate
+    ? Math.round(
+        (Date.now() - investmentDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
+      )
+    : null;
+  const targetHoldMonths = data.investment.targetHoldPeriod
+    ? parseInt(data.investment.targetHoldPeriod) * 12
+    : null;
+
+  const growthData = generateGrowthData(
+    data.contributions,
+    data.distributions,
+    data.currentValue
+  );
+
+  // Group updates by month/year
+  const updatesByDate: Record<string, typeof data.dealRoomUpdates> = {};
+  for (const update of data.dealRoomUpdates) {
+    const key = new Date(update.createdAt).toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+    if (!updatesByDate[key]) updatesByDate[key] = [];
+    updatesByDate[key].push(update);
+  }
 
   const overviewRows = [
-    { label: "Asset Class", value: data.investment.assetClass?.name },
-    { label: "Status", value: data.investment.status },
+    { label: "Asset class", value: data.investment.assetClass?.name },
     { label: "Location", value: data.investment.location },
-    { label: "Target Hold Period", value: data.investment.targetHoldPeriod },
-    { label: "Distribution Cadence", value: data.investment.distributionCadence },
-    { label: "Vintage", value: data.investment.vintage },
-    { label: "Target Return", value: data.investment.targetReturn },
-    { label: "Fund Status", value: data.investment.fundStatus },
     {
-      label: "Return Multiple",
-      value: data.returnMultiple != null ? `${data.returnMultiple.toFixed(2)}x` : null,
+      label: "Investment date",
+      value: data.investmentDate ? formatDate(data.investmentDate) : null,
     },
-    { label: "Investment Date", value: data.investmentDate ? formatDate(data.investmentDate) : null },
+    { label: "Target hold", value: data.investment.targetHoldPeriod },
+    {
+      label: "Target return",
+      value: data.investment.targetReturn
+        ? `${data.investment.targetReturn}%`
+        : null,
+    },
+    {
+      label: "Distribution cadence",
+      value: data.investment.distributionCadence,
+    },
+    { label: "Fund status", value: data.investment.fundStatus },
   ].filter((row) => row.value);
-
-  // Combine contributions and distributions for capital activity tab
-  const capitalActivity = [
-    ...data.contributions.map((c) => ({
-      id: c.id,
-      date: c.date,
-      type: "Contribution" as const,
-      amount: c.amount,
-      description: c.description,
-      status: c.status,
-    })),
-    ...data.distributions.map((d) => ({
-      id: d.id,
-      date: d.date,
-      type: "Distribution" as const,
-      amount: d.amount,
-      description: d.description || d.type?.replace(/_/g, " "),
-      status: d.status,
-    })),
-  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="p-8 space-y-6">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-1 text-sm text-muted-foreground">
-        <Link href="/investments" className="hover:text-foreground transition-colors">
-          Portfolio
-        </Link>
-        <ChevronRight className="h-3 w-3" />
-        <span className="text-foreground font-medium">
-          {data.investment.name}
-        </span>
-      </nav>
-
-      {/* Title and Status */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {data.investment.name}
-          </h1>
-          {data.investment.description && (
-            <p className="text-muted-foreground mt-1 max-w-2xl">
-              {data.investment.description}
+      {/* Navy header section */}
+      <div className="bg-[#0f1c2e] rounded-2xl p-8">
+        <nav className="flex items-center gap-1 text-sm text-white/40 mb-4">
+          <Link
+            href="/investments"
+            className="hover:text-white/70 transition-colors"
+          >
+            Portfolio
+          </Link>
+          <span>/</span>
+          <span className="text-white/70">{data.investment.name}</span>
+        </nav>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
+              {data.investment.name}
+            </h1>
+            <p className="text-white/50 text-sm">
+              {data.investment.assetClass?.name}
+              {data.investment.location && ` \u00b7 ${data.investment.location}`}
             </p>
-          )}
+          </div>
+          <Badge
+            className={cn(
+              "text-xs font-medium border",
+              data.status === "ACTIVE"
+                ? "border-green-400/50 text-green-300 bg-green-900/30"
+                : "border-white/20 text-white/60 bg-white/5"
+            )}
+          >
+            {data.status === "ACTIVE" ? "Active" : data.status}
+          </Badge>
         </div>
-        <Badge variant={statusBadgeVariant(data.status)} className="text-sm">
-          {data.status}
-        </Badge>
-      </div>
-
-      {/* Metric Cards */}
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-        {metricCards.map((metric) => (
-          <Card key={metric.label}>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-xs text-muted-foreground">{metric.label}</p>
-                <metric.icon className="h-3.5 w-3.5 text-muted-foreground" />
-              </div>
-              <p
-                className={cn(
-                  "text-xl font-bold",
-                  metric.positive === true && "text-green-600",
-                  metric.positive === false && "text-red-600"
-                )}
-              >
-                {metric.value}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="overview">
-        <TabsList>
+        <TabsList className="bg-white border border-[#e8e0d4]">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="updates">
-            Updates
-            {data.dealRoomUpdates.length > 0 && (
-              <Badge variant="secondary" className="ml-1.5 h-4 px-1.5 text-[10px]">
-                {data.dealRoomUpdates.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="documents">
-            Documents
-            {data.documents.length > 0 && (
-              <Badge variant="secondary" className="ml-1.5 h-4 px-1.5 text-[10px]">
-                {data.documents.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="capital-activity">Capital Activity</TabsTrigger>
+          <TabsTrigger value="updates">Updates</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="disclosures">Disclosures</TabsTrigger>
         </TabsList>
 
+        {/* 5 KPI Cards */}
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5 mt-6">
+          <div className="bg-white rounded-xl border border-[#e8e0d4] p-4">
+            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-1">
+              Invested
+            </p>
+            <p className="text-xl font-bold text-[#1a1a1a]">
+              {formatCurrency(data.amountInvested)}
+            </p>
+            <p className="text-xs text-[#9a8c7a] mt-0.5">
+              {data.investmentDate ? formatDate(data.investmentDate) : ""}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-[#e8e0d4] p-4">
+            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-1">
+              Current Value
+            </p>
+            <p className="text-xl font-bold text-[#1a1a1a]">
+              {formatCurrency(data.currentValue)}
+            </p>
+            <p
+              className={cn(
+                "text-xs mt-0.5",
+                gain >= 0 ? "text-green-600" : "text-red-600"
+              )}
+            >
+              {gain >= 0 ? "+" : ""}
+              {formatCurrency(gain)}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-[#e8e0d4] p-4">
+            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-1">
+              Total Return
+            </p>
+            <p
+              className={cn(
+                "text-xl font-bold",
+                data.returnPercentage >= 0 ? "text-green-600" : "text-red-600"
+              )}
+            >
+              +{Number(data.returnPercentage).toFixed(1)}%
+            </p>
+            <p className="text-xs text-[#9a8c7a] mt-0.5">
+              Net IRR: {data.irr != null ? `${Number(data.irr).toFixed(1)}%` : "N/A"}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-[#e8e0d4] p-4">
+            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-1">
+              Cash Distributed
+            </p>
+            <p className="text-xl font-bold text-[#1a1a1a]">
+              {formatCurrency(data.cashDistributed)}
+            </p>
+            <p className="text-xs text-[#9a8c7a] mt-0.5">
+              {distributionCount} payment{distributionCount !== 1 ? "s" : ""}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-[#e8e0d4] p-4">
+            <p className="text-[10px] font-semibold text-[#9a8c7a] tracking-widest uppercase mb-1">
+              Holding Period
+            </p>
+            <p className="text-xl font-bold text-[#1a1a1a]">
+              {holdingMonths != null ? `${holdingMonths} mo.` : "N/A"}
+            </p>
+            <p className="text-xs text-[#9a8c7a] mt-0.5">
+              {targetHoldMonths
+                ? `Target ${targetHoldMonths} mo.`
+                : data.investment.targetHoldPeriod || ""}
+            </p>
+          </div>
+        </div>
+
         {/* Overview Tab */}
-        <TabsContent value="overview">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Investment Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-y-3">
+        <TabsContent value="overview" className="space-y-6 mt-6">
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Left column: Overview details */}
+            <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
+              <h3 className="text-xs font-semibold text-[#9a8c7a] tracking-widest uppercase mb-4">
+                Overview
+              </h3>
+              {data.investment.description && (
+                <p className="text-sm text-[#4a4a4a] mb-4 leading-relaxed">
+                  {data.investment.description}
+                </p>
+              )}
+              <div className="divide-y divide-[#f5f0e8]">
                 {overviewRows.map((row) => (
                   <div
                     key={row.label}
-                    className="flex items-center justify-between py-2 border-b border-border last:border-0"
+                    className="flex items-center justify-between py-2.5"
                   >
-                    <span className="text-sm text-muted-foreground">
-                      {row.label}
+                    <span className="text-sm text-[#6b7280]">{row.label}</span>
+                    <span className="text-sm font-medium text-[#1a1a1a]">
+                      {row.value}
                     </span>
-                    <span className="text-sm font-medium">{row.value}</span>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            {/* Right column: Chart + Latest Update */}
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
+                <h3 className="text-xs font-semibold text-[#9a8c7a] tracking-widest uppercase mb-4">
+                  Value Over Time
+                </h3>
+                {growthData.length > 1 ? (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={growthData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e8e0d4" />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 11, fill: "#9a8c7a" }}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 11, fill: "#9a8c7a" }}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(val) => `$${(val / 1000).toFixed(0)}K`}
+                        width={60}
+                      />
+                      <Tooltip
+                        formatter={(value) => [
+                          formatCurrency(Number(value ?? 0)),
+                          "Value",
+                        ]}
+                        contentStyle={{
+                          backgroundColor: "#fff",
+                          border: "1px solid #e8e0d4",
+                          borderRadius: "8px",
+                          fontSize: "13px",
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#b8860b"
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 4, fill: "#b8860b" }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[200px] text-sm text-[#9a8c7a]">
+                    Not enough data for chart
+                  </div>
+                )}
+              </div>
+
+              {/* Latest Update */}
+              {data.dealRoomUpdates.length > 0 && (
+                <div className="bg-[#faf8f5] rounded-xl border border-[#e8e0d4] p-6">
+                  <h3 className="text-xs font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3">
+                    Latest Update
+                  </h3>
+                  <h4 className="text-sm font-semibold text-[#1a1a1a] mb-1">
+                    {data.dealRoomUpdates[0].title}
+                  </h4>
+                  <p className="text-sm text-[#4a4a4a] leading-relaxed line-clamp-4">
+                    {data.dealRoomUpdates[0].content}
+                  </p>
+                  <p className="text-xs text-[#9a8c7a] mt-2">
+                    {formatDate(data.dealRoomUpdates[0].createdAt)}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         </TabsContent>
 
         {/* Updates Tab */}
-        <TabsContent value="updates">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Deal Room Updates</CardTitle>
-              <CardDescription>
-                Updates and communications about this investment
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {data.dealRoomUpdates.length > 0 ? (
-                <div className="space-y-6">
-                  {data.dealRoomUpdates.map((update, index) => (
-                    <div key={update.id} className="flex gap-4">
-                      <div className="flex flex-col items-center">
-                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <Info className="h-3.5 w-3.5 text-primary" />
-                        </div>
-                        {index < data.dealRoomUpdates.length - 1 && (
-                          <div className="w-px flex-1 bg-border mt-2" />
-                        )}
-                      </div>
-                      <div className="pb-6">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-sm font-semibold">
-                            {update.title}
-                          </h4>
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {formatDate(update.createdAt)}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+        <TabsContent value="updates" className="mt-6">
+          {data.dealRoomUpdates.length > 0 ? (
+            <div className="space-y-6">
+              {Object.entries(updatesByDate).map(([dateGroup, updates]) => (
+                <div key={dateGroup}>
+                  <h3 className="text-xs font-semibold text-[#9a8c7a] tracking-widest uppercase mb-3">
+                    {dateGroup}
+                  </h3>
+                  <div className="space-y-4">
+                    {updates.map((update) => (
+                      <div
+                        key={update.id}
+                        className="bg-white rounded-xl border border-[#e8e0d4] p-5"
+                      >
+                        <h4 className="text-sm font-semibold text-[#1a1a1a] mb-2">
+                          {update.title}
+                        </h4>
+                        <p className="text-sm text-[#4a4a4a] whitespace-pre-wrap leading-relaxed">
                           {update.content}
                         </p>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No updates available for this investment
-                </p>
-              )}
-            </CardContent>
-          </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-[#e8e0d4] p-6 text-center py-12">
+              <p className="text-sm text-[#9a8c7a]">
+                No updates available for this investment
+              </p>
+            </div>
+          )}
         </TabsContent>
 
         {/* Documents Tab */}
-        <TabsContent value="documents">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Documents</CardTitle>
-              <CardDescription>
-                Documents related to this investment
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {data.documents.length > 0 ? (
-                <div className="space-y-2">
-                  {data.documents.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="flex items-center justify-between rounded-lg border border-border p-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <div>
-                          <p className="text-sm font-medium">{doc.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {doc.type.replace(/_/g, " ")} &middot;{" "}
-                            {formatDate(doc.createdAt)}
-                          </p>
-                        </div>
-                      </div>
-                      <a
-                        href={`/api/portal/documents/${doc.id}/download`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <Download className="h-4 w-4" />
-                      </a>
-                    </div>
-                  ))}
+        <TabsContent value="documents" className="mt-6">
+          {data.documents.length > 0 ? (
+            <div className="bg-white rounded-xl border border-[#e8e0d4] divide-y divide-[#f5f0e8]">
+              {data.documents.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="flex items-center justify-between p-4"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-[#1a1a1a]">
+                      {doc.name}
+                    </p>
+                    <p className="text-xs text-[#9a8c7a]">
+                      {doc.type.replace(/_/g, " ")} &middot;{" "}
+                      {formatDate(doc.createdAt)}
+                    </p>
+                  </div>
+                  <a
+                    href={`/api/portal/documents/${doc.id}/download`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-[#b8860b] hover:underline font-medium"
+                  >
+                    Download
+                  </a>
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No documents available for this investment
-                </p>
-              )}
-            </CardContent>
-          </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-[#e8e0d4] p-6 text-center py-12">
+              <p className="text-sm text-[#9a8c7a]">
+                No documents available for this investment
+              </p>
+            </div>
+          )}
         </TabsContent>
 
-        {/* Capital Activity Tab */}
-        <TabsContent value="capital-activity">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Capital Activity</CardTitle>
-              <CardDescription>
-                Contributions and distributions for this investment
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {capitalActivity.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {capitalActivity.map((item) => (
-                      <TableRow key={`${item.type}-${item.id}`}>
-                        <TableCell className="text-sm">
-                          {formatDate(item.date)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1.5">
-                            {item.type === "Contribution" ? (
-                              <ArrowUpRight className="h-3.5 w-3.5 text-red-500" />
-                            ) : (
-                              <ArrowDownLeft className="h-3.5 w-3.5 text-green-500" />
-                            )}
-                            <Badge
-                              variant={
-                                item.type === "Contribution"
-                                  ? "secondary"
-                                  : "default"
-                              }
-                            >
-                              {item.type}
-                            </Badge>
-                          </div>
-                        </TableCell>
-                        <TableCell
-                          className={cn(
-                            "text-right font-medium",
-                            item.type === "Distribution"
-                              ? "text-green-600"
-                              : ""
-                          )}
-                        >
-                          {item.type === "Distribution" ? "+" : "-"}
-                          {formatCurrency(item.amount)}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {item.description || "--"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={statusBadgeVariant(item.status)}>
-                            {item.status}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No capital activity recorded
-                </p>
-              )}
-            </CardContent>
-          </Card>
+        {/* Disclosures Tab */}
+        <TabsContent value="disclosures" className="mt-6">
+          <div className="bg-white rounded-xl border border-[#e8e0d4] p-6">
+            <p className="text-sm text-[#6b7280] leading-relaxed">
+              Past performance is not indicative of future results. Private
+              investments carry risk including loss of principal. Return figures
+              are estimates and subject to final fund accounting. The information
+              contained herein is confidential and intended solely for the named
+              recipient.
+            </p>
+          </div>
         </TabsContent>
       </Tabs>
+
+      {/* Disclaimer box */}
+      <div className="bg-[#f5f0e8] rounded-xl p-4 mt-6">
+        <p className="text-xs text-[#9a8c7a] leading-relaxed">
+          Past performance is not indicative of future results. Private
+          investments carry risk including loss of principal. Return figures are
+          estimates and subject to final fund accounting.
+        </p>
+      </div>
     </div>
   );
 }
