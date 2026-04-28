@@ -308,6 +308,50 @@ The organization-level 2FA policy (configured in `/admin/settings`) controls how
 
 ---
 
+## Timestamps and Timezone
+
+All dates and times displayed throughout the application use the **America/New_York (Eastern Time)** timezone. Timestamps include an "ET" suffix for clarity.
+
+### Date Formatting Functions
+
+All date formatting is centralized in `src/lib/utils.ts`:
+
+| Function | Output | Usage |
+|----------|--------|-------|
+| `formatDate()` | "Jan 15, 2025, 2:30 PM ET" | Default for all event timestamps (created, updated, last login, replies) |
+| `formatDateOnly()` | "Jan 15, 2025" | Investment dates, expiration dates, start/end dates |
+| `formatDateTime()` | "Jan 15, 2025, 2:30:45 PM ET" | Audit logs (second-level precision) |
+| `formatMonthYear()` | "January 2025" | Update grouping headers, activity timeline |
+| `formatShortDate()` | "Jan '25" | Chart axis labels |
+| `formatTimeAgo()` | "5m ago" / "3d ago" | Notifications, audit status bar |
+| `formatDateLong()` | "January 15, 2025, 2:30 PM ET" | 2FA backup code exports |
+
+When adding new features, always use these centralized formatters rather than inline `Intl.DateTimeFormat` or `toLocaleDateString()` calls. This ensures consistent timezone handling across the application.
+
+### Date Picker Component
+
+The application uses a custom-branded `DatePicker` component (`src/components/ui/date-picker.tsx`) built on react-day-picker v9. It replaces all native browser date inputs with a popover calendar styled to match the site's design system:
+
+- Calendar icon trigger with long-form date display ("January 15, 2025")
+- Gold accent ring on today's date
+- Navy background on selected date
+- Warm cream hover states
+- Optional clear button for nullable date fields
+
+Usage:
+```tsx
+import { DatePicker } from "@/components/ui/date-picker";
+
+<DatePicker
+  value={dateValue}          // YYYY-MM-DD string
+  onChange={setDateValue}     // receives YYYY-MM-DD string
+  placeholder="Select date"
+  clearable                  // shows X button to clear (for optional fields)
+/>
+```
+
+---
+
 ## Default Credentials
 
 After running the seed script, the following accounts are available in development:
@@ -471,3 +515,5 @@ The seed is idempotent -- it checks for existing records before creating and can
 - Two-factor authentication (TOTP)
 - Audit logging for all admin actions
 - Production-aware database seeding
+- All timestamps standardized to America/New_York (ET) timezone
+- Custom branded date picker component (react-day-picker v9)
