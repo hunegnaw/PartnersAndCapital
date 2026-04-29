@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { BlogListing } from "@/components/marketing/blog-listing";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Partner Thoughts | Partners + Capital",
   description: "Insights and analysis from Partners + Capital on private markets, investments, and wealth building.",
