@@ -42,11 +42,7 @@ export function MarketingFooter({ navLinks: navLinksProp }: MarketingFooterProps
 
   const baseLinks = navLinksProp && navLinksProp.length > 0
     ? navLinksProp
-    : [
-        { href: "/", label: "Home" },
-        { href: "/blog", label: "Partner Thoughts" },
-        { href: "/contact", label: "Contact" },
-      ];
+    : [{ href: "/", label: "Home" }];
   const navLinks = [...baseLinks, { href: "/login", label: "Investor Login" }];
 
   return (

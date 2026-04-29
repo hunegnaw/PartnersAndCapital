@@ -31,11 +31,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
 
   const navLinks = navLinksProp && navLinksProp.length > 0
     ? navLinksProp
-    : [
-        { href: "/", label: "Home" },
-        { href: "/blog", label: "Partner Thoughts" },
-        { href: "/contact", label: "Contact" },
-      ];
+    : [{ href: "/", label: "Home" }];
 
   return (
     <header
