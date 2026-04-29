@@ -102,6 +102,7 @@ export async function BlogListing({ searchParams, basePath = "/blog" }: BlogList
               >
                 {post.heroImageUrl ? (
                   <div className="aspect-[16/10] overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={post.heroImageUrl}
                       alt={post.title}

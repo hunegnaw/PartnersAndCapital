@@ -6,34 +6,24 @@ import { RichTextEditor } from "./rich-text-editor";
 import { MediaPicker } from "./media-picker";
 import { ImageIcon, Plus, Trash2 } from "lucide-react";
 
-interface BlockEditorFormProps {
-  type: BlockType;
+// Helper field components — declared outside BlockEditorForm to satisfy react-hooks/static-components
+
+function InputField({
+  label,
+  field,
+  type: inputType = "text",
+  placeholder,
+  props,
+  updateProp,
+}: {
+  label: string;
+  field: string;
+  type?: string;
+  placeholder?: string;
   props: Record<string, unknown>;
-  onChange: (props: Record<string, unknown>) => void;
-}
-
-export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps) {
-  const [mediaPicker, setMediaPicker] = useState<{
-    open: boolean;
-    field: string;
-    accept: "image" | "video" | "all";
-  }>({ open: false, field: "", accept: "all" });
-
-  const updateProp = (key: string, value: unknown) => {
-    onChange({ ...props, [key]: value });
-  };
-
-  const InputField = ({
-    label,
-    field,
-    type: inputType = "text",
-    placeholder,
-  }: {
-    label: string;
-    field: string;
-    type?: string;
-    placeholder?: string;
-  }) => (
+  updateProp: (key: string, value: unknown) => void;
+}) {
+  return (
     <div>
       <label className="block text-xs font-medium text-gray-700 mb-1">
         {label}
@@ -47,16 +37,22 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       />
     </div>
   );
+}
 
-  const SelectField = ({
-    label,
-    field,
-    options,
-  }: {
-    label: string;
-    field: string;
-    options: { value: string; label: string }[];
-  }) => (
+function SelectField({
+  label,
+  field,
+  options,
+  props,
+  updateProp,
+}: {
+  label: string;
+  field: string;
+  options: { value: string; label: string }[];
+  props: Record<string, unknown>;
+  updateProp: (key: string, value: unknown) => void;
+}) {
+  return (
     <div>
       <label className="block text-xs font-medium text-gray-700 mb-1">
         {label}
@@ -74,16 +70,24 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       </select>
     </div>
   );
+}
 
-  const ImageField = ({
-    label,
-    field,
-    accept = "image" as "image" | "video" | "all",
-  }: {
-    label: string;
-    field: string;
-    accept?: "image" | "video" | "all";
-  }) => (
+function ImageField({
+  label,
+  field,
+  accept = "image" as "image" | "video" | "all",
+  props,
+  updateProp,
+  onOpenMedia,
+}: {
+  label: string;
+  field: string;
+  accept?: "image" | "video" | "all";
+  props: Record<string, unknown>;
+  updateProp: (key: string, value: unknown) => void;
+  onOpenMedia: (field: string, accept: "image" | "video" | "all") => void;
+}) {
+  return (
     <div>
       <label className="block text-xs font-medium text-gray-700 mb-1">
         {label}
@@ -98,9 +102,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
         />
         <button
           type="button"
-          onClick={() =>
-            setMediaPicker({ open: true, field, accept })
-          }
+          onClick={() => onOpenMedia(field, accept)}
           className="p-1.5 border rounded-md hover:bg-gray-50"
         >
           <ImageIcon size={16} />
@@ -114,6 +116,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               className="w-full h-full object-cover"
             />
           ) : (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={props[field] as string}
               alt=""
@@ -124,14 +127,20 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       )}
     </div>
   );
+}
 
-  const RichTextField = ({
-    label,
-    field,
-  }: {
-    label: string;
-    field: string;
-  }) => (
+function RichTextField({
+  label,
+  field,
+  props,
+  updateProp,
+}: {
+  label: string;
+  field: string;
+  props: Record<string, unknown>;
+  updateProp: (key: string, value: unknown) => void;
+}) {
+  return (
     <div>
       <label className="block text-xs font-medium text-gray-700 mb-1">
         {label}
@@ -142,20 +151,26 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       />
     </div>
   );
+}
 
-  const RangeField = ({
-    label,
-    field,
-    min = 0,
-    max = 1,
-    step = 0.1,
-  }: {
-    label: string;
-    field: string;
-    min?: number;
-    max?: number;
-    step?: number;
-  }) => (
+function RangeField({
+  label,
+  field,
+  min = 0,
+  max = 1,
+  step = 0.1,
+  props,
+  updateProp,
+}: {
+  label: string;
+  field: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  props: Record<string, unknown>;
+  updateProp: (key: string, value: unknown) => void;
+}) {
+  return (
     <div>
       <label className="block text-xs font-medium text-gray-700 mb-1">
         {label}: {props[field] as number}
@@ -171,14 +186,20 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       />
     </div>
   );
+}
 
-  const CheckboxField = ({
-    label,
-    field,
-  }: {
-    label: string;
-    field: string;
-  }) => (
+function CheckboxField({
+  label,
+  field,
+  props,
+  updateProp,
+}: {
+  label: string;
+  field: string;
+  props: Record<string, unknown>;
+  updateProp: (key: string, value: unknown) => void;
+}) {
+  return (
     <label className="flex items-center gap-2 cursor-pointer">
       <input
         type="checkbox"
@@ -189,19 +210,47 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       <span className="text-sm text-gray-700">{label}</span>
     </label>
   );
+}
+
+// --- Main component ---
+
+interface BlockEditorFormProps {
+  type: BlockType;
+  props: Record<string, unknown>;
+  onChange: (props: Record<string, unknown>) => void;
+}
+
+export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps) {
+  const [mediaPicker, setMediaPicker] = useState<{
+    open: boolean;
+    field: string;
+    accept: "image" | "video" | "all";
+  }>({ open: false, field: "", accept: "all" });
+
+  const updateProp = (key: string, value: unknown) => {
+    onChange({ ...props, [key]: value });
+  };
+
+  const openMedia = (field: string, accept: "image" | "video" | "all") => {
+    setMediaPicker({ open: true, field, accept });
+  };
+
+  // Shorthand props for all field components
+  const fp = { props, updateProp };
+  const ifp = { ...fp, onOpenMedia: openMedia };
 
   // Render form fields based on block type
   switch (type) {
     case "hero_video":
       return (
         <div className="space-y-4">
-          <ImageField label="Video URL" field="videoUrl" accept="video" />
-          <ImageField label="Poster Image" field="posterImageUrl" />
-          <InputField label="Heading" field="heading" />
-          <InputField label="Subheading" field="subheading" />
-          <InputField label="CTA Text" field="ctaText" />
-          <InputField label="CTA URL" field="ctaUrl" />
-          <RangeField label="Overlay Opacity" field="overlayOpacity" />
+          <ImageField label="Video URL" field="videoUrl" accept="video" {...ifp} />
+          <ImageField label="Poster Image" field="posterImageUrl" {...ifp} />
+          <InputField label="Heading" field="heading" {...fp} />
+          <InputField label="Subheading" field="subheading" {...fp} />
+          <InputField label="CTA Text" field="ctaText" {...fp} />
+          <InputField label="CTA URL" field="ctaUrl" {...fp} />
+          <RangeField label="Overlay Opacity" field="overlayOpacity" {...fp} />
           <MediaPicker
             open={mediaPicker.open}
             onClose={() => setMediaPicker({ ...mediaPicker, open: false })}
@@ -214,12 +263,12 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
     case "hero_image":
       return (
         <div className="space-y-4">
-          <ImageField label="Background Image" field="imageUrl" />
-          <InputField label="Heading" field="heading" />
-          <InputField label="Subheading" field="subheading" />
-          <InputField label="CTA Text" field="ctaText" />
-          <InputField label="CTA URL" field="ctaUrl" />
-          <RangeField label="Overlay Opacity" field="overlayOpacity" />
+          <ImageField label="Background Image" field="imageUrl" {...ifp} />
+          <InputField label="Heading" field="heading" {...fp} />
+          <InputField label="Subheading" field="subheading" {...fp} />
+          <InputField label="CTA Text" field="ctaText" {...fp} />
+          <InputField label="CTA URL" field="ctaUrl" {...fp} />
+          <RangeField label="Overlay Opacity" field="overlayOpacity" {...fp} />
           <MediaPicker
             open={mediaPicker.open}
             onClose={() => setMediaPicker({ ...mediaPicker, open: false })}
@@ -232,7 +281,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
     case "text_section":
       return (
         <div className="space-y-4">
-          <RichTextField label="Content" field="content" />
+          <RichTextField label="Content" field="content" {...fp} />
           <SelectField
             label="Max Width"
             field="maxWidth"
@@ -242,9 +291,10 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               { value: "6xl", label: "Large (6xl)" },
               { value: "full", label: "Full Width" },
             ]}
+            {...fp}
           />
-          <InputField label="Background Color" field="backgroundColor" />
-          <InputField label="Text Color" field="textColor" />
+          <InputField label="Background Color" field="backgroundColor" {...fp} />
+          <InputField label="Text Color" field="textColor" {...fp} />
           <SelectField
             label="Vertical Padding"
             field="paddingY"
@@ -254,6 +304,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               { value: "lg", label: "Large" },
               { value: "xl", label: "Extra Large" },
             ]}
+            {...fp}
           />
         </div>
       );
@@ -262,7 +313,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       const logos = (props.logos as { imageUrl: string; alt: string; url?: string }[]) || [];
       return (
         <div className="space-y-4">
-          <InputField label="Heading" field="heading" />
+          <InputField label="Heading" field="heading" {...fp} />
           <SelectField
             label="Columns"
             field="columns"
@@ -273,8 +324,9 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               { value: "5", label: "5 Columns" },
               { value: "6", label: "6 Columns" },
             ]}
+            {...fp}
           />
-          <CheckboxField label="Grayscale" field="grayscale" />
+          <CheckboxField label="Grayscale" field="grayscale" {...fp} />
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
               Logos
@@ -341,8 +393,8 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       const stats = (props.stats as { value: string; label: string }[]) || [];
       return (
         <div className="space-y-4">
-          <InputField label="Heading" field="heading" />
-          <InputField label="Background Color" field="backgroundColor" />
+          <InputField label="Heading" field="heading" {...fp} />
+          <InputField label="Background Color" field="backgroundColor" {...fp} />
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
               Stats
@@ -399,11 +451,11 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
     case "cta_banner":
       return (
         <div className="space-y-4">
-          <InputField label="Heading" field="heading" />
-          <InputField label="Text" field="text" />
-          <InputField label="CTA Text" field="ctaText" />
-          <InputField label="CTA URL" field="ctaUrl" />
-          <InputField label="Background Color" field="backgroundColor" />
+          <InputField label="Heading" field="heading" {...fp} />
+          <InputField label="Text" field="text" {...fp} />
+          <InputField label="CTA Text" field="ctaText" {...fp} />
+          <InputField label="CTA URL" field="ctaUrl" {...fp} />
+          <InputField label="Background Color" field="backgroundColor" {...fp} />
         </div>
       );
 
@@ -418,28 +470,29 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               { value: "1/2", label: "1/2" },
               { value: "2/3", label: "2/3" },
             ]}
+            {...fp}
           />
-          <RichTextField label="Left Content" field="leftContent" />
-          <RichTextField label="Right Content" field="rightContent" />
+          <RichTextField label="Left Content" field="leftContent" {...fp} />
+          <RichTextField label="Right Content" field="rightContent" {...fp} />
         </div>
       );
 
     case "contact_form":
       return (
         <div className="space-y-4">
-          <InputField label="Heading" field="heading" />
-          <InputField label="Description" field="description" />
-          <CheckboxField label="Show Address" field="showAddress" />
-          <CheckboxField label="Show Email" field="showEmail" />
+          <InputField label="Heading" field="heading" {...fp} />
+          <InputField label="Description" field="description" {...fp} />
+          <CheckboxField label="Show Address" field="showAddress" {...fp} />
+          <CheckboxField label="Show Email" field="showEmail" {...fp} />
         </div>
       );
 
     case "newsletter_signup":
       return (
         <div className="space-y-4">
-          <InputField label="Heading" field="heading" />
-          <InputField label="Description" field="description" />
-          <InputField label="Background Color" field="backgroundColor" />
+          <InputField label="Heading" field="heading" {...fp} />
+          <InputField label="Description" field="description" {...fp} />
+          <InputField label="Background Color" field="backgroundColor" {...fp} />
         </div>
       );
 
@@ -457,17 +510,17 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
             />
           </div>
-          <InputField label="Attribution" field="attribution" />
-          <InputField label="Role / Title" field="role" />
+          <InputField label="Attribution" field="attribution" {...fp} />
+          <InputField label="Role / Title" field="role" {...fp} />
         </div>
       );
 
     case "image":
       return (
         <div className="space-y-4">
-          <ImageField label="Image URL" field="imageUrl" />
-          <InputField label="Alt Text" field="alt" />
-          <InputField label="Caption" field="caption" />
+          <ImageField label="Image URL" field="imageUrl" {...ifp} />
+          <InputField label="Alt Text" field="alt" {...fp} />
+          <InputField label="Caption" field="caption" {...fp} />
           <SelectField
             label="Max Width"
             field="maxWidth"
@@ -477,6 +530,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               { value: "6xl", label: "Large (6xl)" },
               { value: "full", label: "Full Width" },
             ]}
+            {...fp}
           />
           <MediaPicker
             open={mediaPicker.open}
@@ -490,8 +544,8 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
     case "embed":
       return (
         <div className="space-y-4">
-          <InputField label="Video URL" field="url" placeholder="YouTube or Vimeo URL" />
-          <InputField label="Title" field="title" />
+          <InputField label="Video URL" field="url" placeholder="YouTube or Vimeo URL" {...fp} />
+          <InputField label="Title" field="title" {...fp} />
           <SelectField
             label="Aspect Ratio"
             field="aspectRatio"
@@ -500,6 +554,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               { value: "4/3", label: "4:3" },
               { value: "1/1", label: "1:1" },
             ]}
+            {...fp}
           />
         </div>
       );
@@ -516,6 +571,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               { value: "lg", label: "Large" },
               { value: "xl", label: "Extra Large" },
             ]}
+            {...fp}
           />
         </div>
       );

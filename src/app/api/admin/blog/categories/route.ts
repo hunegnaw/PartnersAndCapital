@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const user = await requireAdmin();
     if (user instanceof NextResponse) return user;

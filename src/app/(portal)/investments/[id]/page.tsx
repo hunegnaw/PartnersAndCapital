@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo, use } from "react";
+import { useEffect, useState, useCallback, use } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -145,6 +145,14 @@ export default function InvestmentDetailPage({
     }
   }, [id]);
 
+  const holdingMonths = (() => {
+    if (!data?.investmentDate) return null;
+    const investDate = new Date(data.investmentDate);
+    return Math.round(
+      (new Date().getTime() - investDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
+    );
+  })();
+
   useEffect(() => {
     Promise.resolve().then(() => fetchDetail());
   }, [fetchDetail]);
@@ -163,15 +171,6 @@ export default function InvestmentDetailPage({
 
   const gain = data.currentValue - data.amountInvested;
   const distributionCount = data.distributions.length;
-  const investmentDate = data.investmentDate
-    ? new Date(data.investmentDate)
-    : null;
-  const holdingMonths = useMemo(() => {
-    if (!investmentDate) return null;
-    return Math.round(
-      (new Date().getTime() - investmentDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
-    );
-  }, [investmentDate]);
   const targetHoldMonths = data.investment.targetHoldPeriod
     ? parseInt(data.investment.targetHoldPeriod) * 12
     : null;

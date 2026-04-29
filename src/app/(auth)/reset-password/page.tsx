@@ -36,7 +36,7 @@ function ResetPasswordInner() {
 
   useEffect(() => {
     if (!token) {
-      setError("No reset token provided. Please request a new password reset link.");
+      Promise.resolve().then(() => setError("No reset token provided. Please request a new password reset link."));
     }
   }, [token]);
 

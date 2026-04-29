@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -293,6 +292,7 @@ export default function AdminMediaPage() {
                 className="group relative aspect-square rounded-lg border border-gray-200 overflow-hidden bg-gray-50 hover:ring-2 hover:ring-[#B07D3A] transition-all focus:outline-none focus:ring-2 focus:ring-[#B07D3A]"
               >
                 {isImage(item.mimeType) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={item.url}
                     alt={item.alt || item.fileName}
@@ -415,6 +415,7 @@ export default function AdminMediaPage() {
               {/* Preview */}
               <div className="rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                 {isImage(selectedItem.mimeType) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={selectedItem.url}
                     alt={selectedItem.alt || selectedItem.fileName}

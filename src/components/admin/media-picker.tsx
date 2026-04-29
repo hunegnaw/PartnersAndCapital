@@ -39,7 +39,7 @@ export function MediaPicker({
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
-    setLoading(true);
+    Promise.resolve().then(() => setLoading(true));
     const typeParam = accept === "all" ? "" : accept;
     fetch(
       `/api/admin/media?page=${page}&pageSize=24&search=${encodeURIComponent(
@@ -201,6 +201,7 @@ export function MediaPicker({
                         <Film size={24} className="text-white/60" />
                       </div>
                     ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={item.filePath}
                         alt={item.alt || item.fileName}

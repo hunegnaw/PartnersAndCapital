@@ -79,7 +79,7 @@ function AdvisorAcceptInner() {
   }, [token]);
 
   useEffect(() => {
-    validateToken();
+    Promise.resolve().then(() => validateToken());
   }, [validateToken]);
 
   function validate(): string | null {

@@ -37,6 +37,7 @@ export function LogoGalleryBlock({ props }: LogoGalleryBlockProps) {
         >
           {logos.map((logo, index) => {
             const img = (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={logo.imageUrl}
                 alt={logo.alt}

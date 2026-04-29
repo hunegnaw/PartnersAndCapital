@@ -108,7 +108,7 @@ export async function PATCH(
       }
 
       // Update page metadata
-      const page = await tx.page.update({
+      await tx.page.update({
         where: { id },
         data: {
           ...(title !== undefined && { title }),

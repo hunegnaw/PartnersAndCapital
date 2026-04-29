@@ -65,6 +65,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       {/* Hero */}
       {post.heroImageUrl ? (
         <div className="relative h-[50vh] min-h-[400px]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={post.heroImageUrl}
             alt={post.title}
@@ -175,6 +176,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 >
                   {rp.heroImageUrl ? (
                     <div className="aspect-[16/10] rounded-lg overflow-hidden mb-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={rp.heroImageUrl}
                         alt={rp.title}

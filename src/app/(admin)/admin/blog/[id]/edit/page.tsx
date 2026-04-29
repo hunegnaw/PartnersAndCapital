@@ -120,8 +120,10 @@ export default function EditBlogPostPage() {
   }, [id])
 
   useEffect(() => {
-    fetchOptions()
-    fetchPost()
+    Promise.resolve().then(() => {
+      fetchOptions()
+      fetchPost()
+    })
   }, [fetchOptions, fetchPost])
 
   function handleTitleChange(value: string) {
@@ -390,6 +392,7 @@ export default function EditBlogPostPage() {
             <CardContent>
               {heroImageUrl ? (
                 <div className="relative rounded-lg overflow-hidden border">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={heroImageUrl}
                     alt="Hero preview"

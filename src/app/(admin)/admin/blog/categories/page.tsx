@@ -82,7 +82,7 @@ export default function AdminBlogCategoriesPage() {
   }, [])
 
   useEffect(() => {
-    fetchCategories()
+    Promise.resolve().then(() => fetchCategories())
   }, [fetchCategories])
 
   function handleNewNameChange(value: string) {
