@@ -46,6 +46,10 @@ export default function AdminEditPagePage() {
   const [slug, setSlug] = useState("")
   const [status, setStatus] = useState("DRAFT")
   const [isHomepage, setIsHomepage] = useState(false)
+  const [showInNav, setShowInNav] = useState(false)
+  const [navLabel, setNavLabel] = useState("")
+  const [navOrder, setNavOrder] = useState(0)
+  const [isBlogPage, setIsBlogPage] = useState(false)
   const [metaTitle, setMetaTitle] = useState("")
   const [metaDescription, setMetaDescription] = useState("")
   const [ogImageUrl, setOgImageUrl] = useState("")
@@ -64,6 +68,10 @@ export default function AdminEditPagePage() {
       setSlug(page.slug)
       setStatus(page.status)
       setIsHomepage(page.isHomepage)
+      setShowInNav(page.showInNav || false)
+      setNavLabel(page.navLabel || "")
+      setNavOrder(page.navOrder || 0)
+      setIsBlogPage(page.isBlogPage || false)
       setMetaTitle(page.metaTitle || "")
       setMetaDescription(page.metaDescription || "")
       setOgImageUrl(page.ogImageUrl || "")
@@ -124,6 +132,10 @@ export default function AdminEditPagePage() {
           slug: slug.trim(),
           status,
           isHomepage,
+          showInNav,
+          navLabel: navLabel.trim() || null,
+          navOrder,
+          isBlogPage,
           metaTitle: metaTitle.trim() || null,
           metaDescription: metaDescription.trim() || null,
           ogImageUrl: ogImageUrl.trim() || null,
@@ -272,6 +284,50 @@ export default function AdminEditPagePage() {
                     Set as homepage
                   </Label>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="isBlogPage"
+                    checked={isBlogPage}
+                    onCheckedChange={(checked) => setIsBlogPage(checked === true)}
+                  />
+                  <Label htmlFor="isBlogPage" className="cursor-pointer">
+                    Set as blog page
+                  </Label>
+                </div>
+                <hr className="border-border" />
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="showInNav"
+                    checked={showInNav}
+                    onCheckedChange={(checked) => setShowInNav(checked === true)}
+                  />
+                  <Label htmlFor="showInNav" className="cursor-pointer">
+                    Show in navigation
+                  </Label>
+                </div>
+                {showInNav && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="navLabel">Nav Label</Label>
+                      <Input
+                        id="navLabel"
+                        value={navLabel}
+                        onChange={(e) => setNavLabel(e.target.value)}
+                        placeholder="Defaults to page title"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="navOrder">Nav Order</Label>
+                      <Input
+                        id="navOrder"
+                        type="number"
+                        value={navOrder}
+                        onChange={(e) => setNavOrder(parseInt(e.target.value) || 0)}
+                        placeholder="0"
+                      />
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 

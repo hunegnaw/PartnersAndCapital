@@ -56,6 +56,10 @@ export async function PATCH(
       slug,
       status,
       isHomepage,
+      showInNav,
+      navLabel,
+      navOrder,
+      isBlogPage,
       metaTitle,
       metaDescription,
       ogImageUrl,
@@ -95,6 +99,14 @@ export async function PATCH(
         });
       }
 
+      // If this page is becoming the blog page, unset any existing blog page (excluding this page)
+      if (isBlogPage) {
+        await tx.page.updateMany({
+          where: { isBlogPage: true, id: { not: id } },
+          data: { isBlogPage: false },
+        });
+      }
+
       // Update page metadata
       const page = await tx.page.update({
         where: { id },
@@ -105,6 +117,10 @@ export async function PATCH(
             ? { status: status as PageStatus }
             : {}),
           ...(isHomepage !== undefined && { isHomepage }),
+          ...(showInNav !== undefined && { showInNav }),
+          ...(navLabel !== undefined && { navLabel }),
+          ...(navOrder !== undefined && { navOrder }),
+          ...(isBlogPage !== undefined && { isBlogPage }),
           ...(metaTitle !== undefined && { metaTitle }),
           ...(metaDescription !== undefined && { metaDescription }),
           ...(ogImageUrl !== undefined && { ogImageUrl }),
@@ -156,7 +172,7 @@ export async function PATCH(
       action: "UPDATE_PAGE",
       targetType: "Page",
       targetId: id,
-      details: { title, slug, status, isHomepage, blocksCount: blocks?.length },
+      details: { title, slug, status, isHomepage, showInNav, isBlogPage, blocksCount: blocks?.length },
       request,
     });
 

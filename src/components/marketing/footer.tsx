@@ -3,7 +3,16 @@
 import Link from "next/link";
 import { useState, FormEvent } from "react";
 
-export function MarketingFooter() {
+interface NavLink {
+  href: string;
+  label: string;
+}
+
+interface MarketingFooterProps {
+  navLinks?: NavLink[];
+}
+
+export function MarketingFooter({ navLinks: navLinksProp }: MarketingFooterProps) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -31,12 +40,14 @@ export function MarketingFooter() {
     }
   }
 
-  const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/blog", label: "Partner Thoughts" },
-    { href: "/contact", label: "Contact" },
-    { href: "/login", label: "Investor Login" },
-  ];
+  const baseLinks = navLinksProp && navLinksProp.length > 0
+    ? navLinksProp
+    : [
+        { href: "/", label: "Home" },
+        { href: "/blog", label: "Partner Thoughts" },
+        { href: "/contact", label: "Contact" },
+      ];
+  const navLinks = [...baseLinks, { href: "/login", label: "Investor Login" }];
 
   return (
     <footer className="bg-[#1A2640] text-white">

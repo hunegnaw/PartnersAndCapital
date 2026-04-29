@@ -2,9 +2,11 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { BlockRenderer } from "@/components/blocks/block-renderer";
+import { BlogListing } from "@/components/marketing/blog-listing";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string; category?: string; tag?: string; search?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -25,7 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function DynamicPage({ params }: PageProps) {
+export default async function DynamicPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const page = await prisma.page.findFirst({
     where: { slug, status: "PUBLISHED", deletedAt: null },
@@ -37,6 +39,12 @@ export default async function DynamicPage({ params }: PageProps) {
   });
 
   if (!page) notFound();
+
+  // If this page is the blog page, render the blog listing
+  if (page.isBlogPage) {
+    const sp = await searchParams;
+    return <BlogListing searchParams={sp} basePath={`/${slug}`} />;
+  }
 
   const blocks = page.blocks.map((b) => ({
     id: b.id,

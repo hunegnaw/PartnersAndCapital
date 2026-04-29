@@ -822,6 +822,11 @@ model Page {
   slug       String     @unique
   status     PageStatus @default(DRAFT)
   isHomepage Boolean    @default(false)
+  // Navigation
+  showInNav  Boolean    @default(false)
+  navLabel   String?
+  navOrder   Int        @default(0)
+  isBlogPage Boolean    @default(false)
   // SEO
   metaTitle       String?
   metaDescription String? @db.Text
@@ -836,6 +841,8 @@ model Page {
   @@index([slug])
   @@index([status])
   @@index([isHomepage])
+  @@index([showInNav])
+  @@index([isBlogPage])
   @@index([deletedAt])
 }
 

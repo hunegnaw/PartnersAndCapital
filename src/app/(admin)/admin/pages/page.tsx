@@ -23,6 +23,8 @@ import {
   Pencil,
   Trash2,
   AlertCircle,
+  Navigation,
+  BookOpen,
 } from "lucide-react"
 
 interface PageRecord {
@@ -31,6 +33,8 @@ interface PageRecord {
   slug: string
   status: string
   isHomepage: boolean
+  showInNav: boolean
+  isBlogPage: boolean
   metaTitle: string | null
   metaDescription: string | null
   updatedAt: string
@@ -156,6 +160,8 @@ export default function AdminPagesPage() {
                 <TableHead>Slug</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-center">Home</TableHead>
+                <TableHead className="text-center">Nav</TableHead>
+                <TableHead className="text-center">Blog</TableHead>
                 <TableHead className="text-center">Blocks</TableHead>
                 <TableHead>Updated</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -169,6 +175,8 @@ export default function AdminPagesPage() {
                     <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                     <TableCell className="text-center"><Skeleton className="h-4 w-6 mx-auto" /></TableCell>
+                    <TableCell className="text-center"><Skeleton className="h-4 w-6 mx-auto" /></TableCell>
+                    <TableCell className="text-center"><Skeleton className="h-4 w-6 mx-auto" /></TableCell>
                     <TableCell className="text-center"><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
@@ -176,7 +184,7 @@ export default function AdminPagesPage() {
                 ))
               ) : pages.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                     {search
                       ? "No pages match your search."
                       : "No pages yet. Create your first page to get started."}
@@ -200,6 +208,16 @@ export default function AdminPagesPage() {
                     <TableCell className="text-center">
                       {page.isHomepage && (
                         <Star className="h-4 w-4 text-[#B07D3A] fill-[#B07D3A] mx-auto" />
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {page.showInNav && (
+                        <Navigation className="h-4 w-4 text-[#185fa5] mx-auto" />
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {page.isBlogPage && (
+                        <BookOpen className="h-4 w-4 text-[#3b6d11] mx-auto" />
                       )}
                     </TableCell>
                     <TableCell className="text-center">

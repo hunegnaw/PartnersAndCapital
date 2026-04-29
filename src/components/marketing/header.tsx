@@ -4,11 +4,17 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { LogIn, Menu, X } from "lucide-react";
 
-interface MarketingHeaderProps {
-  transparent?: boolean;
+interface NavLink {
+  href: string;
+  label: string;
 }
 
-export function MarketingHeader({ transparent = true }: MarketingHeaderProps) {
+interface MarketingHeaderProps {
+  transparent?: boolean;
+  navLinks?: NavLink[];
+}
+
+export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: MarketingHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -23,11 +29,13 @@ export function MarketingHeader({ transparent = true }: MarketingHeaderProps) {
 
   const solid = !transparent || scrolled;
 
-  const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/blog", label: "Partner Thoughts" },
-    { href: "/contact", label: "Contact" },
-  ];
+  const navLinks = navLinksProp && navLinksProp.length > 0
+    ? navLinksProp
+    : [
+        { href: "/", label: "Home" },
+        { href: "/blog", label: "Partner Thoughts" },
+        { href: "/contact", label: "Contact" },
+      ];
 
   return (
     <header

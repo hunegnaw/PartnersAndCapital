@@ -171,8 +171,8 @@ The public-facing marketing site replaces the previous Squarespace website. It r
 
 All public pages share a common layout with:
 
-- **Header:** Sticky dark navy bar with "PARTNERS + CAPITAL" logo, navigation links (Home, Partner Thoughts, Contact), and a gold-outlined "Investor Login" button with LogIn icon. On the homepage, the header starts transparent and transitions to solid on scroll.
-- **Footer:** Dark navy background with 3-column grid (branding + address, navigation links, newsletter signup form), copyright line, and legal disclaimer.
+- **Header:** Sticky dark navy bar with "PARTNERS + CAPITAL" logo, database-driven navigation links (configured via page settings), and a gold-outlined "Investor Login" button with LogIn icon. On the homepage, the header starts transparent and transitions to solid on scroll. Navigation links are pulled from CMS pages that have "Show in navigation" enabled, sorted by nav order.
+- **Footer:** Dark navy background with 3-column grid (branding + address, database-driven navigation links + Investor Login, newsletter signup form), copyright line, and legal disclaimer.
 
 ### Public Routes
 
@@ -258,9 +258,31 @@ The page builder allows admins to create and edit CMS pages using drag-and-drop 
 
 **Create/Edit Page** (`/admin/pages/new`, `/admin/pages/[id]/edit`): Two-column layout with:
 - **Main area:** Title, slug, and block editor with drag-and-drop reordering (@dnd-kit). Add blocks via a picker dialog showing all 13 block types. Each block expands/collapses to show its editor form.
-- **Sidebar:** Status dropdown, homepage checkbox, SEO fields, save button.
+- **Sidebar:** Status dropdown, homepage checkbox, blog page checkbox, navigation settings, SEO fields, save button.
 
 Pages are saved atomically: page metadata and all blocks are updated in a single database transaction.
+
+### Navigation Visibility
+
+Admins can control which CMS pages appear in the public header and footer navigation:
+
+- **Show in navigation** -- Checkbox that adds the page to the header and footer nav bars. Only published pages with this enabled appear in nav.
+- **Nav label** -- Optional override for the display text in nav (defaults to the page title). Only visible when "Show in navigation" is checked.
+- **Nav order** -- Numeric sort order (lower numbers appear first). Only visible when "Show in navigation" is checked.
+
+The pages list table shows a navigation icon (blue) for pages that appear in nav.
+
+When no pages have "Show in navigation" enabled, the header and footer fall back to hardcoded links (Home, Partner Thoughts, Contact).
+
+### Blog Page Designation
+
+One CMS page can be designated as the "blog page," similar to how one page can be the homepage:
+
+- **Set as blog page** -- Checkbox in the page settings sidebar. Only one page can be the blog page at a time; toggling it on automatically unsets any previous blog page.
+- When a visitor navigates to a blog page's URL, the blog listing (with post grid, category/tag filters, and pagination) is rendered instead of the page's content blocks.
+- The pages list table shows a book icon (green) for the blog page.
+
+This allows admins to place the blog at any URL (e.g., `/insights`, `/partner-thoughts`, `/news`) rather than being hardcoded to `/blog`. The existing `/blog` route continues to work as a fallback.
 
 ### Page API Routes
 
@@ -1019,3 +1041,6 @@ Both entries record the admin's user ID and the target client ID.
 - Consistent status badge colors across all pages (green/blue/gold/red palette)
 - Login redirect fix: authenticated users without homepage redirect to their portal
 - Admin "View as Client" impersonation with read-only enforcement and audit logging
+- CMS page navigation visibility controls (show in nav, nav label, nav order)
+- Blog page designation (render blog listing on any CMS page URL)
+- Dynamic header/footer navigation driven by database instead of hardcoded links
