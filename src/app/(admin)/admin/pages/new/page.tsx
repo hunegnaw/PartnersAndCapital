@@ -89,7 +89,7 @@ export default function AdminNewPagePage() {
         throw new Error(data.error || "Failed to create page")
       }
 
-      const { page } = await createRes.json()
+      const page = await createRes.json()
 
       // Step 2: If there are blocks, save them via PATCH
       if (blocks.length > 0) {
