@@ -31,7 +31,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(page);
+    return NextResponse.json({ page });
   } catch (error) {
     console.error("Error fetching page:", error);
     return NextResponse.json(
