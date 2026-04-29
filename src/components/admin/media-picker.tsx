@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { X, Upload, Search, ImageIcon, Film } from "lucide-react";
 
 interface Media {
@@ -36,28 +36,31 @@ export function MediaPicker({
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const fetchMedia = useCallback(async () => {
-    setLoading(true);
-    try {
-      const typeParam = accept === "all" ? "" : accept;
-      const res = await fetch(
-        `/api/admin/media?page=${page}&pageSize=24&search=${encodeURIComponent(
-          search
-        )}&type=${typeParam}`
-      );
-      const data = await res.json();
-      setMedia(data.media || []);
-      setTotalPages(data.pagination?.totalPages || 1);
-    } catch {
-      // Failed to fetch
-    } finally {
-      setLoading(false);
-    }
-  }, [page, search, accept]);
-
   useEffect(() => {
-    if (open) fetchMedia();
-  }, [open, fetchMedia]);
+    if (!open) return;
+    let cancelled = false;
+    setLoading(true);
+    const typeParam = accept === "all" ? "" : accept;
+    fetch(
+      `/api/admin/media?page=${page}&pageSize=24&search=${encodeURIComponent(
+        search
+      )}&type=${typeParam}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) {
+          setMedia(data.media || []);
+          setTotalPages(data.pagination?.totalPages || 1);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, page, search, accept]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

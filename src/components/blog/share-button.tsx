@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Share2, Check, Copy } from "lucide-react";
+import { Share2, Check } from "lucide-react";
 
 export function ShareButton({ title, url }: { title: string; url?: string }) {
   const [copied, setCopied] = useState(false);

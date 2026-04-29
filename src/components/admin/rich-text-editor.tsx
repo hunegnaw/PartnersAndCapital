@@ -44,6 +44,31 @@ interface RichTextEditorProps {
   placeholder?: string;
 }
 
+function ToolbarButton({
+  onClick,
+  active,
+  children,
+  title,
+}: {
+  onClick: () => void;
+  active?: boolean;
+  children: React.ReactNode;
+  title: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={`p-1.5 rounded hover:bg-gray-200 transition-colors ${
+        active ? "bg-gray-200 text-[#1A2640]" : "text-gray-600"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 const COLORS = [
   { label: "Navy", value: "#1A2640" },
   { label: "Gold", value: "#B07D3A" },
@@ -136,29 +161,6 @@ export function RichTextEditor({
   }, [editor, showSource, sourceHtml, onChange]);
 
   if (!editor) return null;
-
-  const ToolbarButton = ({
-    onClick,
-    active,
-    children,
-    title,
-  }: {
-    onClick: () => void;
-    active?: boolean;
-    children: React.ReactNode;
-    title: string;
-  }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      className={`p-1.5 rounded hover:bg-gray-200 transition-colors ${
-        active ? "bg-gray-200 text-[#1A2640]" : "text-gray-600"
-      }`}
-    >
-      {children}
-    </button>
-  );
 
   return (
     <div className="border border-gray-300 rounded-lg overflow-hidden bg-white">
