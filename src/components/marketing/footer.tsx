@@ -117,9 +117,8 @@ export function MarketingFooter({ navLinks: navLinksProp }: MarketingFooterProps
 
         {/* Bottom bar */}
         <hr className="border-white/10 mt-12 mb-6" />
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 text-white/40 text-xs">
+        <div className="text-white/40 text-xs">
           <p>&copy; 2015-{currentYear} Partners + Capital, LLC. All rights reserved.</p>
-          <p>david@partnersandcapital.com</p>
         </div>
 
         {/* Disclaimer */}
