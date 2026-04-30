@@ -15,8 +15,6 @@ export default async function MarketingLayout({
     orderBy: [{ navOrder: "asc" }, { title: "asc" }],
   });
 
-  console.log("[MarketingLayout] navPages from DB:", JSON.stringify(navPages));
-
   const navLinks = navPages.map((p) => ({
     href: p.isHomepage ? "/" : `/${p.slug}`,
     label: p.navLabel || p.title,

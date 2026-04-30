@@ -32,6 +32,17 @@ export default async function Home() {
     redirect("/login");
   }
 
+  // Fetch nav links for header/footer
+  const navPages = await prisma.page.findMany({
+    where: { showInNav: true, status: "PUBLISHED", deletedAt: null },
+    select: { slug: true, title: true, navLabel: true, navOrder: true, isHomepage: true },
+    orderBy: [{ navOrder: "asc" }, { title: "asc" }],
+  });
+  const navLinks = navPages.map((p) => ({
+    href: p.isHomepage ? "/" : `/${p.slug}`,
+    label: p.navLabel || p.title,
+  }));
+
   const blocks = homepage.blocks.map((b) => ({
     id: b.id,
     type: b.type,
@@ -41,11 +52,11 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <MarketingHeader transparent />
+      <MarketingHeader transparent navLinks={navLinks} />
       <main className="flex-1">
         <BlockRenderer blocks={blocks} />
       </main>
-      <MarketingFooter />
+      <MarketingFooter navLinks={navLinks} />
 
       {/* Floating portal button for authenticated users */}
       {session?.user && (
