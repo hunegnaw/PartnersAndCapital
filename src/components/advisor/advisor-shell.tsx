@@ -22,9 +22,9 @@ export function AdvisorShell({ userName, initials, children }: AdvisorShellProps
       {/* Header */}
       <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-6">
         <div className="flex items-center gap-3">
-          <span className="font-bold text-white text-sm tracking-widest uppercase">
+          <Link href="/advisor/dashboard" className="font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 transition-colors hover:border-white/70">
             Partners + Capital
-          </span>
+          </Link>
           <span className="bg-[#B07D3A] text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full tracking-wider uppercase">
             Advisor Portal
           </span>
