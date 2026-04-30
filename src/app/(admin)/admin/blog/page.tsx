@@ -48,7 +48,7 @@ interface BlogPost {
   title: string
   slug: string
   excerpt: string | null
-  status: string
+  isPublished: boolean
   views: number
   publishedAt: string | null
   createdAt: string
@@ -168,8 +168,8 @@ export default function AdminBlogPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="PUBLISHED">Published</SelectItem>
-            <SelectItem value="DRAFT">Draft</SelectItem>
+            <SelectItem value="published">Published</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -240,14 +240,14 @@ export default function AdminBlogPage() {
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={post.status === "PUBLISHED" ? "default" : "secondary"}
+                        variant={post.isPublished ? "default" : "secondary"}
                         className={
-                          post.status === "PUBLISHED"
+                          post.isPublished
                             ? "bg-[#eaf3de] text-[#3b6d11] hover:bg-[#eaf3de]"
                             : "bg-gray-100 text-gray-600 hover:bg-gray-100"
                         }
                       >
-                        {post.status === "PUBLISHED" ? "Published" : "Draft"}
+                        {post.isPublished ? "Published" : "Draft"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
