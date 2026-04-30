@@ -2,6 +2,8 @@ import { MarketingHeader } from "@/components/marketing/header";
 import { MarketingFooter } from "@/components/marketing/footer";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function MarketingLayout({
   children,
 }: {
@@ -10,7 +12,7 @@ export default async function MarketingLayout({
   const navPages = await prisma.page.findMany({
     where: { showInNav: true, status: "PUBLISHED", deletedAt: null },
     select: { slug: true, title: true, navLabel: true, navOrder: true, isHomepage: true, isBlogPage: true },
-    orderBy: { navOrder: "asc" },
+    orderBy: [{ navOrder: "asc" }, { title: "asc" }],
   });
 
   const navLinks = navPages.map((p) => ({
