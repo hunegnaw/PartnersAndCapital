@@ -31,7 +31,7 @@ export async function GET(request: Request) {
         include: {
           _count: { select: { blocks: true } },
         },
-        orderBy: { updatedAt: "desc" },
+        orderBy: [{ navOrder: "asc" }, { title: "asc" }],
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),

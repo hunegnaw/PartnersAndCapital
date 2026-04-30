@@ -254,7 +254,7 @@ The page builder allows admins to create and edit CMS pages using drag-and-drop 
 
 ### Admin Page Editor
 
-**Page List** (`/admin/pages`): Table showing title, slug, status (Draft/Published/Archived), homepage indicator, nav indicator, blog indicator, block count, last updated, and view (opens in new tab)/edit/delete actions.
+**Page List** (`/admin/pages`): Table showing drag handle, title, slug, status (Draft/Published/Archived), homepage indicator, nav indicator, nav order, blog indicator, block count, last updated, and view (opens in new tab)/edit/delete actions. Pages are sorted by nav order ascending. Drag and drop rows to reorder pages -- the new order is saved automatically and reflected in the public site navigation.
 
 **Create/Edit Page** (`/admin/pages/new`, `/admin/pages/[id]/edit`): Two-column layout with:
 - **Main area:** Title, slug, and block editor with drag-and-drop reordering (@dnd-kit). Add blocks via a picker dialog showing all 13 block types. Each block expands/collapses to show its editor form.
@@ -290,6 +290,7 @@ This allows admins to place the blog at any URL (e.g., `/insights`, `/partner-th
 |-------|---------|------|
 | `/api/admin/pages` | GET, POST | Admin |
 | `/api/admin/pages/[id]` | GET, PATCH, DELETE | Admin |
+| `/api/admin/pages/reorder` | PATCH | Admin |
 
 ---
 

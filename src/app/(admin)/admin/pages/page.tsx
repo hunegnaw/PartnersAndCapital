@@ -26,7 +26,25 @@ import {
   Navigation,
   BookOpen,
   ExternalLink,
+  GripVertical,
 } from "lucide-react"
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core"
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 
 interface PageRecord {
   id: string
@@ -35,6 +53,7 @@ interface PageRecord {
   status: string
   isHomepage: boolean
   showInNav: boolean
+  navOrder: number
   isBlogPage: boolean
   metaTitle: string | null
   metaDescription: string | null
@@ -57,12 +76,118 @@ const statusColor = (status: string) => {
   }
 }
 
+function SortableRow({
+  page,
+  deleting,
+  onDelete,
+}: {
+  page: PageRecord
+  deleting: string | null
+  onDelete: (id: string) => void
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: page.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell className="w-8">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+      </TableCell>
+      <TableCell className="font-medium">{page.title}</TableCell>
+      <TableCell className="text-muted-foreground font-mono text-sm">
+        /{page.slug}
+      </TableCell>
+      <TableCell>
+        <Badge variant="outline" className={statusColor(page.status)}>
+          {page.status}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-center">
+        {page.isHomepage && (
+          <Star className="h-4 w-4 text-[#B07D3A] fill-[#B07D3A] mx-auto" />
+        )}
+      </TableCell>
+      <TableCell className="text-center">
+        {page.showInNav && (
+          <Navigation className="h-4 w-4 text-[#185fa5] mx-auto" />
+        )}
+      </TableCell>
+      <TableCell className="text-center text-sm text-muted-foreground">
+        {page.showInNav ? page.navOrder : "--"}
+      </TableCell>
+      <TableCell className="text-center">
+        {page.isBlogPage && (
+          <BookOpen className="h-4 w-4 text-[#3b6d11] mx-auto" />
+        )}
+      </TableCell>
+      <TableCell className="text-center">
+        {page._count.blocks}
+      </TableCell>
+      <TableCell>{formatDate(page.updatedAt)}</TableCell>
+      <TableCell className="text-right">
+        <div className="flex items-center justify-end gap-1">
+          <a
+            href={page.isHomepage ? "/" : `/${page.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-md h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            title="View page"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </a>
+          <Link
+            href={`/admin/pages/${page.id}/edit`}
+            className="inline-flex items-center justify-center rounded-md h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <Pencil className="h-4 w-4" />
+          </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete(page.id)}
+            disabled={deleting === page.id}
+            className="h-8 w-8 p-0"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  )
+}
+
 export default function AdminPagesPage() {
   const [pages, setPages] = useState<PageRecord[]>([])
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
   const fetchPages = useCallback(async () => {
     setLoading(true)
@@ -104,6 +229,36 @@ export default function AdminPagesPage() {
       setError(err instanceof Error ? err.message : "Failed to delete page")
     } finally {
       setDeleting(null)
+    }
+  }
+
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const oldIndex = pages.findIndex((p) => p.id === active.id)
+    const newIndex = pages.findIndex((p) => p.id === over.id)
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const reordered = arrayMove(pages, oldIndex, newIndex).map((p, i) => ({
+      ...p,
+      navOrder: i,
+    }))
+
+    setPages(reordered)
+
+    try {
+      const res = await fetch("/api/admin/pages/reorder", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pages: reordered.map((p, i) => ({ id: p.id, navOrder: i })),
+        }),
+      })
+      if (!res.ok) throw new Error("Failed to save page order")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save page order")
+      fetchPages()
     }
   }
 
@@ -157,11 +312,13 @@ export default function AdminPagesPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-8"></TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Slug</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-center">Home</TableHead>
                 <TableHead className="text-center">Nav</TableHead>
+                <TableHead className="text-center">Order</TableHead>
                 <TableHead className="text-center">Blog</TableHead>
                 <TableHead className="text-center">Blocks</TableHead>
                 <TableHead>Updated</TableHead>
@@ -172,9 +329,11 @@ export default function AdminPagesPage() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-36" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                    <TableCell className="text-center"><Skeleton className="h-4 w-6 mx-auto" /></TableCell>
                     <TableCell className="text-center"><Skeleton className="h-4 w-6 mx-auto" /></TableCell>
                     <TableCell className="text-center"><Skeleton className="h-4 w-6 mx-auto" /></TableCell>
                     <TableCell className="text-center"><Skeleton className="h-4 w-6 mx-auto" /></TableCell>
@@ -185,76 +344,32 @@ export default function AdminPagesPage() {
                 ))
               ) : pages.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={11} className="text-center py-12 text-muted-foreground">
                     {search
                       ? "No pages match your search."
                       : "No pages yet. Create your first page to get started."}
                   </TableCell>
                 </TableRow>
               ) : (
-                pages.map((page) => (
-                  <TableRow key={page.id}>
-                    <TableCell className="font-medium">{page.title}</TableCell>
-                    <TableCell className="text-muted-foreground font-mono text-sm">
-                      /{page.slug}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={statusColor(page.status)}
-                      >
-                        {page.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {page.isHomepage && (
-                        <Star className="h-4 w-4 text-[#B07D3A] fill-[#B07D3A] mx-auto" />
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {page.showInNav && (
-                        <Navigation className="h-4 w-4 text-[#185fa5] mx-auto" />
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {page.isBlogPage && (
-                        <BookOpen className="h-4 w-4 text-[#3b6d11] mx-auto" />
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {page._count.blocks}
-                    </TableCell>
-                    <TableCell>{formatDate(page.updatedAt)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <a
-                          href={page.isHomepage ? "/" : `/${page.slug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center rounded-md h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                          title="View page"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                        <Link
-                          href={`/admin/pages/${page.id}/edit`}
-                          className="inline-flex items-center justify-center rounded-md h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(page.id)}
-                          disabled={deleting === page.id}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={pages.map((p) => p.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {pages.map((page) => (
+                      <SortableRow
+                        key={page.id}
+                        page={page}
+                        deleting={deleting}
+                        onDelete={handleDelete}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
               )}
             </TableBody>
           </Table>
