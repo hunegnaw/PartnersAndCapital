@@ -171,7 +171,7 @@ The public-facing marketing site replaces the previous Squarespace website. It r
 
 All public pages share a common layout with:
 
-- **Header:** Sticky dark navy bar with "PARTNERS + CAPITAL" logo, database-driven navigation links (configured via page settings), and a gold-outlined "Investor Login" button with LogIn icon. On the homepage, the header starts transparent and transitions to solid on scroll. Navigation links are pulled from CMS pages that have "Show in navigation" enabled, sorted by nav order.
+- **Header:** Sticky dark navy bar with "PARTNERS + CAPITAL" logo (bordered, links to admin dashboard for admins, client dashboard for clients, or home for visitors), database-driven navigation links (configured via page settings), and a gold-outlined "Investor Login" button with LogIn icon. On the homepage, the header starts transparent and transitions to solid on scroll. Navigation links are pulled from CMS pages that have "Show in navigation" enabled, sorted by nav order. Fallback nav shows only "Home" when no pages have navigation enabled.
 - **Footer:** Dark navy background with 3-column grid (branding + address, database-driven navigation links + Investor Login, newsletter signup form), copyright line, and legal disclaimer.
 
 ### Public Routes
@@ -198,7 +198,7 @@ The blog (called "Partner Thoughts" publicly) provides article publishing with c
 
 ### Admin Blog Management
 
-**Post List** (`/admin/blog`): Search, filter by status (published/draft) and category, paginated table with title, category, status, view count, published date, and edit/delete actions.
+**Post List** (`/admin/blog`): Search, filter by status (published/draft) and category, paginated table with title, category, status, view count, published date, and view (opens in new tab)/edit/delete actions.
 
 **Create/Edit Post** (`/admin/blog/new`, `/admin/blog/[id]/edit`): Two-column editor with:
 - **Main area:** Title (auto-generates slug), excerpt, Tiptap rich text editor with full toolbar (bold, italic, underline, strikethrough, headings, lists, alignment, colors, links, images via media picker, blockquotes, code blocks, tables, undo/redo, HTML source toggle)
@@ -254,7 +254,7 @@ The page builder allows admins to create and edit CMS pages using drag-and-drop 
 
 ### Admin Page Editor
 
-**Page List** (`/admin/pages`): Table showing title, slug, status (Draft/Published/Archived), homepage indicator, block count, last updated, and edit/delete actions.
+**Page List** (`/admin/pages`): Table showing title, slug, status (Draft/Published/Archived), homepage indicator, nav indicator, blog indicator, block count, last updated, and view (opens in new tab)/edit/delete actions.
 
 **Create/Edit Page** (`/admin/pages/new`, `/admin/pages/[id]/edit`): Two-column layout with:
 - **Main area:** Title, slug, and block editor with drag-and-drop reordering (@dnd-kit). Add blocks via a picker dialog showing all 13 block types. Each block expands/collapses to show its editor form.
@@ -272,7 +272,7 @@ Admins can control which CMS pages appear in the public header and footer naviga
 
 The pages list table shows a navigation icon (blue) for pages that appear in nav.
 
-When no pages have "Show in navigation" enabled, the header and footer fall back to hardcoded links (Home, Partner Thoughts, Contact).
+When no pages have "Show in navigation" enabled, the header and footer fall back to showing only a "Home" link.
 
 ### Blog Page Designation
 

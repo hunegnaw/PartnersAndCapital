@@ -30,6 +30,7 @@ import {
   Pencil,
   Trash2,
   Eye,
+  ExternalLink,
   AlertCircle,
   ChevronLeft,
   ChevronRight,
@@ -260,6 +261,15 @@ export default function AdminBlogPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
+                        <a
+                          href={`/blog/${post.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-gray-100 transition-colors"
+                          title="View post"
+                        >
+                          <ExternalLink className="h-4 w-4 text-gray-600" />
+                        </a>
                         <Link
                           href={`/admin/blog/${post.id}/edit`}
                           className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-gray-100 transition-colors"

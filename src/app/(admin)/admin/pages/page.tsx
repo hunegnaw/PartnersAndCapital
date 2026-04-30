@@ -25,6 +25,7 @@ import {
   AlertCircle,
   Navigation,
   BookOpen,
+  ExternalLink,
 } from "lucide-react"
 
 interface PageRecord {
@@ -226,6 +227,15 @@ export default function AdminPagesPage() {
                     <TableCell>{formatDate(page.updatedAt)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
+                        <a
+                          href={page.isHomepage ? "/" : `/${page.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center rounded-md h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                          title="View page"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
                         <Link
                           href={`/admin/pages/${page.id}/edit`}
                           className="inline-flex items-center justify-center rounded-md h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"

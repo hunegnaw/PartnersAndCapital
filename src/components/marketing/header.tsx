@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { LogIn, Menu, X } from "lucide-react";
 
 interface NavLink {
@@ -17,6 +18,7 @@ interface MarketingHeaderProps {
 export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: MarketingHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: session } = useSession();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,6 +30,12 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
   }, []);
 
   const solid = !transparent || scrolled;
+
+  const logoHref = session?.user
+    ? (session.user as { role?: string }).role === "ADMIN"
+      ? "/admin"
+      : "/dashboard"
+    : "/";
 
   const navLinks = navLinksProp && navLinksProp.length > 0
     ? navLinksProp
@@ -42,8 +50,8 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
       <nav className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link
-          href="/"
-          className="font-bold text-white text-sm tracking-widest uppercase"
+          href={logoHref}
+          className="font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 rounded transition-colors hover:border-white/70"
         >
           Partners + Capital
         </Link>
