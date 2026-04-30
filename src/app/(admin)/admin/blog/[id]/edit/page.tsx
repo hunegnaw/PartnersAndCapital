@@ -107,8 +107,8 @@ export default function EditBlogPostPage() {
       setExcerpt(post.excerpt || "")
       setContent(post.content || "")
       setCategoryId(post.categoryId || "")
-      setSelectedTags(post.tagIds || post.tags?.map((t: { id: string }) => t.id) || [])
-      setIsDraft(post.status === "DRAFT")
+      setSelectedTags(post.tags?.map((t: { tag: { id: string } }) => t.tag.id) || [])
+      setIsDraft(!post.isPublished)
       setHeroImageUrl(post.heroImageUrl || "")
       setMetaTitle(post.metaTitle || "")
       setMetaDescription(post.metaDescription || "")
@@ -154,8 +154,8 @@ export default function EditBlogPostPage() {
         excerpt: excerpt || null,
         content,
         categoryId: categoryId || null,
-        tagIds: selectedTags,
-        status: asDraft ? "DRAFT" : "PUBLISHED",
+        tags: selectedTags,
+        isPublished: !asDraft,
         heroImageUrl: heroImageUrl || null,
         metaTitle: metaTitle || null,
         metaDescription: metaDescription || null,
