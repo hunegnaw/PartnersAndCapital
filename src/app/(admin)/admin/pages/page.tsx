@@ -310,19 +310,19 @@ export default function AdminPagesPage() {
         </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-8"></TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-center">Home</TableHead>
-                <TableHead className="text-center">Nav</TableHead>
-                <TableHead className="text-center">Order</TableHead>
-                <TableHead className="text-center">Blog</TableHead>
-                <TableHead className="text-center">Blocks</TableHead>
-                <TableHead>Updated</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+            <TableHeader className="bg-[#1A2640]">
+              <TableRow className="border-b-0 hover:bg-[#1A2640]">
+                <TableHead className="w-8 text-white/80"></TableHead>
+                <TableHead className="text-white">Title</TableHead>
+                <TableHead className="text-white">Slug</TableHead>
+                <TableHead className="text-white">Status</TableHead>
+                <TableHead className="text-center text-white">Home</TableHead>
+                <TableHead className="text-center text-white">Nav</TableHead>
+                <TableHead className="text-center text-white">Order</TableHead>
+                <TableHead className="text-center text-white">Blog</TableHead>
+                <TableHead className="text-center text-white">Blocks</TableHead>
+                <TableHead className="text-white">Updated</TableHead>
+                <TableHead className="text-right text-white">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
