@@ -1,3 +1,10 @@
+export interface SubBlockData {
+  id: string;
+  type: string;
+  props: Record<string, unknown>;
+  sortOrder: number;
+}
+
 export const BLOCK_TYPES = {
   hero_video: {
     label: "Hero (Video)",
@@ -79,6 +86,8 @@ export const BLOCK_TYPES = {
       leftContent: "",
       rightContent: "",
       leftWidth: "1/2",
+      leftBlocks: [] as SubBlockData[],
+      rightBlocks: [] as SubBlockData[],
     },
   },
   contact_form: {
@@ -152,3 +161,8 @@ export interface PageBlockData {
   sortOrder: number;
   mediaId?: string | null;
 }
+
+/** Block types allowed inside Two Column sub-blocks (no heroes, no nested two_column) */
+export const NESTABLE_BLOCK_TYPES: BlockType[] = (
+  Object.keys(BLOCK_TYPES) as BlockType[]
+).filter((t) => !["hero_video", "hero_image", "two_column"].includes(t));

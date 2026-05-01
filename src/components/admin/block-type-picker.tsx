@@ -38,14 +38,20 @@ interface BlockTypePickerProps {
   open: boolean;
   onClose: () => void;
   onSelect: (type: BlockType) => void;
+  allowedTypes?: BlockType[];
 }
 
 export function BlockTypePicker({
   open,
   onClose,
   onSelect,
+  allowedTypes,
 }: BlockTypePickerProps) {
   if (!open) return null;
+
+  const entries = (
+    Object.entries(BLOCK_TYPES) as [BlockType, (typeof BLOCK_TYPES)[BlockType]][]
+  ).filter(([type]) => !allowedTypes || allowedTypes.includes(type));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -60,7 +66,7 @@ export function BlockTypePicker({
           </button>
         </div>
         <div className="grid grid-cols-3 gap-3 p-6">
-          {(Object.entries(BLOCK_TYPES) as [BlockType, (typeof BLOCK_TYPES)[BlockType]][]).map(
+          {entries.map(
             ([type, config]) => {
               const Icon = ICON_MAP[config.icon] || Type;
               return (

@@ -12,7 +12,7 @@ import { ImageBlock } from "./image-block";
 import { EmbedBlock } from "./embed-block";
 import { SpacerBlock } from "./spacer-block";
 
-const BLOCK_MAP: Record<
+export const BLOCK_MAP: Record<
   string,
   React.ComponentType<{ props: Record<string, unknown> }>
 > = {

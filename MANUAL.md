@@ -244,7 +244,7 @@ The page builder allows admins to create and edit CMS pages using drag-and-drop 
 | Logo Gallery | Grid of logos/images with optional grayscale effect |
 | Stats | Number cards row (values + labels) on dark background |
 | CTA Banner | Full-width call-to-action with heading, text, and button |
-| Two Column | Side-by-side rich text content areas |
+| Two Column | Side-by-side layout with nested content blocks in each column (or legacy rich text). Supports all block types except heroes and nested two-column. |
 | Contact Form | Name/email/message form posting to `/api/contact` |
 | Newsletter Signup | Email signup form posting to `/api/newsletter` |
 | Quote | Blockquote with attribution and role |
@@ -259,6 +259,7 @@ The page builder allows admins to create and edit CMS pages using drag-and-drop 
 **Create/Edit Page** (`/admin/pages/new`, `/admin/pages/[id]/edit`): Two-column layout with:
 - **Main area:** Title, slug, and block editor with drag-and-drop reordering (@dnd-kit). Add blocks via a picker dialog showing all 13 block types. Each block expands/collapses to show its editor form.
 - **Sidebar:** Status dropdown, homepage checkbox, blog page checkbox, navigation settings, SEO fields, save button.
+- **Two Column nested blocks:** When editing a Two Column block, each column has its own "Add Block" button and mini block editor. Sub-blocks are stored as arrays (`leftBlocks`/`rightBlocks`) in the block's JSON props. Existing Two Column blocks using `leftContent`/`rightContent` HTML continue to render correctly.
 
 Pages are saved atomically: page metadata and all blocks are updated in a single database transaction.
 

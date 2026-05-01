@@ -1,10 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import type { BlockType } from "@/lib/page-blocks";
+import {
+  BLOCK_TYPES,
+  NESTABLE_BLOCK_TYPES,
+  type BlockType,
+  type SubBlockData,
+} from "@/lib/page-blocks";
 import { RichTextEditor } from "./rich-text-editor";
 import { MediaPicker } from "./media-picker";
-import { ImageIcon, Plus, Trash2 } from "lucide-react";
+import { BlockTypePicker } from "./block-type-picker";
+import { ImageIcon, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 
 // Helper field components — declared outside BlockEditorForm to satisfy react-hooks/static-components
 
@@ -209,6 +215,112 @@ function CheckboxField({
       />
       <span className="text-sm text-gray-700">{label}</span>
     </label>
+  );
+}
+
+// --- Column sub-block editor (used inside Two Column) ---
+
+function ColumnBlockEditor({
+  label,
+  blocks,
+  onChange,
+}: {
+  label: string;
+  blocks: SubBlockData[];
+  onChange: (blocks: SubBlockData[]) => void;
+}) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const addBlock = (type: BlockType) => {
+    const config = BLOCK_TYPES[type];
+    const newBlock: SubBlockData = {
+      id: `sub-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      type,
+      props: { ...config.defaultProps },
+      sortOrder: blocks.length,
+    };
+    onChange([...blocks, newBlock]);
+    setExpandedId(newBlock.id);
+  };
+
+  const updateBlock = (id: string, newProps: Record<string, unknown>) => {
+    onChange(
+      blocks.map((b) => (b.id === id ? { ...b, props: newProps } : b))
+    );
+  };
+
+  const removeBlock = (id: string) => {
+    onChange(
+      blocks
+        .filter((b) => b.id !== id)
+        .map((b, i) => ({ ...b, sortOrder: i }))
+    );
+    if (expandedId === id) setExpandedId(null);
+  };
+
+  return (
+    <div>
+      <label className="block text-xs font-medium text-gray-700 mb-2">
+        {label}
+      </label>
+      <div className="space-y-2">
+        {blocks.map((block) => {
+          const config = BLOCK_TYPES[block.type as BlockType];
+          const isExpanded = expandedId === block.id;
+          return (
+            <div
+              key={block.id}
+              className="border rounded-lg bg-gray-50 overflow-hidden"
+            >
+              <div className="flex items-center gap-2 px-3 py-2">
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(isExpanded ? null : block.id)}
+                  className="flex items-center gap-1 flex-1 text-left text-sm font-medium"
+                >
+                  {isExpanded ? (
+                    <ChevronDown size={14} />
+                  ) : (
+                    <ChevronRight size={14} />
+                  )}
+                  {config?.label ?? block.type}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeBlock(block.id)}
+                  className="p-1 text-red-500 hover:bg-red-50 rounded"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+              {isExpanded && (
+                <div className="px-3 pb-3">
+                  <BlockEditorForm
+                    type={block.type as BlockType}
+                    props={block.props}
+                    onChange={(newProps) => updateBlock(block.id, newProps)}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <button
+        type="button"
+        onClick={() => setPickerOpen(true)}
+        className="flex items-center gap-1 mt-2 text-xs text-[#B07D3A] hover:underline"
+      >
+        <Plus size={12} /> Add Block
+      </button>
+      <BlockTypePicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelect={addBlock}
+        allowedTypes={NESTABLE_BLOCK_TYPES}
+      />
+    </div>
   );
 }
 
@@ -459,7 +571,9 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
         </div>
       );
 
-    case "two_column":
+    case "two_column": {
+      const leftBlocks = (props.leftBlocks as SubBlockData[]) || [];
+      const rightBlocks = (props.rightBlocks as SubBlockData[]) || [];
       return (
         <div className="space-y-4">
           <SelectField
@@ -472,10 +586,19 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
             ]}
             {...fp}
           />
-          <RichTextField label="Left Content" field="leftContent" {...fp} />
-          <RichTextField label="Right Content" field="rightContent" {...fp} />
+          <ColumnBlockEditor
+            label="Left Column Blocks"
+            blocks={leftBlocks}
+            onChange={(blocks) => updateProp("leftBlocks", blocks)}
+          />
+          <ColumnBlockEditor
+            label="Right Column Blocks"
+            blocks={rightBlocks}
+            onChange={(blocks) => updateProp("rightBlocks", blocks)}
+          />
         </div>
       );
+    }
 
     case "contact_form":
       return (
