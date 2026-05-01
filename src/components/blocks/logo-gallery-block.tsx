@@ -35,7 +35,7 @@ export function LogoGalleryBlock({ props }: LogoGalleryBlockProps) {
         <div
           className={`grid ${columnsClass} items-center gap-8`}
         >
-          {logos.map((logo, index) => {
+          {logos.filter((l) => l.imageUrl).map((logo, index) => {
             const img = (
               // eslint-disable-next-line @next/next/no-img-element
               <img
