@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useOrganization } from "@/components/providers/organization-provider";
 
 interface ContactFormBlockProps {
   props: Record<string, unknown>;
@@ -11,6 +12,8 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
   const description = (props.description as string) ?? "";
   const showAddress = (props.showAddress as boolean) ?? false;
   const showEmail = (props.showEmail as boolean) ?? false;
+
+  const org = useOrganization();
 
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -62,16 +65,26 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
         {/* Contact info */}
         {(showAddress || showEmail) && (
           <div className="mt-6 space-y-2 text-[#1A2640]/80">
-            {showAddress && (
-              <p>605 N High St Suite 212, Columbus OH 43215</p>
+            {showAddress && org.address && (
+              <p>{org.address}</p>
             )}
-            {showEmail && (
+            {showEmail && org.email && (
               <p>
                 <a
-                  href="mailto:david@partnersandcapital.com"
+                  href={`mailto:${org.email}`}
                   className="text-[#B07D3A] underline hover:text-[#7A5520]"
                 >
-                  david@partnersandcapital.com
+                  {org.email}
+                </a>
+              </p>
+            )}
+            {showEmail && org.phone && (
+              <p>
+                <a
+                  href={`tel:${org.phone}`}
+                  className="text-[#B07D3A] underline hover:text-[#7A5520]"
+                >
+                  {org.phone}
                 </a>
               </p>
             )}

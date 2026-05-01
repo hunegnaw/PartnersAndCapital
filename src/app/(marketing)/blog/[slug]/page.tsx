@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ShareButton } from "@/components/blog/share-button";
+import { PageHero } from "@/components/marketing/page-hero";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -63,48 +64,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   return (
     <div className="bg-[#f5f5f3] min-h-screen">
       {/* Hero */}
-      {post.heroImageUrl ? (
-        <div className="relative h-[50vh] min-h-[400px]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={post.heroImageUrl}
-            alt={post.title}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 max-w-4xl mx-auto px-6 pb-12">
-            <div className="flex items-center gap-3 mb-4">
-              {post.category && (
-                <span
-                  className="text-xs font-medium px-2.5 py-1 rounded-full text-white"
-                  style={{ backgroundColor: post.category.color || "#B07D3A" }}
-                >
-                  {post.category.name}
-                </span>
-              )}
-            </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
-              {post.title}
-            </h1>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-[#1A2640] py-20">
-          <div className="max-w-4xl mx-auto px-6">
-            {post.category && (
-              <span
-                className="text-xs font-medium px-2.5 py-1 rounded-full text-white inline-block mb-4"
-                style={{ backgroundColor: post.category.color || "#B07D3A" }}
-              >
-                {post.category.name}
-              </span>
-            )}
-            <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
-              {post.title}
-            </h1>
-          </div>
-        </div>
-      )}
+      <PageHero title={post.title} imageUrl={post.heroImageUrl} />
 
       {/* Breadcrumbs + Meta */}
       <div className="max-w-4xl mx-auto px-6 pt-8">

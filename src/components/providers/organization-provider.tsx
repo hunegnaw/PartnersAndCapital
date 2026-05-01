@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { mergeTypography, type TypographySettings } from "@/lib/typography";
 
 interface OrgConfig {
   name: string;
@@ -9,6 +10,10 @@ interface OrgConfig {
   accentColor: string;
   logoUrl?: string | null;
   disclaimer?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  typography: TypographySettings;
 }
 
 const defaultOrg: OrgConfig = {
@@ -16,6 +21,7 @@ const defaultOrg: OrgConfig = {
   primaryColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR || "#1A2640",
   secondaryColor: process.env.NEXT_PUBLIC_SECONDARY_COLOR || "#2563eb",
   accentColor: process.env.NEXT_PUBLIC_ACCENT_COLOR || "#f59e0b",
+  typography: mergeTypography(),
 };
 
 const OrganizationContext = createContext<OrgConfig>(defaultOrg);
@@ -38,6 +44,10 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
           accentColor: data.accentColor || defaultOrg.accentColor,
           logoUrl: data.logoUrl,
           disclaimer: data.disclaimer,
+          email: data.email,
+          phone: data.phone,
+          address: data.address,
+          typography: mergeTypography(data.typography),
         });
       })
       .catch(console.error);

@@ -32,6 +32,11 @@ export default async function PortalLayout({
 
   const impersonation = await getImpersonationContext();
 
+  // If 2FA setup is required by policy, redirect to settings
+  if (session.user.requiresTwoFactorSetup) {
+    redirect("/settings");
+  }
+
   if (session.user.role !== "CLIENT" && !impersonation) {
     if (session.user.role === "ADVISOR") {
       redirect("/advisor/dashboard");

@@ -52,6 +52,70 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("This account has been deactivated");
         }
 
+        // Fetch organization 2FA policy
+        const org = await prisma.organization.findFirst({
+          select: { twoFactorPolicy: true },
+        });
+        const twoFactorPolicy = (org?.twoFactorPolicy || "optional").toLowerCase();
+
+        // If policy = "disabled": skip 2FA entirely
+        if (twoFactorPolicy === "disabled") {
+          // Update lastLoginAt (fire-and-forget)
+          prisma.user
+            .update({
+              where: { id: user.id },
+              data: { lastLoginAt: new Date() },
+            })
+            .catch(console.error);
+
+          createAuditLog({
+            userId: user.id,
+            action: "AUTH_LOGIN",
+            targetType: "USER",
+            targetId: user.id,
+            details: { method: "credentials" },
+          }).catch(console.error);
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            twoFactorRequired: false,
+            twoFactorVerified: false,
+            requiresTwoFactorSetup: false,
+          } as {
+            id: string;
+            email: string;
+            name: string | null;
+            role: Role;
+            twoFactorRequired: boolean;
+            twoFactorVerified: boolean;
+            requiresTwoFactorSetup: boolean;
+          };
+        }
+
+        // If policy = "mandatory" and user has no 2FA set up: flag for setup
+        if (twoFactorPolicy === "mandatory" && !user.twoFactorEnabled) {
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            twoFactorRequired: false,
+            twoFactorVerified: false,
+            requiresTwoFactorSetup: true,
+          } as {
+            id: string;
+            email: string;
+            name: string | null;
+            role: Role;
+            twoFactorRequired: boolean;
+            twoFactorVerified: boolean;
+            requiresTwoFactorSetup: boolean;
+          };
+        }
+
         // Check if 2FA is enabled — if so, return partial session marker
         if (user.twoFactorEnabled) {
           const twoFactorCode = credentials.twoFactorCode as string | undefined;
@@ -68,6 +132,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               role: user.role,
               twoFactorRequired: true,
               twoFactorVerified: false,
+              requiresTwoFactorSetup: false,
             } as {
               id: string;
               email: string;
@@ -75,6 +140,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               role: Role;
               twoFactorRequired: boolean;
               twoFactorVerified: boolean;
+              requiresTwoFactorSetup: boolean;
             };
           }
 
@@ -140,6 +206,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           role: user.role,
           twoFactorRequired: false,
           twoFactorVerified: user.twoFactorEnabled,
+          requiresTwoFactorSetup: false,
         } as {
           id: string;
           email: string;
@@ -147,6 +214,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           role: Role;
           twoFactorRequired: boolean;
           twoFactorVerified: boolean;
+          requiresTwoFactorSetup: boolean;
         };
       },
     }),
@@ -158,6 +226,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = (user as unknown as User).role;
         token.twoFactorRequired = (user as Record<string, unknown>).twoFactorRequired as boolean;
         token.twoFactorVerified = (user as Record<string, unknown>).twoFactorVerified as boolean;
+        token.requiresTwoFactorSetup = (user as Record<string, unknown>).requiresTwoFactorSetup as boolean;
       }
       return token;
     },
@@ -167,6 +236,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.role = token.role as Role;
         session.user.twoFactorRequired = token.twoFactorRequired as boolean;
         session.user.twoFactorVerified = token.twoFactorVerified as boolean;
+        session.user.requiresTwoFactorSetup = token.requiresTwoFactorSetup as boolean;
       }
       return session;
     },

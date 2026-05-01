@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { BlockRenderer } from "@/components/blocks/block-renderer";
 import { BlogListing } from "@/components/marketing/blog-listing";
+import { PageHero } from "@/components/marketing/page-hero";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -53,5 +54,12 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
     sortOrder: b.sortOrder,
   }));
 
-  return <BlockRenderer blocks={blocks} />;
+  return (
+    <>
+      {!page.isHomepage && (
+        <PageHero title={page.title} imageUrl={page.featuredImageUrl} />
+      )}
+      <BlockRenderer blocks={blocks} />
+    </>
+  );
 }

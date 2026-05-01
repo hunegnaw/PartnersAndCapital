@@ -18,7 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { BlockEditor } from "@/components/admin/block-editor"
-import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react"
+import { MediaPicker } from "@/components/admin/media-picker"
+import { AlertCircle, ArrowLeft, Loader2, ImageIcon, X } from "lucide-react"
 import type { PageBlockData } from "@/lib/page-blocks"
 
 function slugify(text: string): string {
@@ -48,6 +49,8 @@ export default function AdminNewPagePage() {
   const [metaTitle, setMetaTitle] = useState("")
   const [metaDescription, setMetaDescription] = useState("")
   const [ogImageUrl, setOgImageUrl] = useState("")
+  const [featuredImageUrl, setFeaturedImageUrl] = useState("")
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
   const [blocks, setBlocks] = useState<PageBlockData[]>([])
 
   function handleTitleChange(value: string) {
@@ -86,6 +89,7 @@ export default function AdminNewPagePage() {
           navLabel: navLabel.trim() || null,
           navOrder,
           isBlogPage,
+          featuredImageUrl: featuredImageUrl.trim() || null,
           metaTitle: metaTitle.trim() || null,
           metaDescription: metaDescription.trim() || null,
           ogImageUrl: ogImageUrl.trim() || null,
@@ -275,6 +279,40 @@ export default function AdminNewPagePage() {
 
             <Card>
               <CardHeader>
+                <CardTitle>Hero Image</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {featuredImageUrl ? (
+                  <div className="relative rounded-lg overflow-hidden border">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={featuredImageUrl}
+                      alt="Hero preview"
+                      className="w-full h-40 object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFeaturedImageUrl("")}
+                      className="absolute top-2 right-2 p-1 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setMediaPickerOpen(true)}
+                    className="w-full h-32 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-[#B07D3A] hover:text-[#B07D3A] transition-colors"
+                  >
+                    <ImageIcon className="h-8 w-8" />
+                    <span className="text-sm">Choose image</span>
+                  </button>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle>SEO</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -320,6 +358,16 @@ export default function AdminNewPagePage() {
           </div>
         </div>
       </form>
+
+      <MediaPicker
+        open={mediaPickerOpen}
+        onClose={() => setMediaPickerOpen(false)}
+        onSelect={(media) => {
+          setFeaturedImageUrl(media.filePath)
+          setMediaPickerOpen(false)
+        }}
+        accept="image"
+      />
     </div>
   )
 }

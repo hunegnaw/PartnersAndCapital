@@ -33,9 +33,10 @@ import {
 
 interface TwoFactorManageProps {
   onDisabled: () => void;
+  disableDisabled?: boolean;
 }
 
-export function TwoFactorManage({ onDisabled }: TwoFactorManageProps) {
+export function TwoFactorManage({ onDisabled, disableDisabled }: TwoFactorManageProps) {
   // Disable dialog state
   const [disableOpen, setDisableOpen] = useState(false);
   const [disableCode, setDisableCode] = useState("");
@@ -277,13 +278,15 @@ export function TwoFactorManage({ onDisabled }: TwoFactorManageProps) {
             <Button
               variant="destructive"
               size="sm"
+              disabled={disableDisabled}
               onClick={() => {
                 resetDisableDialog();
                 setDisableOpen(true);
               }}
+              title={disableDisabled ? "Required by your organization" : undefined}
             >
               <ShieldOff />
-              Disable 2FA
+              {disableDisabled ? "Required by organization" : "Disable 2FA"}
             </Button>
           </div>
         </CardContent>

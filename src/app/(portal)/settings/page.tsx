@@ -39,6 +39,10 @@ interface ProfileData {
   createdAt: string;
 }
 
+interface OrgPolicy {
+  twoFactorPolicy: string;
+}
+
 function SettingsSkeleton() {
   return (
     <div className="p-8 space-y-6 max-w-2xl">
@@ -63,6 +67,7 @@ function SettingsSkeleton() {
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [orgPolicy, setOrgPolicy] = useState<OrgPolicy>({ twoFactorPolicy: "optional" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -85,15 +90,25 @@ export default function SettingsPage() {
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/portal/settings");
-      if (!res.ok) {
+      const [profileRes, orgRes] = await Promise.all([
+        fetch("/api/portal/settings"),
+        fetch("/api/organization"),
+      ]);
+      if (!profileRes.ok) {
         throw new Error("Failed to load settings");
       }
-      const json = await res.json();
+      const json = await profileRes.json();
       setProfile(json);
       setName(json.name || "");
       setPhone(json.phone || "");
       setCompany(json.company || "");
+
+      if (orgRes.ok) {
+        const orgJson = await orgRes.json();
+        setOrgPolicy({
+          twoFactorPolicy: (orgJson.twoFactorPolicy || "optional").toLowerCase(),
+        });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -379,12 +394,29 @@ export default function SettingsPage() {
       </Card>
 
       {/* Two-Factor Authentication Section */}
-      <Separator />
+      {orgPolicy.twoFactorPolicy !== "disabled" && (
+        <>
+          <Separator />
 
-      {profile?.twoFactorEnabled ? (
-        <TwoFactorManage onDisabled={handleTwoFactorDisabled} />
-      ) : (
-        <TwoFactorSetup onComplete={handleTwoFactorComplete} />
+          {orgPolicy.twoFactorPolicy === "mandatory" && !profile?.twoFactorEnabled && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Required by your organization</AlertTitle>
+              <AlertDescription>
+                Your organization requires all users to set up two-factor authentication.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {profile?.twoFactorEnabled ? (
+            <TwoFactorManage
+              onDisabled={handleTwoFactorDisabled}
+              disableDisabled={orgPolicy.twoFactorPolicy === "mandatory"}
+            />
+          ) : (
+            <TwoFactorSetup onComplete={handleTwoFactorComplete} />
+          )}
+        </>
       )}
     </div>
   );

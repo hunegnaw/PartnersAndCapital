@@ -148,7 +148,7 @@ The admin landing page at `/admin` is the Client Management view. It provides:
 | `/admin/support`       | View and respond to client support tickets           |
 | `/admin/audit-log`     | View audit trail of all system actions                |
 | `/admin/api-keys`      | Create and manage API keys for external integrations |
-| `/admin/settings`      | Organization settings (branding, colors, 2FA policy) |
+| `/admin/settings`      | Organization settings (branding, typography, colors, 2FA policy) |
 | `/admin/clients/[id]`  | Client detail with "View as Client" impersonation    |
 
 ### Admin Roles
@@ -258,7 +258,7 @@ The page builder allows admins to create and edit CMS pages using drag-and-drop 
 
 **Create/Edit Page** (`/admin/pages/new`, `/admin/pages/[id]/edit`): Two-column layout with:
 - **Main area:** Title, slug, and block editor with drag-and-drop reordering (@dnd-kit). Add blocks via a picker dialog showing all 13 block types. Each block expands/collapses to show its editor form.
-- **Sidebar:** Status dropdown, homepage checkbox, blog page checkbox, navigation settings, SEO fields, save button.
+- **Sidebar:** Status dropdown, homepage checkbox, blog page checkbox, navigation settings, hero image (via media picker), SEO fields, save button.
 - **Two Column nested blocks:** When editing a Two Column block, each column has its own "Add Block" button and mini block editor. Sub-blocks are stored as arrays (`leftBlocks`/`rightBlocks`) in the block's JSON props. Existing Two Column blocks using `leftContent`/`rightContent` HTML continue to render correctly.
 
 Pages are saved atomically: page metadata and all blocks are updated in a single database transaction.
@@ -284,6 +284,22 @@ One CMS page can be designated as the "blog page," similar to how one page can b
 - The pages list table shows a book icon (green) for the blog page.
 
 This allows admins to place the blog at any URL (e.g., `/insights`, `/partner-thoughts`, `/news`) rather than being hardcoded to `/blog`. The existing `/blog` route continues to work as a fallback.
+
+### Page Hero Images
+
+Every non-homepage page displays a hero banner at the top of the page:
+
+- **With image:** 600px tall, full-bleed background image with a dark overlay and the page title centered in white.
+- **Without image:** 600px tall solid navy (`#1A2640`) background with the page title centered in white.
+- **Homepage:** No hero is rendered; the page content blocks render directly.
+
+To set a hero image:
+1. Edit a page in the admin panel.
+2. In the sidebar, find the "Hero Image" card.
+3. Click "Choose image" to open the media picker and select an image.
+4. The image preview appears with an X button to clear it.
+
+Blog posts also use the same shared `PageHero` component, replacing the previous inline hero section.
 
 ### Page API Routes
 
@@ -470,9 +486,9 @@ Partners + Capital supports SMS-based two-factor authentication. When enabled, a
 
 The organization-level 2FA policy (configured in `/admin/settings`) controls how 2FA is enforced across the platform:
 
-- **Optional** (default) -- Users can choose whether to enable 2FA on their account.
-- **Mandatory** -- All users must set up 2FA before they can access the portal. Users who have not configured 2FA will be prompted to do so on login.
-- **Disabled** -- 2FA is turned off across the platform.
+- **Optional** (default) -- Users can choose whether to enable SMS two-factor authentication on their account.
+- **Mandatory** -- All users must set up SMS two-factor authentication. Users who have not configured 2FA are redirected to the settings page after login and shown a "Required by your organization" alert. They cannot access the portal or admin panel until 2FA is set up. Users with 2FA already enabled cannot disable it (the "Disable 2FA" button is replaced with "Required by organization").
+- **Disabled** -- Two-factor authentication is turned off for all users. The 2FA section is completely hidden from the settings page, and login skips all 2FA checks even if a user previously had it enabled.
 
 ### Setting Up 2FA (User Flow)
 
@@ -876,6 +892,50 @@ When the environment variable is not set (e.g., in development), the component r
 
 ---
 
+## Typography & Font Settings
+
+### Overview
+
+Admins can configure fonts, weights, styles, colors, and sizes for 5 text categories across the platform. Fonts are loaded dynamically from Google Fonts and applied via CSS custom properties.
+
+### Typography Categories
+
+| Category | CSS Variable Prefix | Default Font | Usage |
+|----------|-------------------|--------------|-------|
+| Hero Title | `--font-hero-title-*` | Playfair Display 700 | Page hero banners, blog hero titles |
+| Subtitle | `--font-subtitle-*` | Open Sans 600 | Section headings, subheadings |
+| Body | `--font-body-*` | Open Sans 400 | Marketing page body text |
+| Admin Body | `--font-admin-body-*` | Inter 400 | Admin panel text |
+| Portal Body | `--font-portal-body-*` | Inter 400 | Client portal text |
+
+### Configuring Typography
+
+1. Navigate to `/admin/settings`.
+2. Find the "Typography" card (between Branding and Contact).
+3. For each category, configure:
+   - **Font Family** -- Choose from ~40 curated Google Fonts
+   - **Weight** -- 100 through 900
+   - **Style** -- Normal or Italic
+   - **Color** -- Hex color value with preview swatch
+   - **Font Size** -- CSS size value (e.g., `16px`, `1rem`)
+4. Each category shows a live preview of the configured font settings.
+5. Click "Save Settings" to apply.
+
+### How It Works
+
+- Typography settings are stored as a JSON field (`typography`) on the Organization model.
+- The `FontLoader` client component reads typography from the organization context and injects:
+  - A `<link>` tag to load the required Google Fonts
+  - A `<style>` tag setting CSS custom properties (e.g., `--font-hero-title-family`, `--font-body-color`)
+- Components use these CSS variables with fallback values, ensuring graceful degradation.
+- Geist remains loaded as the base/fallback font via `next/font/google`.
+
+### Contact Form Dynamic Data
+
+The contact form block now pulls address, email, and phone from the organization settings instead of using hardcoded values. This means changing the contact info in Admin Settings automatically updates the contact form on the public site.
+
+---
+
 ## Security Headers
 
 The application sets the following security headers on all responses via `next.config.ts`:
@@ -1046,3 +1106,7 @@ Both entries record the admin's user ID and the target client ID.
 - CMS page navigation visibility controls (show in nav, nav label, nav order)
 - Blog page designation (render blog listing on any CMS page URL)
 - Dynamic header/footer navigation driven by database instead of hardcoded links
+- Page hero images with shared PageHero component (pages and blog posts)
+- Admin-configurable typography with Google Fonts (5 categories, CSS variable injection)
+- Dynamic contact form pulling address/email/phone from organization settings
+- 2FA policy enforcement (mandatory redirects to setup, disabled hides 2FA, optional preserves existing behavior)

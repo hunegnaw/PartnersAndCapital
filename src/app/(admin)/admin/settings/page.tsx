@@ -23,7 +23,15 @@ import {
   Mail,
   Shield,
   FileText,
+  Type,
 } from "lucide-react"
+import { GOOGLE_FONTS } from "@/lib/google-fonts"
+import {
+  TYPOGRAPHY_CATEGORIES,
+  DEFAULT_TYPOGRAPHY,
+  type TypographySettings,
+  type FontSetting,
+} from "@/lib/typography"
 
 interface Organization {
   id: string
@@ -42,6 +50,7 @@ interface Organization {
   privacyPolicy: string | null
   termsOfService: string | null
   twoFactorPolicy: string | null
+  typography: TypographySettings | null
 }
 
 export default function AdminSettingsPage() {
@@ -67,6 +76,7 @@ export default function AdminSettingsPage() {
   const [privacyPolicy, setPrivacyPolicy] = useState("")
   const [termsOfService, setTermsOfService] = useState("")
   const [twoFactorPolicy, setTwoFactorPolicy] = useState("")
+  const [typography, setTypography] = useState<TypographySettings>(DEFAULT_TYPOGRAPHY)
 
   useEffect(() => {
     async function fetchSettings() {
@@ -90,6 +100,9 @@ export default function AdminSettingsPage() {
         setPrivacyPolicy(data.privacyPolicy || "")
         setTermsOfService(data.termsOfService || "")
         setTwoFactorPolicy(data.twoFactorPolicy || "OPTIONAL")
+        if (data.typography) {
+          setTypography({ ...DEFAULT_TYPOGRAPHY, ...data.typography })
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An unexpected error occurred")
       } finally {
@@ -125,6 +138,7 @@ export default function AdminSettingsPage() {
           privacyPolicy: privacyPolicy || null,
           termsOfService: termsOfService || null,
           twoFactorPolicy: twoFactorPolicy || null,
+          typography,
         }),
       })
 
@@ -142,6 +156,17 @@ export default function AdminSettingsPage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  function updateTypographyField(
+    category: keyof TypographySettings,
+    field: keyof FontSetting,
+    value: string
+  ) {
+    setTypography((prev) => ({
+      ...prev,
+      [category]: { ...prev[category], [field]: value },
+    }))
   }
 
   if (loading) {
@@ -290,6 +315,112 @@ export default function AdminSettingsPage() {
           </CardContent>
         </Card>
 
+        {/* Typography */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Type className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-base">Typography</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {TYPOGRAPHY_CATEGORIES.map(({ key, label }) => (
+              <div key={key} className="space-y-3 pb-4 border-b border-border last:border-0 last:pb-0">
+                <Label className="text-sm font-semibold">{label}</Label>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs text-muted-foreground">Font Family</Label>
+                    <Select
+                      value={typography[key].fontFamily}
+                      onValueChange={(v) => v && updateTypographyField(key, "fontFamily", v)}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GOOGLE_FONTS.map((font) => (
+                          <SelectItem key={font} value={font}>
+                            {font}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs text-muted-foreground">Weight</Label>
+                    <Select
+                      value={typography[key].fontWeight}
+                      onValueChange={(v) => v && updateTypographyField(key, "fontWeight", v)}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["100", "200", "300", "400", "500", "600", "700", "800", "900"].map((w) => (
+                          <SelectItem key={w} value={w}>{w}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs text-muted-foreground">Style</Label>
+                    <Select
+                      value={typography[key].fontStyle}
+                      onValueChange={(v) => v && updateTypographyField(key, "fontStyle", v)}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="italic">Italic</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs text-muted-foreground">Color</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={typography[key].color}
+                        onChange={(e) => updateTypographyField(key, "color", e.target.value)}
+                        placeholder="#333333"
+                        className="h-9 text-sm font-mono"
+                      />
+                      {typography[key].color && (
+                        <div
+                          className="w-9 h-9 rounded-md border shrink-0"
+                          style={{ backgroundColor: typography[key].color }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs text-muted-foreground">Font Size</Label>
+                    <Input
+                      value={typography[key].fontSize}
+                      onChange={(e) => updateTypographyField(key, "fontSize", e.target.value)}
+                      placeholder="16px"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
+                <div
+                  className="mt-2 p-3 rounded-md border bg-muted/30"
+                  style={{
+                    fontFamily: typography[key].fontFamily,
+                    fontWeight: parseInt(typography[key].fontWeight),
+                    fontStyle: typography[key].fontStyle,
+                    color: typography[key].color,
+                    fontSize: typography[key].fontSize,
+                  }}
+                >
+                  The quick brown fox jumps over the lazy dog
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
         {/* Contact */}
         <Card>
           <CardHeader>
@@ -400,9 +531,9 @@ export default function AdminSettingsPage() {
                   <SelectValue placeholder="Select policy" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="MANDATORY">Mandatory - Required for all users</SelectItem>
-                  <SelectItem value="OPTIONAL">Optional - Users choose to enable</SelectItem>
-                  <SelectItem value="DISABLED">Disabled - 2FA not available</SelectItem>
+                  <SelectItem value="MANDATORY">Mandatory - All users must set up SMS two-factor authentication</SelectItem>
+                  <SelectItem value="OPTIONAL">Optional - Users can choose to enable SMS two-factor authentication</SelectItem>
+                  <SelectItem value="DISABLED">Disabled - Two-factor authentication is turned off for all users</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">

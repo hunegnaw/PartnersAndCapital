@@ -18,6 +18,11 @@ export default async function AdminLayout({
     redirect("/dashboard");
   }
 
+  // If 2FA setup is required by policy, redirect to settings
+  if (session.user.requiresTwoFactorSetup) {
+    redirect("/settings");
+  }
+
   // Fetch sidebar counts
   const [clientCount, investmentCount, documentCount, advisorCount, ticketCount, pageCount, blogPostCount, mediaCount] =
     await Promise.all([
