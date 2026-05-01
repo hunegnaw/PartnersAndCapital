@@ -189,7 +189,7 @@ prepare_package() {
     trap "rm -rf $LOCAL_PACKAGE" EXIT
 
     mkdir -p "$LOCAL_PACKAGE/.next"
-    find .next -mindepth 1 -maxdepth 1 ! -name 'cache' -exec cp -r {} "$LOCAL_PACKAGE/.next/" \;
+    find .next -mindepth 1 -maxdepth 1 ! -name 'cache' ! -name 'dev' -exec cp -r {} "$LOCAL_PACKAGE/.next/" \;
     if [ -d "public" ]; then
         mkdir -p "$LOCAL_PACKAGE/public"
         find public -mindepth 1 -maxdepth 1 ! -name 'uploads' -exec cp -r {} "$LOCAL_PACKAGE/public/" \;
