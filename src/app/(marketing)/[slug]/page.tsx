@@ -44,7 +44,14 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
   // If this page is the blog page, render the blog listing
   if (page.isBlogPage) {
     const sp = await searchParams;
-    return <BlogListing searchParams={sp} basePath={`/${slug}`} />;
+    return (
+      <BlogListing
+        searchParams={sp}
+        basePath={`/${slug}`}
+        heroTitle={page.title}
+        heroImageUrl={page.featuredImageUrl}
+      />
+    );
   }
 
   const blocks = page.blocks.map((b) => ({

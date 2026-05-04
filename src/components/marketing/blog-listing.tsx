@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { PageHero } from "@/components/marketing/page-hero";
 
 interface BlogListingProps {
   searchParams?: { page?: string; category?: string; tag?: string; search?: string };
   basePath?: string;
+  heroTitle?: string;
+  heroImageUrl?: string | null;
 }
 
-export async function BlogListing({ searchParams, basePath = "/blog" }: BlogListingProps) {
+export async function BlogListing({ searchParams, basePath = "/blog", heroTitle, heroImageUrl }: BlogListingProps) {
   const params = searchParams || {};
   const page = parseInt(params.page || "1");
   const pageSize = 9;
@@ -50,14 +53,10 @@ export async function BlogListing({ searchParams, basePath = "/blog" }: BlogList
   return (
     <div className="bg-[#f5f5f3] min-h-screen">
       {/* Hero */}
-      <div className="bg-[#1A2640] py-20 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-          Partner Thoughts
-        </h1>
-        <p className="text-white/60 mt-3 text-lg">
-          Insights and analysis on private markets
-        </p>
-      </div>
+      <PageHero
+        title={heroTitle || "Partner Thoughts"}
+        imageUrl={heroImageUrl}
+      />
 
       <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Filters */}
