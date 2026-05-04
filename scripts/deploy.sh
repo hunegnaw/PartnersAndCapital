@@ -235,10 +235,20 @@ create_htaccess() {
     local PORT=4000
     [ "$ENVIRONMENT" = "staging" ] && PORT=40001
 
+    # Create uploads symlink in public_html root so Apache can serve media directly
+    ssh -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" "ln -sfn '$SHARED_DIR/uploads' '$SERVER_PATH/uploads'"
+
     ssh -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" "cat > '$SERVER_PATH/.htaccess'" << HTACCESS
 DirectoryIndex disabled
+Options +FollowSymLinks
 RewriteEngine On
 RewriteBase /
+
+# Serve uploaded media directly — symlink exists at public_html/uploads
+RewriteCond %{REQUEST_URI} ^/uploads/
+RewriteRule ^(.*)\$ - [L]
+
+# Everything else proxied to Next.js
 RewriteRule ^(.*)?$ http://127.0.0.1:$PORT/\$1 [P,L]
 HTACCESS
 
