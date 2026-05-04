@@ -178,6 +178,12 @@ model Organization {
   // Typography
   typography      Json?
 
+  // Footer
+  footer          Json?
+
+  // Saved Colors (color picker palette)
+  savedColors     Json?
+
   // 2FA Policy
   twoFactorPolicy String  @default("optional") // mandatory | optional | disabled
 

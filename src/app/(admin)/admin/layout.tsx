@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { SavedColorsProvider } from "@/components/providers/saved-colors-provider";
 
 export default async function AdminLayout({
   children,
@@ -50,6 +51,7 @@ export default async function AdminLayout({
     { href: "/admin/blog", label: "Blog Posts", count: blogPostCount },
     { href: "/admin/blog/categories", label: "Blog Categories" },
     { href: "/admin/media", label: "Media Library", count: mediaCount },
+    { href: "/admin/footer", label: "Footer" },
   ];
 
   const systemNav = [
@@ -190,7 +192,9 @@ export default async function AdminLayout({
           </nav>
         </aside>
 
-        <main className="flex-1 bg-[#f5f5f3] overflow-auto">{children}</main>
+        <main className="flex-1 bg-[#f5f5f3] overflow-auto">
+          <SavedColorsProvider>{children}</SavedColorsProvider>
+        </main>
       </div>
     </div>
   );

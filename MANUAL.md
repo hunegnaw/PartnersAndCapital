@@ -113,7 +113,7 @@ The admin panel features a navy sidebar (`#2C3E5C`) matching the client portal, 
 **Sidebar sections:** (navy background with white/gold text, same styling as client portal)
 
 - **MANAGE:** Clients (with count), Investments (with count), Documents (with count), Advisors (with count), Activity Feed, Support (with open ticket count)
-- **WEBSITE:** Pages (with count), Blog Posts (with count), Blog Categories, Media Library (with count)
+- **WEBSITE:** Pages (with count), Blog Posts (with count), Blog Categories, Media Library (with count), Footer
 - **SYSTEM:** Admin Users, Audit Log, Settings
 
 Hover states use gold-light text (`#E8D5B0`). Count badges use `bg-white/10 text-white/60`.
@@ -142,6 +142,7 @@ The admin landing page at `/admin` is the Client Management view. It provides:
 | `/admin/blog/[id]/edit` | Edit an existing blog post                          |
 | `/admin/blog/categories` | Manage blog categories (CRUD)                      |
 | `/admin/media`         | Media library -- upload, browse, edit, delete media  |
+| `/admin/footer`        | Footer settings -- modules, logo, content, and colors |
 | `/admin/investments`   | Manage investments, funds, and asset classes          |
 | `/admin/documents`     | Upload and manage documents (K-1s, reports, PPMs)    |
 | `/admin/activity`      | Manage activity feed posts and deal room updates     |
@@ -936,6 +937,83 @@ The contact form block now pulls address, email, and phone from the organization
 
 ---
 
+## Color Picker with Saved Colors
+
+### Overview
+
+Every color input across the admin panel uses a unified color picker component that provides:
+
+- **Native color picker** -- Click the color swatch to open the browser's native color picker
+- **Hex input** -- Type a hex color code directly (e.g., `#1A2640`)
+- **Saved colors palette** -- Organization-wide bookmarked colors that persist across all admin pages
+
+### Where It Appears
+
+The color picker replaces plain text inputs in:
+
+- **Admin Settings** -- Primary, Secondary, and Accent branding colors; all 5 typography color fields
+- **Page Block Editor** -- Background Color and Text Color fields in Text Section, Stats, CTA Banner, and Newsletter Signup blocks
+- **Footer Settings** -- Background, Text, and Accent color fields
+
+### Saving Colors
+
+1. Set a color using the native picker or hex input.
+2. Click "Save color" to add it to the organization's palette.
+3. The color appears as a small circle in all color pickers across the admin panel.
+4. Hover over a saved color and click the X to remove it.
+5. Saved colors persist across sessions and are shared by all admin users.
+
+### API Routes
+
+| Route | Methods | Auth |
+|-------|---------|------|
+| `/api/admin/saved-colors` | GET, PATCH | Admin |
+
+---
+
+## Editable Footer
+
+### Overview
+
+The marketing site footer is fully configurable from the admin panel. Admins can toggle which sections appear, customize colors, set content, and upload a footer logo.
+
+### Admin Footer Page (`/admin/footer`)
+
+Navigate to **Website > Footer** in the admin sidebar. The page has four cards:
+
+1. **Modules** -- Toggle switches for each footer section:
+   - **Logo** -- Display an image logo instead of the organization name text
+   - **Navigation** -- Show navigation links (pulled from CMS pages with "Show in nav" enabled)
+   - **Newsletter** -- Newsletter signup form
+   - **Contact Info** -- Email, phone, and address (from organization settings)
+   - **Tagline** -- Organization tagline text below the name
+   - **Copyright** -- Copyright line with start year and entity name
+   - **Disclaimer** -- Legal disclaimer text (from organization settings)
+
+2. **Footer Logo** -- Upload or select an image from the media library. This is separate from the header logo configured in Settings.
+
+3. **Content** -- Set the tagline text, copyright start year, and copyright entity name.
+
+4. **Colors** -- Three color pickers for the footer's background color, text color, and accent color (used on the newsletter subscribe button).
+
+### Default Appearance
+
+When no footer settings have been saved, the footer renders identically to the original hardcoded design:
+- Dark navy background (`#1A2640`)
+- White text
+- Gold accent (`#B07D3A`)
+- All modules enabled except Logo (since no logo URL is set by default)
+
+### How It Works
+
+- Footer configuration is stored as a JSON field (`footer`) on the Organization model.
+- The `OrganizationProvider` exposes the merged footer config (saved settings over defaults) to all client components.
+- The marketing footer reads from the organization context and renders sections conditionally based on module toggles.
+- Colors are applied via inline styles to support fully dynamic values.
+- The grid layout adapts automatically based on which top-section modules (branding, navigation, newsletter) are enabled.
+
+---
+
 ## Security Headers
 
 The application sets the following security headers on all responses via `next.config.ts`:
@@ -1110,3 +1188,5 @@ Both entries record the admin's user ID and the target client ID.
 - Admin-configurable typography with Google Fonts (5 categories, CSS variable injection)
 - Dynamic contact form pulling address/email/phone from organization settings
 - 2FA policy enforcement (mandatory redirects to setup, disabled hides 2FA, optional preserves existing behavior)
+- Global color picker with native picker, hex input, and organization-wide saved color palette
+- Editable footer with toggleable modules (logo, navigation, newsletter, contact, tagline, copyright, disclaimer) and customizable colors

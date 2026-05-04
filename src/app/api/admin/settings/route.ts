@@ -59,6 +59,7 @@ export async function PATCH(request: Request) {
       termsOfService,
       twoFactorPolicy,
       typography,
+      footer,
     } = body;
 
     const updated = await prisma.organization.update({
@@ -80,6 +81,7 @@ export async function PATCH(request: Request) {
         ...(termsOfService !== undefined && { termsOfService }),
         ...(twoFactorPolicy !== undefined && { twoFactorPolicy }),
         ...(typography !== undefined && { typography }),
+        ...(footer !== undefined && { footer }),
       },
     });
 

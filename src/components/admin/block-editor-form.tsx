@@ -10,6 +10,7 @@ import {
 import { RichTextEditor } from "./rich-text-editor";
 import { MediaPicker } from "./media-picker";
 import { BlockTypePicker } from "./block-type-picker";
+import { ColorField } from "./color-field";
 import { ImageIcon, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 
 // Helper field components — declared outside BlockEditorForm to satisfy react-hooks/static-components
@@ -405,8 +406,8 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
             ]}
             {...fp}
           />
-          <InputField label="Background Color" field="backgroundColor" {...fp} />
-          <InputField label="Text Color" field="textColor" {...fp} />
+          <ColorField label="Background Color" field="backgroundColor" {...fp} />
+          <ColorField label="Text Color" field="textColor" {...fp} />
           <SelectField
             label="Vertical Padding"
             field="paddingY"
@@ -506,7 +507,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       return (
         <div className="space-y-4">
           <InputField label="Heading" field="heading" {...fp} />
-          <InputField label="Background Color" field="backgroundColor" {...fp} />
+          <ColorField label="Background Color" field="backgroundColor" {...fp} />
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
               Stats
@@ -567,7 +568,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="Text" field="text" {...fp} />
           <InputField label="CTA Text" field="ctaText" {...fp} />
           <InputField label="CTA URL" field="ctaUrl" {...fp} />
-          <InputField label="Background Color" field="backgroundColor" {...fp} />
+          <ColorField label="Background Color" field="backgroundColor" {...fp} />
         </div>
       );
 
@@ -615,7 +616,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
         <div className="space-y-4">
           <InputField label="Heading" field="heading" {...fp} />
           <InputField label="Description" field="description" {...fp} />
-          <InputField label="Background Color" field="backgroundColor" {...fp} />
+          <ColorField label="Background Color" field="backgroundColor" {...fp} />
         </div>
       );
 

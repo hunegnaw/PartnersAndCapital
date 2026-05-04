@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { mergeTypography, type TypographySettings } from "@/lib/typography";
+import { mergeFooter, type FooterConfig } from "@/lib/footer";
 
 interface OrgConfig {
   name: string;
@@ -14,6 +15,7 @@ interface OrgConfig {
   phone?: string | null;
   address?: string | null;
   typography: TypographySettings;
+  footer: FooterConfig;
 }
 
 const defaultOrg: OrgConfig = {
@@ -22,6 +24,7 @@ const defaultOrg: OrgConfig = {
   secondaryColor: process.env.NEXT_PUBLIC_SECONDARY_COLOR || "#2563eb",
   accentColor: process.env.NEXT_PUBLIC_ACCENT_COLOR || "#f59e0b",
   typography: mergeTypography(),
+  footer: mergeFooter(),
 };
 
 const OrganizationContext = createContext<OrgConfig>(defaultOrg);
@@ -48,6 +51,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
           phone: data.phone,
           address: data.address,
           typography: mergeTypography(data.typography),
+          footer: mergeFooter(data.footer),
         });
       })
       .catch(console.error);

@@ -29,5 +29,6 @@ export function getOrgDefaults() {
     primaryColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR || "#1A2640",
     secondaryColor: process.env.NEXT_PUBLIC_SECONDARY_COLOR || "#2563eb",
     accentColor: process.env.NEXT_PUBLIC_ACCENT_COLOR || "#f59e0b",
+    footer: null,
   };
 }

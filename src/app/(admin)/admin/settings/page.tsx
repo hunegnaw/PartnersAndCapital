@@ -32,6 +32,7 @@ import {
   type TypographySettings,
   type FontSetting,
 } from "@/lib/typography"
+import { ColorPicker } from "@/components/admin/color-picker"
 
 interface Organization {
   id: string
@@ -261,55 +262,25 @@ export default function AdminSettingsPage() {
 
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="grid gap-2">
-                <Label htmlFor="org-primary-color">Primary Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="org-primary-color"
-                    value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
-                    placeholder="#1A2640"
-                  />
-                  {primaryColor && (
-                    <div
-                      className="w-10 h-10 rounded-md border shrink-0"
-                      style={{ backgroundColor: primaryColor }}
-                    />
-                  )}
-                </div>
+                <Label>Primary Color</Label>
+                <ColorPicker
+                  value={primaryColor}
+                  onChange={setPrimaryColor}
+                />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="org-secondary-color">Secondary Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="org-secondary-color"
-                    value={secondaryColor}
-                    onChange={(e) => setSecondaryColor(e.target.value)}
-                    placeholder="#1a2a3a"
-                  />
-                  {secondaryColor && (
-                    <div
-                      className="w-10 h-10 rounded-md border shrink-0"
-                      style={{ backgroundColor: secondaryColor }}
-                    />
-                  )}
-                </div>
+                <Label>Secondary Color</Label>
+                <ColorPicker
+                  value={secondaryColor}
+                  onChange={setSecondaryColor}
+                />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="org-accent-color">Accent Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="org-accent-color"
-                    value={accentColor}
-                    onChange={(e) => setAccentColor(e.target.value)}
-                    placeholder="#d4a574"
-                  />
-                  {accentColor && (
-                    <div
-                      className="w-10 h-10 rounded-md border shrink-0"
-                      style={{ backgroundColor: accentColor }}
-                    />
-                  )}
-                </div>
+                <Label>Accent Color</Label>
+                <ColorPicker
+                  value={accentColor}
+                  onChange={setAccentColor}
+                />
               </div>
             </div>
           </CardContent>
@@ -379,20 +350,10 @@ export default function AdminSettingsPage() {
                   </div>
                   <div className="grid gap-1.5">
                     <Label className="text-xs text-muted-foreground">Color</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        value={typography[key].color}
-                        onChange={(e) => updateTypographyField(key, "color", e.target.value)}
-                        placeholder="#333333"
-                        className="h-9 text-sm font-mono"
-                      />
-                      {typography[key].color && (
-                        <div
-                          className="w-9 h-9 rounded-md border shrink-0"
-                          style={{ backgroundColor: typography[key].color }}
-                        />
-                      )}
-                    </div>
+                    <ColorPicker
+                      value={typography[key].color}
+                      onChange={(hex) => updateTypographyField(key, "color", hex)}
+                    />
                   </div>
                   <div className="grid gap-1.5">
                     <Label className="text-xs text-muted-foreground">Font Size</Label>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, FormEvent } from "react";
+import { useOrganization } from "@/components/providers/organization-provider";
 
 interface NavLink {
   href: string;
@@ -17,6 +18,8 @@ export function MarketingFooter({ navLinks: navLinksProp }: MarketingFooterProps
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
   const currentYear = new Date().getFullYear();
+  const org = useOrganization();
+  const footer = org.footer;
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -45,88 +48,141 @@ export function MarketingFooter({ navLinks: navLinksProp }: MarketingFooterProps
     : [{ href: "/", label: "Home" }];
   const navLinks = [...baseLinks, { href: "/login", label: "Investor Login" }];
 
+  // Count active top-section columns to determine grid layout
+  const hasBranding = footer.modules.logo || footer.modules.tagline || footer.modules.contact;
+  const hasNav = footer.modules.navigation;
+  const hasNewsletter = footer.modules.newsletter;
+  const colCount = [hasBranding, hasNav, hasNewsletter].filter(Boolean).length;
+  const gridCols = colCount === 3 ? "md:grid-cols-3" : colCount === 2 ? "md:grid-cols-2" : "md:grid-cols-1";
+
   return (
-    <footer className="bg-[#1A2640] text-white">
+    <footer style={{ backgroundColor: footer.backgroundColor, color: footer.textColor }}>
       <div className="max-w-6xl mx-auto px-6 py-16">
-        {/* Top section — 3-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {/* Col 1: Branding */}
-          <div>
-            <p className="font-bold text-sm tracking-widest uppercase mb-3">
-              Partners + Capital
-            </p>
-            <p className="text-white/60 text-sm mb-4">
-              Public Access to Private Markets
-            </p>
-            <p className="text-white/40 text-sm leading-relaxed">
-              605 N High St Suite 212
-              <br />
-              Columbus OH 43215
-            </p>
-          </div>
+        {/* Top section — dynamic grid */}
+        {colCount > 0 && (
+          <div className={`grid grid-cols-1 ${gridCols} gap-12`}>
+            {/* Col: Branding / Logo / Contact */}
+            {hasBranding && (
+              <div>
+                {footer.modules.logo && footer.logoUrl && (
+                  <div className="mb-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={footer.logoUrl}
+                      alt={org.name}
+                      className="h-10 object-contain"
+                    />
+                  </div>
+                )}
+                {!footer.modules.logo && (
+                  <p className="font-bold text-sm tracking-widest uppercase mb-3">
+                    {org.name}
+                  </p>
+                )}
+                {footer.modules.tagline && (
+                  <p className="text-sm mb-4" style={{ opacity: 0.6 }}>
+                    {footer.tagline}
+                  </p>
+                )}
+                {footer.modules.contact && (
+                  <div className="text-sm leading-relaxed space-y-1" style={{ opacity: 0.4 }}>
+                    {org.address && (
+                      <p className="whitespace-pre-line">{org.address}</p>
+                    )}
+                    {org.email && <p>{org.email}</p>}
+                    {org.phone && <p>{org.phone}</p>}
+                  </div>
+                )}
+              </div>
+            )}
 
-          {/* Col 2: Navigation */}
-          <div>
-            <p className="font-semibold text-sm tracking-wide uppercase mb-4">
-              Navigation
-            </p>
-            <ul className="space-y-2">
-              {navLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-white/60 hover:text-white text-sm transition-colors"
+            {/* Col: Navigation */}
+            {hasNav && (
+              <div>
+                <p className="font-semibold text-sm tracking-wide uppercase mb-4">
+                  Navigation
+                </p>
+                <ul className="space-y-2">
+                  {navLinks.map((link) => (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className="text-sm transition-colors"
+                        style={{ opacity: 0.6 }}
+                        onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                        onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Col: Newsletter */}
+            {hasNewsletter && (
+              <div>
+                <p className="font-semibold text-sm tracking-wide uppercase mb-4">
+                  Stay Updated
+                </p>
+                <form onSubmit={handleSubmit} className="flex gap-2">
+                  <input
+                    type="email"
+                    required
+                    placeholder="Email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="flex-1 rounded px-3 py-2 text-sm focus:outline-none transition-colors"
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.1)",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      color: footer.textColor,
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={status === "loading"}
+                    className="px-4 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50"
+                    style={{
+                      backgroundColor: footer.accentColor,
+                      color: footer.textColor,
+                    }}
                   >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Col 3: Newsletter */}
-          <div>
-            <p className="font-semibold text-sm tracking-wide uppercase mb-4">
-              Stay Updated
-            </p>
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <input
-                type="email"
-                required
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 bg-white/10 border border-white/20 rounded px-3 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-[#B07D3A] transition-colors"
-              />
-              <button
-                type="submit"
-                disabled={status === "loading"}
-                className="bg-[#B07D3A] hover:bg-[#7A5520] text-white px-4 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50"
-              >
-                {status === "loading" ? "..." : "Subscribe"}
-              </button>
-            </form>
-            {status === "success" && (
-              <p className="text-green-400 text-xs mt-2">{message}</p>
-            )}
-            {status === "error" && (
-              <p className="text-red-400 text-xs mt-2">{message}</p>
+                    {status === "loading" ? "..." : "Subscribe"}
+                  </button>
+                </form>
+                {status === "success" && (
+                  <p className="text-green-400 text-xs mt-2">{message}</p>
+                )}
+                {status === "error" && (
+                  <p className="text-red-400 text-xs mt-2">{message}</p>
+                )}
+              </div>
             )}
           </div>
-        </div>
+        )}
 
         {/* Bottom bar */}
-        <hr className="border-white/10 mt-12 mb-6" />
-        <div className="text-white/40 text-xs">
-          <p>&copy; 2015-{currentYear} Partners + Capital, LLC. All rights reserved.</p>
-        </div>
+        {(footer.modules.copyright || footer.modules.disclaimer) && (
+          <>
+            <hr className="mt-12 mb-6" style={{ borderColor: "rgba(255,255,255,0.1)" }} />
 
-        {/* Disclaimer */}
-        <p className="text-white/30 text-[11px] leading-relaxed mt-6">
-          Past performance is not indicative of future results. All investments
-          involve risk, including loss of principal. The information contained
-          herein is confidential and intended solely for the named recipient.
-        </p>
+            {footer.modules.copyright && (
+              <div className="text-xs" style={{ opacity: 0.4 }}>
+                <p>
+                  &copy; {footer.copyrightStartYear}-{currentYear} {footer.copyrightEntity}. All rights reserved.
+                </p>
+              </div>
+            )}
+
+            {footer.modules.disclaimer && org.disclaimer && (
+              <p className="text-[11px] leading-relaxed mt-6" style={{ opacity: 0.3 }}>
+                {org.disclaimer}
+              </p>
+            )}
+          </>
+        )}
       </div>
     </footer>
   );
