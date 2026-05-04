@@ -3,7 +3,7 @@ interface QuoteBlockProps {
 }
 
 export function QuoteBlock({ props }: QuoteBlockProps) {
-  const quote = (props.quote as string) ?? "";
+  const quote = (props.text as string) ?? "";
   const attribution = (props.attribution as string) ?? "";
   const role = (props.role as string) ?? "";
 
