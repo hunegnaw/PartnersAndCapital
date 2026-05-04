@@ -591,17 +591,33 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <RangeField label="Overlay Opacity" field="overlayOpacity" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
           <ColorField label="Text Color" field="textColor" {...fp} />
-          <SelectField
-            label="Height"
-            field="height"
-            options={[
-              { value: "50vh", label: "Small (50vh)" },
-              { value: "70vh", label: "Medium (70vh)" },
-              { value: "85vh", label: "Large (85vh)" },
-              { value: "100vh", label: "Full Screen (100vh)" },
-            ]}
-            {...fp}
-          />
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Height
+            </label>
+            <div className="flex items-center gap-2">
+              <select
+                value={["50vh", "70vh", "85vh", "100vh"].includes(props.height as string) ? (props.height as string) : "custom"}
+                onChange={(e) => {
+                  if (e.target.value !== "custom") updateProp("height", e.target.value);
+                }}
+                className="px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
+              >
+                <option value="50vh">Small (50vh)</option>
+                <option value="70vh">Medium (70vh)</option>
+                <option value="85vh">Large (85vh)</option>
+                <option value="100vh">Full Screen (100vh)</option>
+                <option value="custom">Custom</option>
+              </select>
+              <input
+                type="text"
+                value={(props.height as string) || "70vh"}
+                onChange={(e) => updateProp("height", e.target.value)}
+                placeholder="e.g. 400px, 60vh, 30rem"
+                className="flex-1 px-3 py-1.5 text-sm font-mono border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
+              />
+            </div>
+          </div>
           <MediaPicker
             open={mediaPicker.open}
             onClose={() => setMediaPicker({ ...mediaPicker, open: false })}
