@@ -125,7 +125,7 @@ export default function AdminNewPagePage() {
         }
       }
 
-      router.push("/admin/pages")
+      router.push(`/admin/pages/${page.id}/edit`)
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred")
     } finally {

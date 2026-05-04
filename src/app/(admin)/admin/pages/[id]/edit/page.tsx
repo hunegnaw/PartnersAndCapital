@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select"
 import { BlockEditor } from "@/components/admin/block-editor"
 import { MediaPicker } from "@/components/admin/media-picker"
-import { AlertCircle, ArrowLeft, Loader2, ImageIcon, X } from "lucide-react"
+import { AlertCircle, ArrowLeft, CheckCircle, Loader2, ImageIcon, X } from "lucide-react"
 import type { PageBlockData } from "@/lib/page-blocks"
 
 function slugify(text: string): string {
@@ -40,6 +40,7 @@ export default function AdminEditPagePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(true)
 
   // Page fields
@@ -127,6 +128,7 @@ export default function AdminEditPagePage() {
 
     setSaving(true)
     setError(null)
+    setSuccess(false)
 
     try {
       const res = await fetch(`/api/admin/pages/${pageId}`, {
@@ -160,7 +162,24 @@ export default function AdminEditPagePage() {
         throw new Error(data.error || "Failed to save page")
       }
 
-      router.push("/admin/pages")
+      // Update block IDs from server response so subsequent saves don't duplicate
+      const saved = await res.json()
+      if (saved.page?.blocks && Array.isArray(saved.page.blocks)) {
+        setBlocks(
+          saved.page.blocks
+            .sort((a: { sortOrder: number }, b: { sortOrder: number }) => a.sortOrder - b.sortOrder)
+            .map((b: { id: string; type: string; props: Record<string, unknown>; sortOrder: number; mediaId?: string | null }) => ({
+              id: b.id,
+              type: b.type,
+              props: b.props,
+              sortOrder: b.sortOrder,
+              mediaId: b.mediaId || null,
+            }))
+        )
+      }
+
+      setSuccess(true)
+      setTimeout(() => setSuccess(false), 3000)
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred")
     } finally {
@@ -213,6 +232,13 @@ export default function AdminEditPagePage() {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {success && (
+        <Alert className="border-green-200 bg-green-50 text-green-800">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <AlertDescription>Page saved successfully.</AlertDescription>
         </Alert>
       )}
 

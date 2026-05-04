@@ -45,7 +45,7 @@ function SortableBlock({
   onUpdate: (index: number, props: Record<string, unknown>) => void;
   onRemove: (index: number) => void;
 }) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const {
     attributes,
     listeners,
