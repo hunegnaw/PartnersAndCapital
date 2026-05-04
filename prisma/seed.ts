@@ -9,8 +9,8 @@ function parseDatabaseUrl(raw: string) {
   );
   if (!m) throw new Error(`Invalid DATABASE_URL: ${raw}`);
   return {
-    user: m[1],
-    password: m[2] || undefined,
+    user: decodeURIComponent(m[1]),
+    password: m[2] ? decodeURIComponent(m[2]) : undefined,
     host: m[3],
     port: parseInt(m[4] || "3306"),
     database: m[5],
