@@ -94,6 +94,7 @@ export function MediaPicker({
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-lg font-semibold text-gray-900">Media Library</h2>
           <button
+            type="button"
             onClick={onClose}
             className="p-1 rounded hover:bg-gray-100"
           >
@@ -105,6 +106,7 @@ export function MediaPicker({
         <div className="flex items-center gap-4 px-6 py-3 border-b">
           <div className="flex gap-1">
             <button
+              type="button"
               onClick={() => setTab("browse")}
               className={`px-3 py-1.5 text-sm rounded ${
                 tab === "browse"
@@ -115,6 +117,7 @@ export function MediaPicker({
               Browse
             </button>
             <button
+              type="button"
               onClick={() => setTab("upload")}
               className={`px-3 py-1.5 text-sm rounded ${
                 tab === "upload"
@@ -189,6 +192,7 @@ export function MediaPicker({
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                 {media.map((item) => (
                   <button
+                    type="button"
                     key={item.id}
                     onClick={() => {
                       onSelect(item);
@@ -219,6 +223,7 @@ export function MediaPicker({
               {totalPages > 1 && (
                 <div className="flex justify-center gap-2 mt-4">
                   <button
+                    type="button"
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page <= 1}
                     className="px-3 py-1 text-sm rounded border disabled:opacity-50"
@@ -229,6 +234,7 @@ export function MediaPicker({
                     {page} / {totalPages}
                   </span>
                   <button
+                    type="button"
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page >= totalPages}
                     className="px-3 py-1 text-sm rounded border disabled:opacity-50"
