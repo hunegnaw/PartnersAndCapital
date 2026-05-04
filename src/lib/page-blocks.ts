@@ -109,6 +109,9 @@ export const BLOCK_TYPES = {
       heading: "Stay Updated",
       description: "",
       backgroundColor: "#1A2640",
+      textColor: "#ffffff",
+      buttonColor: "#B07D3A",
+      buttonTextColor: "#ffffff",
     },
   },
   quote: {

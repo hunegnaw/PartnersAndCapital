@@ -729,6 +729,9 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="Heading" field="heading" {...fp} />
           <InputField label="Description" field="description" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
+          <ColorField label="Text Color" field="textColor" {...fp} />
+          <ColorField label="Button Color" field="buttonColor" {...fp} />
+          <ColorField label="Button Text Color" field="buttonTextColor" {...fp} />
         </div>
       );
 

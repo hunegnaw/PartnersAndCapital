@@ -10,6 +10,9 @@ export function NewsletterSignupBlock({ props }: NewsletterSignupBlockProps) {
   const heading = (props.heading as string) ?? "Stay Updated";
   const description = (props.description as string) ?? "";
   const backgroundColor = (props.backgroundColor as string) ?? "#1A2640";
+  const textColor = (props.textColor as string) ?? "#ffffff";
+  const buttonColor = (props.buttonColor as string) ?? "#B07D3A";
+  const buttonTextColor = (props.buttonTextColor as string) ?? "#ffffff";
 
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -45,13 +48,13 @@ export function NewsletterSignupBlock({ props }: NewsletterSignupBlockProps) {
   }
 
   return (
-    <section className="py-20" style={{ backgroundColor }}>
+    <section className="py-20" style={{ backgroundColor, color: textColor }}>
       <div className="mx-auto max-w-2xl px-6 text-center">
         {heading && (
-          <h2 className="text-3xl font-bold text-white">{heading}</h2>
+          <h2 className="text-3xl font-bold" style={{ color: textColor }}>{heading}</h2>
         )}
         {description && (
-          <p className="mt-4 text-lg text-white/80">{description}</p>
+          <p className="mt-4 text-lg" style={{ color: textColor, opacity: 0.8 }}>{description}</p>
         )}
 
         <form
@@ -68,7 +71,8 @@ export function NewsletterSignupBlock({ props }: NewsletterSignupBlockProps) {
           <button
             type="submit"
             disabled={status === "loading"}
-            className="w-full shrink-0 rounded-lg bg-[#B07D3A] px-6 py-2.5 font-semibold text-white transition hover:bg-[#7A5520] disabled:opacity-50 sm:w-auto"
+            className="w-full shrink-0 rounded-lg px-6 py-2.5 font-semibold transition hover:opacity-90 disabled:opacity-50 sm:w-auto"
+            style={{ backgroundColor: buttonColor, color: buttonTextColor }}
           >
             {status === "loading" ? "Subscribing..." : "Subscribe"}
           </button>
