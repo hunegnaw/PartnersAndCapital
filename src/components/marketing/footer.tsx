@@ -164,17 +164,38 @@ export function MarketingFooter({ navLinks: navLinksProp }: MarketingFooterProps
         )}
 
         {/* Bottom bar */}
-        {(footer.modules.copyright || footer.modules.disclaimer) && (
+        {(footer.modules.copyright || footer.modules.disclaimer || (footer.modules.legalLinks && footer.links?.length > 0)) && (
           <>
             <hr className="mt-12 mb-6" style={{ borderColor: "rgba(255,255,255,0.1)" }} />
 
-            {footer.modules.copyright && (
-              <div className="text-xs" style={{ opacity: 0.4 }}>
-                <p>
-                  &copy; {footer.copyrightStartYear}-{currentYear} {footer.copyrightEntity}. All rights reserved.
-                </p>
-              </div>
-            )}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              {footer.modules.copyright && (
+                <div className="text-xs" style={{ opacity: 0.4 }}>
+                  <p>
+                    &copy; {footer.copyrightStartYear}-{currentYear} {footer.copyrightEntity}. All rights reserved.
+                  </p>
+                </div>
+              )}
+
+              {footer.modules.legalLinks && footer.links?.length > 0 && (
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                  {footer.links.map((link: { label: string; url: string }, i: number) => (
+                    link.label && link.url ? (
+                      <Link
+                        key={i}
+                        href={link.url}
+                        className="text-xs transition-colors"
+                        style={{ opacity: 0.4 }}
+                        onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+                        onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.4")}
+                      >
+                        {link.label}
+                      </Link>
+                    ) : null
+                  ))}
+                </div>
+              )}
+            </div>
 
             {footer.modules.disclaimer && org.disclaimer && (
               <p className="text-[11px] leading-relaxed mt-6" style={{ opacity: 0.3 }}>

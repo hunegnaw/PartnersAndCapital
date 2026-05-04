@@ -6,6 +6,12 @@ export interface FooterModules {
   tagline: boolean;
   copyright: boolean;
   disclaimer: boolean;
+  legalLinks: boolean;
+}
+
+export interface FooterLink {
+  label: string;
+  url: string;
 }
 
 export interface FooterConfig {
@@ -17,6 +23,7 @@ export interface FooterConfig {
   backgroundColor: string;
   textColor: string;
   accentColor: string;
+  links: FooterLink[];
 }
 
 export const DEFAULT_FOOTER: FooterConfig = {
@@ -28,6 +35,7 @@ export const DEFAULT_FOOTER: FooterConfig = {
     tagline: true,
     copyright: true,
     disclaimer: true,
+    legalLinks: false,
   },
   logoUrl: null,
   tagline: "Public Access to Private Markets",
@@ -36,6 +44,7 @@ export const DEFAULT_FOOTER: FooterConfig = {
   backgroundColor: "#1A2640",
   textColor: "#ffffff",
   accentColor: "#B07D3A",
+  links: [],
 };
 
 /** Deep-merge saved footer config over defaults */
@@ -49,5 +58,6 @@ export function mergeFooter(saved?: Partial<FooterConfig> | null): FooterConfig 
       ...DEFAULT_FOOTER.modules,
       ...(saved.modules || {}),
     },
+    links: Array.isArray(saved.links) ? saved.links : DEFAULT_FOOTER.links,
   };
 }

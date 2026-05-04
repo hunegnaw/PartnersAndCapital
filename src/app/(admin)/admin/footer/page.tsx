@@ -8,10 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2, Check, LayoutTemplate, Palette, Type, Image as ImageIcon } from "lucide-react";
+import { AlertCircle, Loader2, Check, LayoutTemplate, Palette, Type, Image as ImageIcon, Link2, Plus, Trash2 } from "lucide-react";
 import { ColorPicker } from "@/components/admin/color-picker";
 import { MediaPicker } from "@/components/admin/media-picker";
-import { DEFAULT_FOOTER, mergeFooter, type FooterConfig } from "@/lib/footer";
+import { DEFAULT_FOOTER, mergeFooter, type FooterConfig, type FooterLink } from "@/lib/footer";
 
 const MODULE_LABELS: { key: keyof FooterConfig["modules"]; label: string; description: string }[] = [
   { key: "logo", label: "Logo", description: "Display a logo image in the footer" },
@@ -21,6 +21,7 @@ const MODULE_LABELS: { key: keyof FooterConfig["modules"]; label: string; descri
   { key: "tagline", label: "Tagline", description: "Organization tagline text" },
   { key: "copyright", label: "Copyright", description: "Copyright line with year and entity" },
   { key: "disclaimer", label: "Disclaimer", description: "Legal disclaimer text" },
+  { key: "legalLinks", label: "Legal Links", description: "Links like Terms of Use, Privacy Policy" },
 ];
 
 export default function AdminFooterPage() {
@@ -232,6 +233,67 @@ export default function AdminFooterPage() {
                 />
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Legal Links */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Link2 className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-base">Legal Links</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Links displayed in the footer bottom bar (e.g. Terms of Use, Privacy Policy). Enable the Legal Links module above to display them.
+            </p>
+            {footer.links.map((link: FooterLink, i: number) => (
+              <div key={i} className="flex items-center gap-2">
+                <Input
+                  value={link.label}
+                  onChange={(e) => {
+                    const updated = [...footer.links];
+                    updated[i] = { ...updated[i], label: e.target.value };
+                    updateField("links", updated);
+                  }}
+                  placeholder="Label (e.g. Terms of Use)"
+                  className="flex-1"
+                />
+                <Input
+                  value={link.url}
+                  onChange={(e) => {
+                    const updated = [...footer.links];
+                    updated[i] = { ...updated[i], url: e.target.value };
+                    updateField("links", updated);
+                  }}
+                  placeholder="URL (e.g. /terms or https://...)"
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    updateField("links", footer.links.filter((_: FooterLink, j: number) => j !== i));
+                  }}
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                updateField("links", [...footer.links, { label: "", url: "" }]);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Add Link
+            </Button>
           </CardContent>
         </Card>
 
