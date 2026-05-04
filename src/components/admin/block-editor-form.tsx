@@ -589,6 +589,19 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="CTA Text" field="ctaText" {...fp} />
           <InputField label="CTA URL" field="ctaUrl" {...fp} />
           <RangeField label="Overlay Opacity" field="overlayOpacity" {...fp} />
+          <ColorField label="Background Color" field="backgroundColor" {...fp} />
+          <ColorField label="Text Color" field="textColor" {...fp} />
+          <SelectField
+            label="Height"
+            field="height"
+            options={[
+              { value: "50vh", label: "Small (50vh)" },
+              { value: "70vh", label: "Medium (70vh)" },
+              { value: "85vh", label: "Large (85vh)" },
+              { value: "100vh", label: "Full Screen (100vh)" },
+            ]}
+            {...fp}
+          />
           <MediaPicker
             open={mediaPicker.open}
             onClose={() => setMediaPicker({ ...mediaPicker, open: false })}

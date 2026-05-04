@@ -31,6 +31,9 @@ export const BLOCK_TYPES = {
       ctaText: "",
       ctaUrl: "",
       overlayOpacity: 0.4,
+      backgroundColor: "#1A2640",
+      textColor: "#ffffff",
+      height: "70vh",
     },
   },
   text_section: {
