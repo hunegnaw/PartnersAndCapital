@@ -51,7 +51,16 @@ export function NewsletterSignupBlock({ props }: NewsletterSignupBlockProps) {
     <section className="py-20" style={{ backgroundColor, color: textColor }}>
       <div className="mx-auto max-w-2xl px-6 text-center">
         {heading && (
-          <h2 className="text-3xl font-bold" style={{ color: textColor }}>{heading}</h2>
+          <h2
+            className="text-3xl font-bold"
+            style={{
+              color: textColor,
+              fontFamily: "var(--font-subtitle-family, inherit)",
+              fontWeight: "var(--font-subtitle-weight, 600)" as unknown as number,
+            }}
+          >
+            {heading}
+          </h2>
         )}
         {description && (
           <p className="mt-4 text-lg" style={{ color: textColor, opacity: 0.8 }}>{description}</p>

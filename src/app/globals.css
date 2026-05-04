@@ -136,3 +136,31 @@ body {
     @apply font-sans;
   }
 }
+
+/* Marketing typography — driven by admin settings */
+.marketing-typography {
+  font-family: var(--font-body-family, inherit);
+  font-weight: var(--font-body-weight, 400);
+  font-style: var(--font-body-style, normal);
+}
+
+.marketing-typography h2,
+.marketing-typography h3,
+.marketing-typography h4 {
+  font-family: var(--font-subtitle-family, inherit);
+  font-weight: var(--font-subtitle-weight, 600);
+  font-style: var(--font-subtitle-style, normal);
+}
+
+.marketing-typography .prose {
+  font-family: var(--font-body-family, inherit);
+}
+
+.marketing-typography .prose h1,
+.marketing-typography .prose h2,
+.marketing-typography .prose h3,
+.marketing-typography .prose h4 {
+  font-family: var(--font-subtitle-family, inherit);
+  font-weight: var(--font-subtitle-weight, 600);
+  font-style: var(--font-subtitle-style, normal);
+}

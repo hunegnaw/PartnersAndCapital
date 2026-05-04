@@ -13,7 +13,15 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
     <section className="py-20" style={{ backgroundColor }}>
       <div className="mx-auto max-w-4xl px-6 text-center">
         {heading && (
-          <h2 className="text-3xl font-bold text-white">{heading}</h2>
+          <h2
+            className="text-3xl font-bold text-white"
+            style={{
+              fontFamily: "var(--font-subtitle-family, inherit)",
+              fontWeight: "var(--font-subtitle-weight, 600)" as unknown as number,
+            }}
+          >
+            {heading}
+          </h2>
         )}
         {text && <p className="mt-4 text-lg text-white/80">{text}</p>}
         {ctaText && ctaUrl && (

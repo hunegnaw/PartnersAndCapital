@@ -16,7 +16,13 @@ export function StatsBlock({ props }: StatsBlockProps) {
     <section className="py-20" style={{ backgroundColor }}>
       <div className="mx-auto max-w-6xl px-6">
         {heading && (
-          <h2 className="mb-12 text-center text-3xl font-bold text-white">
+          <h2
+            className="mb-12 text-center text-3xl font-bold text-white"
+            style={{
+              fontFamily: "var(--font-subtitle-family, inherit)",
+              fontWeight: "var(--font-subtitle-weight, 600)" as unknown as number,
+            }}
+          >
             {heading}
           </h2>
         )}

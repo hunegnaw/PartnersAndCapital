@@ -33,13 +33,27 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
         {heading && (
           <h1
             className="text-5xl font-bold tracking-tight md:text-7xl"
-            style={{ color: textColor }}
+            style={{
+              color: textColor,
+              fontFamily: "var(--font-hero-title-family, inherit)",
+              fontWeight: "var(--font-hero-title-weight, 700)" as unknown as number,
+              fontStyle: "var(--font-hero-title-style, normal)",
+            }}
           >
             {heading}
           </h1>
         )}
         {subheading && (
-          <p className="mt-6 text-xl" style={{ color: textColor, opacity: 0.8 }}>{subheading}</p>
+          <p
+            className="mt-6 text-xl"
+            style={{
+              color: textColor,
+              opacity: 0.8,
+              fontFamily: "var(--font-subtitle-family, inherit)",
+            }}
+          >
+            {subheading}
+          </p>
         )}
         {ctaText && ctaUrl && (
           <a
