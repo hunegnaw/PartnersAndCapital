@@ -149,7 +149,7 @@ The admin landing page at `/admin` is the Client Management view. It provides:
 | `/admin/support`       | View and respond to client support tickets           |
 | `/admin/audit-log`     | View audit trail of all system actions                |
 | `/admin/api-keys`      | Create and manage API keys for external integrations |
-| `/admin/settings`      | Organization settings (branding, typography, colors, 2FA policy) |
+| `/admin/settings`      | Organization settings (branding with media picker, typography, colors, 2FA policy) |
 | `/admin/clients/[id]`  | Client detail with "View as Client" impersonation    |
 
 ### Admin Roles
@@ -325,7 +325,7 @@ The media library manages public images and videos used across blog posts and CM
 - **Rename:** Hover over any media item in the picker to see a pencil icon. Click it to rename the file. The file is renamed on disk with an SEO-friendly slug and the database path is updated.
 - **Edit:** Click any media item to update alt text and caption.
 - **Delete:** Soft delete (sets deletedAt, removes file from disk).
-- **Supported formats:** JPEG, PNG, GIF, WebP, SVG (images); MP4, WebM, MOV (videos).
+- **Supported formats:** JPEG, PNG, GIF, WebP, SVG (images); MP4, WebM, MOV (videos). SVG files are explicitly accepted in all file pickers for full browser compatibility.
 
 ### Filenames and SEO
 
@@ -1197,6 +1197,7 @@ Both entries record the admin's user ID and the target client ID.
 - 2FA policy enforcement (mandatory redirects to setup, disabled hides 2FA, optional preserves existing behavior)
 - Global color picker with native picker, hex input, transparent option, opacity slider, and organization-wide saved color palette
 - Editable footer with toggleable modules (logo, navigation, newsletter, contact, tagline, copyright, disclaimer) and customizable colors
+- Media picker integration on Logo URL and Favicon URL fields in admin settings (browse/upload button with image preview)
 - SEO-friendly media filenames (slugified original names instead of UUIDs) with in-place rename support
 - Drag-and-drop file upload in media picker (in addition to click-to-upload)
 - Drag-and-drop reordering for logo gallery items in the page block editor

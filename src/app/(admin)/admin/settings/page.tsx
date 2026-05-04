@@ -24,7 +24,9 @@ import {
   Shield,
   FileText,
   Type,
+  ImageIcon,
 } from "lucide-react"
+import { MediaPicker } from "@/components/admin/media-picker"
 import { GOOGLE_FONTS } from "@/lib/google-fonts"
 import {
   TYPOGRAPHY_CATEGORIES,
@@ -78,6 +80,8 @@ export default function AdminSettingsPage() {
   const [termsOfService, setTermsOfService] = useState("")
   const [twoFactorPolicy, setTwoFactorPolicy] = useState("")
   const [typography, setTypography] = useState<TypographySettings>(DEFAULT_TYPOGRAPHY)
+  const [logoPickerOpen, setLogoPickerOpen] = useState(false)
+  const [faviconPickerOpen, setFaviconPickerOpen] = useState(false)
 
   useEffect(() => {
     async function fetchSettings() {
@@ -242,23 +246,72 @@ export default function AdminSettingsPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="org-logo">Logo URL</Label>
-                <Input
-                  id="org-logo"
-                  value={logoUrl}
-                  onChange={(e) => setLogoUrl(e.target.value)}
-                  placeholder="https://example.com/logo.png"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="org-logo"
+                    value={logoUrl}
+                    onChange={(e) => setLogoUrl(e.target.value)}
+                    placeholder="https://example.com/logo.png"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setLogoPickerOpen(true)}
+                    title="Browse media library"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+                {logoUrl && (
+                  <div className="mt-1 p-2 border rounded bg-gray-50">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={logoUrl} alt="Logo preview" className="max-h-12 object-contain" />
+                  </div>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="org-favicon">Favicon URL</Label>
-                <Input
-                  id="org-favicon"
-                  value={faviconUrl}
-                  onChange={(e) => setFaviconUrl(e.target.value)}
-                  placeholder="https://example.com/favicon.ico"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="org-favicon"
+                    value={faviconUrl}
+                    onChange={(e) => setFaviconUrl(e.target.value)}
+                    placeholder="https://example.com/favicon.ico"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setFaviconPickerOpen(true)}
+                    title="Browse media library"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+                {faviconUrl && (
+                  <div className="mt-1 p-2 border rounded bg-gray-50">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={faviconUrl} alt="Favicon preview" className="max-h-8 object-contain" />
+                  </div>
+                )}
               </div>
             </div>
+
+            <MediaPicker
+              open={logoPickerOpen}
+              onClose={() => setLogoPickerOpen(false)}
+              onSelect={(media) => setLogoUrl(media.filePath)}
+              accept="image"
+            />
+            <MediaPicker
+              open={faviconPickerOpen}
+              onClose={() => setFaviconPickerOpen(false)}
+              onSelect={(media) => setFaviconUrl(media.filePath)}
+              accept="image"
+            />
 
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="grid gap-2">

@@ -239,10 +239,10 @@ export function MediaPicker({
                   type="file"
                   accept={
                     accept === "image"
-                      ? "image/*"
+                      ? "image/*,.svg"
                       : accept === "video"
                       ? "video/*"
-                      : "image/*,video/*"
+                      : "image/*,.svg,video/*"
                   }
                   onChange={handleUpload}
                   className="hidden"

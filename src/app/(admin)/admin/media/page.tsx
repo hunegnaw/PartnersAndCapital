@@ -25,8 +25,8 @@ import {
 interface MediaItem {
   id: string
   fileName: string
+  filePath: string
   mimeType: string
-  url: string
   alt: string | null
   caption: string | null
   width: number | null
@@ -86,7 +86,7 @@ export default function AdminMediaPage() {
       if (!res.ok) throw new Error("Failed to fetch media")
       const data = await res.json()
       setItems(data.media)
-      setTotal(data.total)
+      setTotal(data.pagination?.total ?? 0)
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred")
     } finally {
@@ -294,7 +294,7 @@ export default function AdminMediaPage() {
                 {isImage(item.mimeType) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={item.url}
+                    src={item.filePath}
                     alt={item.alt || item.fileName}
                     className="w-full h-full object-cover"
                   />
@@ -372,7 +372,7 @@ export default function AdminMediaPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*,video/*"
+                accept="image/*,.svg,video/*"
                 multiple
                 onChange={handleUpload}
                 disabled={uploading}
@@ -417,13 +417,13 @@ export default function AdminMediaPage() {
                 {isImage(selectedItem.mimeType) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={selectedItem.url}
+                    src={selectedItem.filePath}
                     alt={selectedItem.alt || selectedItem.fileName}
                     className="max-h-80 object-contain"
                   />
                 ) : isVideo(selectedItem.mimeType) ? (
                   <video
-                    src={selectedItem.url}
+                    src={selectedItem.filePath}
                     controls
                     className="max-h-80 w-full"
                   />
