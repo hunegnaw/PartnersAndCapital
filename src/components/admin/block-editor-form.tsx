@@ -425,6 +425,113 @@ function SortableLogoItem({
   );
 }
 
+// --- Logo gallery editor (extracted to avoid conditional hook calls) ---
+
+function LogoGalleryEditor({
+  props,
+  updateProp,
+}: {
+  props: Record<string, unknown>;
+  updateProp: (key: string, value: unknown) => void;
+}) {
+  const [mediaPicker, setMediaPicker] = useState<{
+    open: boolean;
+    field: string;
+    accept: "image" | "video" | "all";
+  }>({ open: false, field: "", accept: "all" });
+
+  const logos = (props.logos as { imageUrl: string; alt: string; url?: string }[]) || [];
+  const logoIds = logos.map((_, i) => `logo-${i}`);
+  const fp = { props, updateProp };
+
+  const logoSensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleLogoDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = parseInt((active.id as string).split("-")[1]);
+    const newIndex = parseInt((over.id as string).split("-")[1]);
+    updateProp("logos", arrayMove(logos, oldIndex, newIndex));
+  };
+
+  return (
+    <div className="space-y-4">
+      <InputField label="Heading" field="heading" {...fp} />
+      <SelectField
+        label="Columns"
+        field="columns"
+        options={[
+          { value: "2", label: "2 Columns" },
+          { value: "3", label: "3 Columns" },
+          { value: "4", label: "4 Columns" },
+          { value: "5", label: "5 Columns" },
+          { value: "6", label: "6 Columns" },
+        ]}
+        {...fp}
+      />
+      <CheckboxField label="Grayscale" field="grayscale" {...fp} />
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-2">
+          Logos
+        </label>
+        <DndContext
+          sensors={logoSensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleLogoDragEnd}
+        >
+          <SortableContext items={logoIds} strategy={verticalListSortingStrategy}>
+            {logos.map((logo, i) => (
+              <SortableLogoItem
+                key={`logo-${i}`}
+                logo={logo}
+                index={i}
+                onUpdate={(idx, updated) => {
+                  const newLogos = [...logos];
+                  newLogos[idx] = updated;
+                  updateProp("logos", newLogos);
+                }}
+                onRemove={(idx) => {
+                  updateProp("logos", logos.filter((_, j) => j !== idx));
+                }}
+                onOpenMedia={(idx) => {
+                  setMediaPicker({ open: true, field: `logo_${idx}`, accept: "image" });
+                }}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
+        <button
+          type="button"
+          onClick={() =>
+            updateProp("logos", [...logos, { imageUrl: "", alt: "" }])
+          }
+          className="flex items-center gap-1 text-xs text-[#B07D3A] hover:underline"
+        >
+          <Plus size={12} /> Add Logo
+        </button>
+      </div>
+      <MediaPicker
+        open={mediaPicker.open}
+        onClose={() => setMediaPicker({ ...mediaPicker, open: false })}
+        onSelect={(m) => {
+          if (mediaPicker.field.startsWith("logo_")) {
+            const idx = parseInt(mediaPicker.field.split("_")[1]);
+            const updated = [...logos];
+            updated[idx] = { ...updated[idx], imageUrl: m.filePath };
+            updateProp("logos", updated);
+          } else {
+            updateProp(mediaPicker.field, m.filePath);
+          }
+        }}
+        accept={mediaPicker.accept}
+      />
+    </div>
+  );
+}
+
 // --- Main component ---
 
 interface BlockEditorFormProps {
@@ -522,97 +629,8 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
         </div>
       );
 
-    case "logo_gallery": {
-      const logos = (props.logos as { imageUrl: string; alt: string; url?: string }[]) || [];
-      const logoIds = logos.map((_, i) => `logo-${i}`);
-
-      const logoSensors = useSensors(
-        useSensor(PointerSensor),
-        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-      );
-
-      const handleLogoDragEnd = (event: DragEndEvent) => {
-        const { active, over } = event;
-        if (!over || active.id === over.id) return;
-        const oldIndex = parseInt((active.id as string).split("-")[1]);
-        const newIndex = parseInt((over.id as string).split("-")[1]);
-        updateProp("logos", arrayMove(logos, oldIndex, newIndex));
-      };
-
-      return (
-        <div className="space-y-4">
-          <InputField label="Heading" field="heading" {...fp} />
-          <SelectField
-            label="Columns"
-            field="columns"
-            options={[
-              { value: "2", label: "2 Columns" },
-              { value: "3", label: "3 Columns" },
-              { value: "4", label: "4 Columns" },
-              { value: "5", label: "5 Columns" },
-              { value: "6", label: "6 Columns" },
-            ]}
-            {...fp}
-          />
-          <CheckboxField label="Grayscale" field="grayscale" {...fp} />
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Logos
-            </label>
-            <DndContext
-              sensors={logoSensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleLogoDragEnd}
-            >
-              <SortableContext items={logoIds} strategy={verticalListSortingStrategy}>
-                {logos.map((logo, i) => (
-                  <SortableLogoItem
-                    key={`logo-${i}`}
-                    logo={logo}
-                    index={i}
-                    onUpdate={(idx, updated) => {
-                      const newLogos = [...logos];
-                      newLogos[idx] = updated;
-                      updateProp("logos", newLogos);
-                    }}
-                    onRemove={(idx) => {
-                      updateProp("logos", logos.filter((_, j) => j !== idx));
-                    }}
-                    onOpenMedia={(idx) => {
-                      setMediaPicker({ open: true, field: `logo_${idx}`, accept: "image" });
-                    }}
-                  />
-                ))}
-              </SortableContext>
-            </DndContext>
-            <button
-              type="button"
-              onClick={() =>
-                updateProp("logos", [...logos, { imageUrl: "", alt: "" }])
-              }
-              className="flex items-center gap-1 text-xs text-[#B07D3A] hover:underline"
-            >
-              <Plus size={12} /> Add Logo
-            </button>
-          </div>
-          <MediaPicker
-            open={mediaPicker.open}
-            onClose={() => setMediaPicker({ ...mediaPicker, open: false })}
-            onSelect={(m) => {
-              if (mediaPicker.field.startsWith("logo_")) {
-                const idx = parseInt(mediaPicker.field.split("_")[1]);
-                const updated = [...logos];
-                updated[idx] = { ...updated[idx], imageUrl: m.filePath };
-                updateProp("logos", updated);
-              } else {
-                updateProp(mediaPicker.field, m.filePath);
-              }
-            }}
-            accept={mediaPicker.accept}
-          />
-        </div>
-      );
-    }
+    case "logo_gallery":
+      return <LogoGalleryEditor props={props} updateProp={updateProp} />;
 
     case "stats": {
       const stats = (props.stats as { value: string; label: string }[]) || [];

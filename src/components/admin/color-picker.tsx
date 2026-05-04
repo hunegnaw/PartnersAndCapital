@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { useSavedColors } from "@/components/providers/saved-colors-provider";
 import { X } from "lucide-react";
 
@@ -50,51 +50,41 @@ export function ColorPicker({ value, onChange }: ColorPickerProps) {
   const [hoveredColor, setHoveredColor] = useState<string | null>(null);
 
   const isTransparent = value === "transparent";
-  const [hex6, setHex6] = useState(() => extractHex6(value));
-  const [opacity, setOpacity] = useState(() => extractOpacity(value));
-  const [hexInput, setHexInput] = useState(() => extractHex6(value));
+  const hex6 = extractHex6(value);
+  const opacity = extractOpacity(value);
 
-  // Sync internal state when value prop changes externally
-  useEffect(() => {
-    const newHex = extractHex6(value);
-    const newOpacity = extractOpacity(value);
-    setHex6(newHex);
-    setOpacity(newOpacity);
-    setHexInput(newHex);
-  }, [value]);
+  // Track hexInput locally for intermediate typing; reset when value prop changes
+  const [hexInput, setHexInput] = useState(hex6);
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setPrevValue(value);
+    setHexInput(extractHex6(value));
+  }
 
   function handleHexChange(raw: string) {
     let v = raw;
     if (v && !v.startsWith("#")) v = "#" + v;
     setHexInput(v);
     if (HEX6_REGEX.test(v)) {
-      setHex6(v);
       onChange(buildColor(v, opacity));
     }
   }
 
   function handleNativeChange(hex: string) {
-    setHex6(hex);
     setHexInput(hex);
     onChange(buildColor(hex, opacity));
   }
 
   function handleOpacityChange(newOpacity: number) {
-    setOpacity(newOpacity);
     onChange(buildColor(hex6, newOpacity));
   }
 
   function handleSwatchClick(color: string) {
-    const h = extractHex6(color);
-    const o = extractOpacity(color);
-    setHex6(h);
-    setHexInput(h);
-    setOpacity(o);
+    setHexInput(extractHex6(color));
     onChange(color);
   }
 
   function handleTransparentClick() {
-    setOpacity(0);
     onChange("transparent");
   }
 
