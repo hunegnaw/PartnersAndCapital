@@ -3,7 +3,7 @@ interface ImageBlockProps {
 }
 
 export function ImageBlock({ props }: ImageBlockProps) {
-  const src = (props.src as string) ?? "";
+  const src = (props.imageUrl as string) ?? (props.src as string) ?? "";
   const alt = (props.alt as string) ?? "";
   const caption = (props.caption as string) ?? "";
   const maxWidth = (props.maxWidth as string) ?? "4xl";
