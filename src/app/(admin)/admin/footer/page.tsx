@@ -215,6 +215,26 @@ export default function AdminFooterPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
+                <Label htmlFor="footer-newsletter-heading">Newsletter Heading</Label>
+                <Input
+                  id="footer-newsletter-heading"
+                  value={footer.newsletterHeading}
+                  onChange={(e) => updateField("newsletterHeading", e.target.value)}
+                  placeholder="Stay Updated"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="footer-newsletter-desc">Newsletter Description</Label>
+                <Input
+                  id="footer-newsletter-desc"
+                  value={footer.newsletterDescription}
+                  onChange={(e) => updateField("newsletterDescription", e.target.value)}
+                  placeholder="Optional description text"
+                />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-2">
                 <Label htmlFor="footer-copyright-year">Copyright Start Year</Label>
                 <Input
                   id="footer-copyright-year"

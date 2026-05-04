@@ -18,6 +18,8 @@ export interface FooterConfig {
   modules: FooterModules;
   logoUrl: string | null;
   tagline: string;
+  newsletterHeading: string;
+  newsletterDescription: string;
   copyrightStartYear: string;
   copyrightEntity: string;
   backgroundColor: string;
@@ -39,6 +41,8 @@ export const DEFAULT_FOOTER: FooterConfig = {
   },
   logoUrl: null,
   tagline: "Public Access to Private Markets",
+  newsletterHeading: "Stay Updated",
+  newsletterDescription: "",
   copyrightStartYear: "2015",
   copyrightEntity: "Partners + Capital, LLC",
   backgroundColor: "#1A2640",

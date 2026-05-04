@@ -124,8 +124,13 @@ export function MarketingFooter({ navLinks: navLinksProp }: MarketingFooterProps
             {hasNewsletter && (
               <div>
                 <p className="font-semibold text-sm tracking-wide uppercase mb-4">
-                  Stay Updated
+                  {footer.newsletterHeading || "Stay Updated"}
                 </p>
+                {footer.newsletterDescription && (
+                  <p className="text-sm mb-4" style={{ opacity: 0.6 }}>
+                    {footer.newsletterDescription}
+                  </p>
+                )}
                 <form onSubmit={handleSubmit} className="flex gap-2">
                   <input
                     type="email"
