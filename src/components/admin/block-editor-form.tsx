@@ -446,18 +446,35 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
             </label>
             {logos.map((logo, i) => (
               <div key={i} className="flex items-start gap-2 mb-2 p-2 border rounded">
+                {logo.imageUrl && (
+                  <div className="w-12 h-12 rounded bg-gray-100 overflow-hidden shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={logo.imageUrl} alt="" className="w-full h-full object-contain" />
+                  </div>
+                )}
                 <div className="flex-1 space-y-1">
-                  <input
-                    type="text"
-                    value={logo.imageUrl}
-                    onChange={(e) => {
-                      const updated = [...logos];
-                      updated[i] = { ...updated[i], imageUrl: e.target.value };
-                      updateProp("logos", updated);
-                    }}
-                    placeholder="Image URL"
-                    className="w-full px-2 py-1 text-xs border rounded"
-                  />
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="text"
+                      value={logo.imageUrl}
+                      onChange={(e) => {
+                        const updated = [...logos];
+                        updated[i] = { ...updated[i], imageUrl: e.target.value };
+                        updateProp("logos", updated);
+                      }}
+                      placeholder="Image URL"
+                      className="flex-1 px-2 py-1 text-xs border rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMediaPicker({ open: true, field: `logo_${i}`, accept: "image" });
+                      }}
+                      className="p-1 border rounded hover:bg-gray-50 shrink-0"
+                    >
+                      <ImageIcon size={14} />
+                    </button>
+                  </div>
                   <input
                     type="text"
                     value={logo.alt}
@@ -495,7 +512,16 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <MediaPicker
             open={mediaPicker.open}
             onClose={() => setMediaPicker({ ...mediaPicker, open: false })}
-            onSelect={(m) => updateProp(mediaPicker.field, m.filePath)}
+            onSelect={(m) => {
+              if (mediaPicker.field.startsWith("logo_")) {
+                const idx = parseInt(mediaPicker.field.split("_")[1]);
+                const updated = [...logos];
+                updated[idx] = { ...updated[idx], imageUrl: m.filePath };
+                updateProp("logos", updated);
+              } else {
+                updateProp(mediaPicker.field, m.filePath);
+              }
+            }}
             accept={mediaPicker.accept}
           />
         </div>

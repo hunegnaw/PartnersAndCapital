@@ -51,6 +51,7 @@ export default function AdminNewPagePage() {
   const [ogImageUrl, setOgImageUrl] = useState("")
   const [featuredImageUrl, setFeaturedImageUrl] = useState("")
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
+  const [mediaPickerTarget, setMediaPickerTarget] = useState<"hero" | "og">("hero")
   const [blocks, setBlocks] = useState<PageBlockData[]>([])
 
   function handleTitleChange(value: string) {
@@ -301,7 +302,7 @@ export default function AdminNewPagePage() {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => setMediaPickerOpen(true)}
+                    onClick={() => { setMediaPickerTarget("hero"); setMediaPickerOpen(true) }}
                     className="w-full h-32 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-[#B07D3A] hover:text-[#B07D3A] transition-colors"
                   >
                     <ImageIcon className="h-8 w-8" />
@@ -337,12 +338,34 @@ export default function AdminNewPagePage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="ogImageUrl">OG Image URL</Label>
-                  <Input
-                    id="ogImageUrl"
-                    value={ogImageUrl}
-                    onChange={(e) => setOgImageUrl(e.target.value)}
-                    placeholder="https://..."
-                  />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="ogImageUrl"
+                      value={ogImageUrl}
+                      onChange={(e) => setOgImageUrl(e.target.value)}
+                      placeholder="https://..."
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setMediaPickerTarget("og"); setMediaPickerOpen(true) }}
+                      className="p-2 border rounded-md hover:bg-gray-50 shrink-0"
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                  {ogImageUrl && (
+                    <div className="relative rounded-lg overflow-hidden border">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={ogImageUrl} alt="OG preview" className="w-full h-24 object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setOgImageUrl("")}
+                        className="absolute top-1 right-1 p-0.5 rounded-full bg-black/50 text-white hover:bg-black/70"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -363,7 +386,11 @@ export default function AdminNewPagePage() {
         open={mediaPickerOpen}
         onClose={() => setMediaPickerOpen(false)}
         onSelect={(media) => {
-          setFeaturedImageUrl(media.filePath)
+          if (mediaPickerTarget === "og") {
+            setOgImageUrl(media.filePath)
+          } else {
+            setFeaturedImageUrl(media.filePath)
+          }
           setMediaPickerOpen(false)
         }}
         accept="image"
