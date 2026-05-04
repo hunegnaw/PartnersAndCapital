@@ -242,7 +242,7 @@ The page builder allows admins to create and edit CMS pages using drag-and-drop 
 | Hero (Video) | Full-viewport video background with overlay text and CTA |
 | Hero (Image) | Image background with overlay text and CTA |
 | Text Section | Rich HTML content with configurable width, padding, colors |
-| Logo Gallery | Grid of logos/images with optional grayscale effect |
+| Logo Gallery | Grid of logos/images with optional grayscale effect and drag-and-drop reordering |
 | Stats | Number cards row (values + labels) on dark background |
 | CTA Banner | Full-width call-to-action with heading, text, and button |
 | Two Column | Side-by-side layout with nested content blocks in each column (or legacy rich text). Supports all block types except heroes and nested two-column. |
@@ -322,13 +322,18 @@ The media library manages public images and videos used across blog posts and CM
 
 - **Upload:** Drag-and-drop or file picker. Images up to 10MB, videos up to 100MB.
 - **Browse:** Grid of thumbnails with search and type filter (Images/Videos/All). Paginated.
+- **Rename:** Hover over any media item in the picker to see a pencil icon. Click it to rename the file. The file is renamed on disk with an SEO-friendly slug and the database path is updated.
 - **Edit:** Click any media item to update alt text and caption.
 - **Delete:** Soft delete (sets deletedAt, removes file from disk).
 - **Supported formats:** JPEG, PNG, GIF, WebP, SVG (images); MP4, WebM, MOV (videos).
 
+### Filenames and SEO
+
+Uploaded files are stored with SEO-friendly filenames derived from the original file name (e.g., `my-company-logo-a3f28bc1.jpg`), rather than random UUIDs. A short hash suffix prevents collisions. Files can be renamed after upload via the media picker's rename feature.
+
 ### Media Picker Component
 
-A reusable dialog component (`MediaPicker`) that can be opened from any admin form. Provides browse and upload tabs, returns the selected media object. Used in the blog post editor, page block editor, and anywhere images/videos are needed.
+A reusable dialog component (`MediaPicker`) that can be opened from any admin form. Provides browse and upload tabs, returns the selected media object. Supports both click-to-upload and drag-and-drop file upload. Used in the blog post editor, page block editor, and anywhere images/videos are needed.
 
 ### Media API Routes
 
@@ -945,6 +950,8 @@ Every color input across the admin panel uses a unified color picker component t
 
 - **Native color picker** -- Click the color swatch to open the browser's native color picker
 - **Hex input** -- Type a hex color code directly (e.g., `#1A2640`)
+- **Transparent option** -- Click "None" to set the color to transparent (useful for backgrounds)
+- **Opacity slider** -- Adjust opacity from 0% to 100%. Colors with partial opacity are stored as 8-digit hex (`#RRGGBBAA`)
 - **Saved colors palette** -- Organization-wide bookmarked colors that persist across all admin pages
 
 ### Where It Appears
@@ -1188,5 +1195,8 @@ Both entries record the admin's user ID and the target client ID.
 - Admin-configurable typography with Google Fonts (5 categories, CSS variable injection)
 - Dynamic contact form pulling address/email/phone from organization settings
 - 2FA policy enforcement (mandatory redirects to setup, disabled hides 2FA, optional preserves existing behavior)
-- Global color picker with native picker, hex input, and organization-wide saved color palette
+- Global color picker with native picker, hex input, transparent option, opacity slider, and organization-wide saved color palette
 - Editable footer with toggleable modules (logo, navigation, newsletter, contact, tagline, copyright, disclaimer) and customizable colors
+- SEO-friendly media filenames (slugified original names instead of UUIDs) with in-place rename support
+- Drag-and-drop file upload in media picker (in addition to click-to-upload)
+- Drag-and-drop reordering for logo gallery items in the page block editor

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
-import { deleteMediaFile } from "@/lib/media-upload";
+import { deleteMediaFile, renameMediaFile } from "@/lib/media-upload";
 import { createAuditLog } from "@/lib/audit";
 
 export async function GET(
@@ -34,13 +34,38 @@ export async function PATCH(
     return NextResponse.json({ error: "Media not found" }, { status: 404 });
   }
 
+  // Handle file rename if requested
+  let renameData: { filePath?: string; fileName?: string } = {};
+  if (body.fileName && body.fileName !== media.fileName) {
+    try {
+      const result = await renameMediaFile(media.filePath, body.fileName);
+      renameData = result;
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Rename failed";
+      return NextResponse.json({ error: msg }, { status: 400 });
+    }
+  }
+
   const updated = await prisma.media.update({
     where: { id },
     data: {
+      ...(renameData.filePath ? { filePath: renameData.filePath } : {}),
+      ...(renameData.fileName ? { fileName: renameData.fileName } : {}),
       alt: body.alt !== undefined ? body.alt : undefined,
       caption: body.caption !== undefined ? body.caption : undefined,
     },
   });
+
+  if (renameData.filePath) {
+    createAuditLog({
+      userId: admin.id,
+      action: "RENAME_MEDIA",
+      targetType: "MEDIA",
+      targetId: id,
+      details: { oldPath: media.filePath, newPath: renameData.filePath },
+      request,
+    });
+  }
 
   return NextResponse.json(updated);
 }

@@ -32,6 +32,19 @@ function getAllowedTypes() {
   return [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
 }
 
+/** Slugify a filename stem for URL-safe, SEO-friendly paths */
+function slugifyFilename(name: string): string {
+  // Remove extension, slugify, then re-add
+  const dot = name.lastIndexOf(".");
+  const stem = dot > 0 ? name.slice(0, dot) : name;
+  return stem
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "") || "file";
+}
+
 export async function saveMediaFile(file: File): Promise<MediaUploadResult> {
   const allAllowed = getAllowedTypes();
   if (!allAllowed.includes(file.type)) {
@@ -50,15 +63,16 @@ export async function saveMediaFile(file: File): Promise<MediaUploadResult> {
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  // Generate storage path: public/uploads/media/YYYY/uuid.ext
+  // Generate SEO-friendly path: public/uploads/media/YYYY/slugified-name-xxxx.ext
   const year = new Date().getFullYear().toString();
-  const uuid = crypto.randomUUID();
+  const shortHash = crypto.randomUUID().slice(0, 8);
+  const slug = slugifyFilename(file.name);
   const ext = getExtension(file.type, file.name);
   const uploadDir = path.join(process.cwd(), "public", "uploads", "media", year);
 
   await fs.mkdir(uploadDir, { recursive: true });
 
-  const storedFileName = `${uuid}.${ext}`;
+  const storedFileName = `${slug}-${shortHash}.${ext}`;
   const absolutePath = path.join(uploadDir, storedFileName);
 
   // Write file directly (public, no encryption)
@@ -115,4 +129,36 @@ export async function deleteMediaFile(filePath: string): Promise<void> {
   } catch (error) {
     console.error("Failed to delete media file:", absolutePath, error);
   }
+}
+
+/**
+ * Rename a media file on disk and return the new public path.
+ * Preserves the directory and extension; slugifies the new name.
+ */
+export async function renameMediaFile(
+  currentFilePath: string,
+  newName: string
+): Promise<{ filePath: string; fileName: string }> {
+  const currentAbsolute = path.join(process.cwd(), "public", currentFilePath);
+  const dir = path.dirname(currentAbsolute);
+  const currentExt = path.extname(currentFilePath);
+
+  // Slugify the new name, keep the same extension
+  const slug = slugifyFilename(newName);
+  const shortHash = crypto.randomUUID().slice(0, 8);
+  const newStoredName = `${slug}-${shortHash}${currentExt}`;
+  const newAbsolute = path.join(dir, newStoredName);
+
+  await fs.rename(currentAbsolute, newAbsolute);
+
+  // Build new public path
+  const publicDir = path.dirname(currentFilePath);
+  const newPublicPath = `${publicDir}/${newStoredName}`;
+
+  // Derive a human-readable fileName (what the user sees)
+  const dot = newName.lastIndexOf(".");
+  const stem = dot > 0 ? newName.slice(0, dot) : newName;
+  const displayName = `${stem}${currentExt}`;
+
+  return { filePath: newPublicPath, fileName: displayName };
 }

@@ -2,6 +2,23 @@
 
 import { useState } from "react";
 import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
   BLOCK_TYPES,
   NESTABLE_BLOCK_TYPES,
   type BlockType,
@@ -11,7 +28,7 @@ import { RichTextEditor } from "./rich-text-editor";
 import { MediaPicker } from "./media-picker";
 import { BlockTypePicker } from "./block-type-picker";
 import { ColorField } from "./color-field";
-import { ImageIcon, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import { ImageIcon, Plus, Trash2, ChevronDown, ChevronRight, GripVertical } from "lucide-react";
 
 // Helper field components — declared outside BlockEditorForm to satisfy react-hooks/static-components
 
@@ -325,6 +342,89 @@ function ColumnBlockEditor({
   );
 }
 
+// --- Sortable logo item for drag-and-drop reordering ---
+
+function SortableLogoItem({
+  logo,
+  index,
+  onUpdate,
+  onRemove,
+  onOpenMedia,
+}: {
+  logo: { imageUrl: string; alt: string; url?: string };
+  index: number;
+  onUpdate: (index: number, updated: { imageUrl: string; alt: string; url?: string }) => void;
+  onRemove: (index: number) => void;
+  onOpenMedia: (index: number) => void;
+}) {
+  const id = `logo-${index}`;
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-start gap-2 mb-2 p-2 border rounded">
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600 mt-1 shrink-0"
+      >
+        <GripVertical size={14} />
+      </button>
+      {logo.imageUrl && (
+        <div className="w-12 h-12 rounded bg-gray-100 overflow-hidden shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logo.imageUrl} alt="" className="w-full h-full object-contain" />
+        </div>
+      )}
+      <div className="flex-1 space-y-1">
+        <div className="flex items-center gap-1">
+          <input
+            type="text"
+            value={logo.imageUrl}
+            onChange={(e) => onUpdate(index, { ...logo, imageUrl: e.target.value })}
+            placeholder="Image URL"
+            className="flex-1 px-2 py-1 text-xs border rounded"
+          />
+          <button
+            type="button"
+            onClick={() => onOpenMedia(index)}
+            className="p-1 border rounded hover:bg-gray-50 shrink-0"
+          >
+            <ImageIcon size={14} />
+          </button>
+        </div>
+        <input
+          type="text"
+          value={logo.alt}
+          onChange={(e) => onUpdate(index, { ...logo, alt: e.target.value })}
+          placeholder="Alt text"
+          className="w-full px-2 py-1 text-xs border rounded"
+        />
+      </div>
+      <button
+        type="button"
+        onClick={() => onRemove(index)}
+        className="p-1 text-red-500 hover:bg-red-50 rounded mt-1 shrink-0"
+      >
+        <Trash2 size={14} />
+      </button>
+    </div>
+  );
+}
+
 // --- Main component ---
 
 interface BlockEditorFormProps {
@@ -424,6 +524,21 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
 
     case "logo_gallery": {
       const logos = (props.logos as { imageUrl: string; alt: string; url?: string }[]) || [];
+      const logoIds = logos.map((_, i) => `logo-${i}`);
+
+      const logoSensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+      );
+
+      const handleLogoDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+        const oldIndex = parseInt((active.id as string).split("-")[1]);
+        const newIndex = parseInt((over.id as string).split("-")[1]);
+        updateProp("logos", arrayMove(logos, oldIndex, newIndex));
+      };
+
       return (
         <div className="space-y-4">
           <InputField label="Heading" field="heading" {...fp} />
@@ -444,61 +559,32 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
             <label className="block text-xs font-medium text-gray-700 mb-2">
               Logos
             </label>
-            {logos.map((logo, i) => (
-              <div key={i} className="flex items-start gap-2 mb-2 p-2 border rounded">
-                {logo.imageUrl && (
-                  <div className="w-12 h-12 rounded bg-gray-100 overflow-hidden shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={logo.imageUrl} alt="" className="w-full h-full object-contain" />
-                  </div>
-                )}
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="text"
-                      value={logo.imageUrl}
-                      onChange={(e) => {
-                        const updated = [...logos];
-                        updated[i] = { ...updated[i], imageUrl: e.target.value };
-                        updateProp("logos", updated);
-                      }}
-                      placeholder="Image URL"
-                      className="flex-1 px-2 py-1 text-xs border rounded"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMediaPicker({ open: true, field: `logo_${i}`, accept: "image" });
-                      }}
-                      className="p-1 border rounded hover:bg-gray-50 shrink-0"
-                    >
-                      <ImageIcon size={14} />
-                    </button>
-                  </div>
-                  <input
-                    type="text"
-                    value={logo.alt}
-                    onChange={(e) => {
-                      const updated = [...logos];
-                      updated[i] = { ...updated[i], alt: e.target.value };
-                      updateProp("logos", updated);
+            <DndContext
+              sensors={logoSensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleLogoDragEnd}
+            >
+              <SortableContext items={logoIds} strategy={verticalListSortingStrategy}>
+                {logos.map((logo, i) => (
+                  <SortableLogoItem
+                    key={`logo-${i}`}
+                    logo={logo}
+                    index={i}
+                    onUpdate={(idx, updated) => {
+                      const newLogos = [...logos];
+                      newLogos[idx] = updated;
+                      updateProp("logos", newLogos);
                     }}
-                    placeholder="Alt text"
-                    className="w-full px-2 py-1 text-xs border rounded"
+                    onRemove={(idx) => {
+                      updateProp("logos", logos.filter((_, j) => j !== idx));
+                    }}
+                    onOpenMedia={(idx) => {
+                      setMediaPicker({ open: true, field: `logo_${idx}`, accept: "image" });
+                    }}
                   />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const updated = logos.filter((_, j) => j !== i);
-                    updateProp("logos", updated);
-                  }}
-                  className="p-1 text-red-500 hover:bg-red-50 rounded"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))}
+                ))}
+              </SortableContext>
+            </DndContext>
             <button
               type="button"
               onClick={() =>

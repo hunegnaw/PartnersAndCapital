@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { X, Upload, Search, ImageIcon, Film } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { X, Upload, Search, ImageIcon, Film, Pencil, Check } from "lucide-react";
 
 interface Media {
   id: string;
@@ -35,6 +35,10 @@ export function MediaPicker({
   const [tab, setTab] = useState<"browse" | "upload">("browse");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [dragging, setDragging] = useState(false);
+  const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
+  const [renameSaving, setRenameSaving] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!open) return;
@@ -60,11 +64,9 @@ export function MediaPicker({
     return () => {
       cancelled = true;
     };
-  }, [open, page, search, accept]);
+  }, [open, page, search, accept, refreshKey]);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const uploadFile = useCallback(async (file: File) => {
     setUploading(true);
     try {
       const formData = new FormData();
@@ -83,13 +85,77 @@ export function MediaPicker({
     } finally {
       setUploading(false);
     }
+  }, [onSelect, onClose]);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    // Auto-switch to upload tab for visual feedback
+    setTab("upload");
+    await uploadFile(file);
+  };
+
+  const handleRename = async () => {
+    if (!renaming || !renaming.name.trim()) return;
+    setRenameSaving(true);
+    try {
+      const res = await fetch(`/api/admin/media/${renaming.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileName: renaming.name.trim() }),
+      });
+      if (res.ok) {
+        setRenaming(null);
+        setRefreshKey((k) => k + 1);
+      }
+    } catch {
+      // Rename failed
+    } finally {
+      setRenameSaving(false);
+    }
   };
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <div className={`bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col relative ${dragging ? "ring-4 ring-[#B07D3A] ring-opacity-50" : ""}`}>
+        {/* Drag overlay */}
+        {dragging && (
+          <div className="absolute inset-0 bg-[#B07D3A]/10 rounded-xl z-10 flex items-center justify-center pointer-events-none">
+            <div className="bg-white rounded-xl px-8 py-6 shadow-lg text-center">
+              <Upload size={40} className="mx-auto text-[#B07D3A] mb-2" />
+              <p className="text-lg font-semibold text-gray-900">Drop file to upload</p>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-lg font-semibold text-gray-900">Media Library</h2>
@@ -151,12 +217,21 @@ export function MediaPicker({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {tab === "upload" ? (
-            <div className="flex flex-col items-center justify-center py-12">
+            <div
+              className={`flex flex-col items-center justify-center py-12 border-2 border-dashed rounded-xl transition-colors ${
+                dragging
+                  ? "border-[#B07D3A] bg-[#B07D3A]/5"
+                  : "border-gray-300"
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                 <Upload size={32} className="text-gray-400" />
               </div>
               <p className="text-gray-600 mb-4">
-                Click to upload or drag and drop
+                {uploading ? "Uploading..." : "Click to upload or drag and drop"}
               </p>
               <label className="px-6 py-2 bg-[#B07D3A] text-white rounded-lg cursor-pointer hover:bg-[#7A5520] transition-colors">
                 {uploading ? "Uploading..." : "Choose File"}
@@ -191,33 +266,74 @@ export function MediaPicker({
             <>
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                 {media.map((item) => (
-                  <button
-                    type="button"
-                    key={item.id}
-                    onClick={() => {
-                      onSelect(item);
-                      onClose();
-                    }}
-                    className="group relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-[#B07D3A] transition-colors bg-gray-100"
-                  >
-                    {item.mimeType.startsWith("video/") ? (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-900">
-                        <Film size={24} className="text-white/60" />
-                      </div>
-                    ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.filePath}
-                        alt={item.alt || item.fileName}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                    <div className="absolute inset-x-0 bottom-0 bg-black/60 px-1.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <p className="text-[10px] text-white truncate">
-                        {item.fileName}
-                      </p>
+                  <div key={item.id} className="group relative">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (renaming?.id === item.id) return;
+                        onSelect(item);
+                        onClose();
+                      }}
+                      className="w-full aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-[#B07D3A] transition-colors bg-gray-100"
+                    >
+                      {item.mimeType.startsWith("video/") ? (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-900">
+                          <Film size={24} className="text-white/60" />
+                        </div>
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={item.filePath}
+                          alt={item.alt || item.fileName}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </button>
+                    {/* Filename + rename */}
+                    <div className="absolute inset-x-0 bottom-0 bg-black/60 px-1.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity rounded-b-lg">
+                      {renaming?.id === item.id ? (
+                        <form
+                          onSubmit={(e) => { e.preventDefault(); handleRename(); }}
+                          className="flex items-center gap-1"
+                        >
+                          <input
+                            type="text"
+                            value={renaming.name}
+                            onChange={(e) => setRenaming({ ...renaming, name: e.target.value })}
+                            className="flex-1 min-w-0 px-1 py-0.5 text-[10px] bg-white/90 text-gray-900 rounded"
+                            autoFocus
+                            onKeyDown={(e) => { if (e.key === "Escape") setRenaming(null); }}
+                          />
+                          <button
+                            type="submit"
+                            disabled={renameSaving}
+                            className="p-0.5 text-green-400 hover:text-green-300"
+                          >
+                            <Check size={12} />
+                          </button>
+                        </form>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <p className="text-[10px] text-white truncate flex-1">
+                            {item.fileName}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Strip extension for easier editing
+                              const dot = item.fileName.lastIndexOf(".");
+                              const stem = dot > 0 ? item.fileName.slice(0, dot) : item.fileName;
+                              setRenaming({ id: item.id, name: stem });
+                            }}
+                            className="p-0.5 text-white/70 hover:text-white shrink-0"
+                          >
+                            <Pencil size={10} />
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
               {totalPages > 1 && (
