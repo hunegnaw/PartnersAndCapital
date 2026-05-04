@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { LogIn, Menu, X } from "lucide-react";
+import { useOrganization } from "@/components/providers/organization-provider";
 
 interface NavLink {
   href: string;
@@ -19,6 +20,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { data: session } = useSession();
+  const org = useOrganization();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,6 +32,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
   }, []);
 
   const solid = !transparent || scrolled;
+  const btnColor = solid ? org.secondaryColor : "#ffffff";
 
   const logoHref = session?.user
     ? (session.user as { role?: string }).role === "ADMIN"
@@ -73,7 +76,21 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
         <div className="hidden md:block">
           <Link
             href="/login"
-            className="border border-[#B07D3A] text-[#B07D3A] hover:bg-[#B07D3A] hover:text-white px-4 py-1.5 rounded text-sm flex items-center gap-2 transition-colors"
+            className="px-4 py-1.5 rounded text-sm flex items-center gap-2 transition-colors"
+            style={{
+              borderWidth: 1,
+              borderStyle: "solid",
+              borderColor: btnColor,
+              color: btnColor,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = btnColor;
+              e.currentTarget.style.color = "#ffffff";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = btnColor;
+            }}
           >
             <LogIn className="h-4 w-4" />
             Investor Login
@@ -110,7 +127,13 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
           ))}
           <Link
             href="/login"
-            className="border border-[#B07D3A] text-[#B07D3A] hover:bg-[#B07D3A] hover:text-white px-4 py-1.5 rounded text-sm inline-flex items-center gap-2 transition-colors"
+            className="px-4 py-1.5 rounded text-sm inline-flex items-center gap-2 transition-colors"
+            style={{
+              borderWidth: 1,
+              borderStyle: "solid",
+              borderColor: org.secondaryColor,
+              color: org.secondaryColor,
+            }}
             onClick={() => setMobileOpen(false)}
           >
             <LogIn className="h-4 w-4" />
