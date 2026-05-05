@@ -568,8 +568,30 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <ImageField label="Poster Image" field="posterImageUrl" {...ifp} />
           <InputField label="Tagline" field="tagline" placeholder="e.g. Private Markets · Alternative Investments" {...fp} />
           <div>
-            <InputField label="Heading" field="heading" {...fp} />
-            <p className="mt-1 text-xs text-gray-400">Use *asterisks* for italic gold text, newlines for line breaks</p>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Heading</label>
+            <div className="space-y-2">
+              {[0, 1, 2].map((lineIdx) => {
+                const lines = ((props.heading as string) || "").split("\n");
+                return (
+                  <input
+                    key={lineIdx}
+                    type="text"
+                    value={lines[lineIdx] || ""}
+                    onChange={(e) => {
+                      const current = ((props.heading as string) || "").split("\n");
+                      while (current.length < 3) current.push("");
+                      current[lineIdx] = e.target.value;
+                      // Trim trailing empty lines
+                      while (current.length > 1 && current[current.length - 1] === "") current.pop();
+                      updateProp("heading", current.join("\n"));
+                    }}
+                    placeholder={`Line ${lineIdx + 1}`}
+                    className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
+                  />
+                );
+              })}
+            </div>
+            <p className="mt-1 text-xs text-gray-400">Wrap text in **double asterisks** for italic gold text</p>
           </div>
           <InputField label="Subtitle" field="subheading" {...fp} />
           <InputField label="Primary CTA Text" field="ctaText" {...fp} />
@@ -877,7 +899,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="Tagline" field="tagline" {...fp} />
           <div>
             <InputField label="Heading" field="heading" {...fp} />
-            <p className="mt-1 text-xs text-gray-400">Use *asterisks* for italic gold text</p>
+            <p className="mt-1 text-xs text-gray-400">Wrap text in **double asterisks** for italic gold text</p>
           </div>
           <InputField label="Subtitle" field="subtitle" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
@@ -943,7 +965,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               value={(props.quote as string) || ""}
               onChange={(e) => updateProp("quote", e.target.value)}
               rows={4}
-              placeholder="Use *asterisks* for italic gold text"
+              placeholder="Wrap text in **double asterisks** for italic gold text"
               className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
             />
           </div>
@@ -1008,7 +1030,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="Tagline" field="tagline" {...fp} />
           <div>
             <InputField label="Heading" field="heading" {...fp} />
-            <p className="mt-1 text-xs text-gray-400">Use *asterisks* for italic gold text</p>
+            <p className="mt-1 text-xs text-gray-400">Wrap text in **double asterisks** for italic gold text</p>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
@@ -1078,7 +1100,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="Tagline" field="tagline" {...fp} />
           <div>
             <InputField label="Heading" field="heading" {...fp} />
-            <p className="mt-1 text-xs text-gray-400">Use *asterisks* for italic gold text</p>
+            <p className="mt-1 text-xs text-gray-400">Wrap text in **double asterisks** for italic gold text</p>
           </div>
           <InputField label="Description" field="description" {...fp} />
           <InputField label="Primary CTA Text" field="ctaText" {...fp} />
