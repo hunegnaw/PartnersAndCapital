@@ -54,9 +54,18 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
         {/* Logo */}
         <Link
           href={logoHref}
-          className="font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 transition-colors hover:border-white/70"
+          className={org.logoUrl ? "block" : "font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 transition-colors hover:border-white/70"}
         >
-          Partners + Capital
+          {org.logoUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={org.logoUrl}
+              alt={org.name}
+              className="h-8 w-auto object-contain"
+            />
+          ) : (
+            org.name || "Partners + Capital"
+          )}
         </Link>
 
         {/* Center nav — desktop */}
