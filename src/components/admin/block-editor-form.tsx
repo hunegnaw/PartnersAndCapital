@@ -566,10 +566,18 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
         <div className="space-y-4">
           <ImageField label="Video URL" field="videoUrl" accept="video" {...ifp} />
           <ImageField label="Poster Image" field="posterImageUrl" {...ifp} />
-          <InputField label="Heading" field="heading" {...fp} />
-          <InputField label="Subheading" field="subheading" {...fp} />
-          <InputField label="CTA Text" field="ctaText" {...fp} />
-          <InputField label="CTA URL" field="ctaUrl" {...fp} />
+          <InputField label="Tagline" field="tagline" placeholder="e.g. Private Markets · Alternative Investments" {...fp} />
+          <div>
+            <InputField label="Heading" field="heading" {...fp} />
+            <p className="mt-1 text-xs text-gray-400">Use *asterisks* for italic gold text, newlines for line breaks</p>
+          </div>
+          <InputField label="Subtitle" field="subheading" {...fp} />
+          <InputField label="Primary CTA Text" field="ctaText" {...fp} />
+          <InputField label="Primary CTA URL" field="ctaUrl" {...fp} />
+          <InputField label="Secondary CTA Text" field="ctaText2" {...fp} />
+          <InputField label="Secondary CTA URL" field="ctaUrl2" {...fp} />
+          <CheckboxField label="Show Dynamic Stats" field="showStats" {...fp} />
+          <InputField label="Scroll Hint Text" field="scrollHintText" {...fp} />
           <RangeField label="Overlay Opacity" field="overlayOpacity" {...fp} />
           <MediaPicker
             open={mediaPicker.open}
@@ -861,6 +869,260 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           />
         </div>
       );
+
+    case "asset_cards": {
+      const cards = (props.cards as { name: string; description: string }[]) || [];
+      return (
+        <div className="space-y-4">
+          <InputField label="Tagline" field="tagline" {...fp} />
+          <div>
+            <InputField label="Heading" field="heading" {...fp} />
+            <p className="mt-1 text-xs text-gray-400">Use *asterisks* for italic gold text</p>
+          </div>
+          <InputField label="Subtitle" field="subtitle" {...fp} />
+          <ColorField label="Background Color" field="backgroundColor" {...fp} />
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-2">
+              Cards
+            </label>
+            {cards.map((card, i) => (
+              <div key={i} className="flex items-start gap-2 mb-2 p-2 border rounded">
+                <div className="flex-1 space-y-1">
+                  <input
+                    type="text"
+                    value={card.name}
+                    onChange={(e) => {
+                      const updated = [...cards];
+                      updated[i] = { ...updated[i], name: e.target.value };
+                      updateProp("cards", updated);
+                    }}
+                    placeholder="Card name"
+                    className="w-full px-2 py-1 text-xs border rounded"
+                  />
+                  <textarea
+                    value={card.description}
+                    onChange={(e) => {
+                      const updated = [...cards];
+                      updated[i] = { ...updated[i], description: e.target.value };
+                      updateProp("cards", updated);
+                    }}
+                    placeholder="Description"
+                    rows={2}
+                    className="w-full px-2 py-1 text-xs border rounded"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => updateProp("cards", cards.filter((_, j) => j !== i))}
+                  className="p-1 text-red-500 hover:bg-red-50 rounded mt-1 shrink-0"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => updateProp("cards", [...cards, { name: "", description: "" }])}
+              className="flex items-center gap-1 text-xs text-[#B07D3A] hover:underline"
+            >
+              <Plus size={12} /> Add Card
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    case "philosophy": {
+      const pillars = (props.pillars as { name: string; description: string }[]) || [];
+      return (
+        <div className="space-y-4">
+          <InputField label="Tagline" field="tagline" {...fp} />
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Quote</label>
+            <textarea
+              value={(props.quote as string) || ""}
+              onChange={(e) => updateProp("quote", e.target.value)}
+              rows={4}
+              placeholder="Use *asterisks* for italic gold text"
+              className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
+            />
+          </div>
+          <InputField label="Attribution" field="attribution" {...fp} />
+          <ColorField label="Background Color" field="backgroundColor" {...fp} />
+          <ColorField label="Text Color" field="textColor" {...fp} />
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-2">
+              Pillars
+            </label>
+            {pillars.map((pillar, i) => (
+              <div key={i} className="flex items-start gap-2 mb-2 p-2 border rounded">
+                <div className="flex-1 space-y-1">
+                  <input
+                    type="text"
+                    value={pillar.name}
+                    onChange={(e) => {
+                      const updated = [...pillars];
+                      updated[i] = { ...updated[i], name: e.target.value };
+                      updateProp("pillars", updated);
+                    }}
+                    placeholder="Pillar name"
+                    className="w-full px-2 py-1 text-xs border rounded"
+                  />
+                  <textarea
+                    value={pillar.description}
+                    onChange={(e) => {
+                      const updated = [...pillars];
+                      updated[i] = { ...updated[i], description: e.target.value };
+                      updateProp("pillars", updated);
+                    }}
+                    placeholder="Description"
+                    rows={2}
+                    className="w-full px-2 py-1 text-xs border rounded"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => updateProp("pillars", pillars.filter((_, j) => j !== i))}
+                  className="p-1 text-red-500 hover:bg-red-50 rounded mt-1 shrink-0"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => updateProp("pillars", [...pillars, { name: "", description: "" }])}
+              className="flex items-center gap-1 text-xs text-[#B07D3A] hover:underline"
+            >
+              <Plus size={12} /> Add Pillar
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    case "process_steps": {
+      const steps = (props.steps as { name: string; description: string }[]) || [];
+      return (
+        <div className="space-y-4">
+          <InputField label="Tagline" field="tagline" {...fp} />
+          <div>
+            <InputField label="Heading" field="heading" {...fp} />
+            <p className="mt-1 text-xs text-gray-400">Use *asterisks* for italic gold text</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-2">
+              Steps
+            </label>
+            {steps.map((step, i) => (
+              <div key={i} className="flex items-start gap-2 mb-2 p-2 border rounded">
+                <div className="flex-1 space-y-1">
+                  <input
+                    type="text"
+                    value={step.name}
+                    onChange={(e) => {
+                      const updated = [...steps];
+                      updated[i] = { ...updated[i], name: e.target.value };
+                      updateProp("steps", updated);
+                    }}
+                    placeholder="Step name"
+                    className="w-full px-2 py-1 text-xs border rounded"
+                  />
+                  <textarea
+                    value={step.description}
+                    onChange={(e) => {
+                      const updated = [...steps];
+                      updated[i] = { ...updated[i], description: e.target.value };
+                      updateProp("steps", updated);
+                    }}
+                    placeholder="Description"
+                    rows={2}
+                    className="w-full px-2 py-1 text-xs border rounded"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => updateProp("steps", steps.filter((_, j) => j !== i))}
+                  className="p-1 text-red-500 hover:bg-red-50 rounded mt-1 shrink-0"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => updateProp("steps", [...steps, { name: "", description: "" }])}
+              className="flex items-center gap-1 text-xs text-[#B07D3A] hover:underline"
+            >
+              <Plus size={12} /> Add Step
+            </button>
+          </div>
+          <div className="border-t pt-4 mt-4">
+            <p className="text-xs font-medium text-gray-700 mb-3">Sidebar Card</p>
+            <div className="space-y-3">
+              <InputField label="Sidebar Tagline" field="sidebarTagline" {...fp} />
+              <InputField label="Sidebar Stat" field="sidebarStat" placeholder="e.g. 28%" {...fp} />
+              <InputField label="Sidebar Label" field="sidebarLabel" {...fp} />
+              <InputField label="Sidebar Quote" field="sidebarQuote" {...fp} />
+              <CheckboxField label="Use Dynamic Stats (avg net return)" field="showDynamicStats" {...fp} />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    case "cta_split": {
+      const bullets = (props.bullets as { text: string }[]) || [];
+      return (
+        <div className="space-y-4">
+          <InputField label="Tagline" field="tagline" {...fp} />
+          <div>
+            <InputField label="Heading" field="heading" {...fp} />
+            <p className="mt-1 text-xs text-gray-400">Use *asterisks* for italic gold text</p>
+          </div>
+          <InputField label="Description" field="description" {...fp} />
+          <InputField label="Primary CTA Text" field="ctaText" {...fp} />
+          <InputField label="Primary CTA URL" field="ctaUrl" {...fp} />
+          <InputField label="Secondary CTA Text" field="ctaText2" {...fp} />
+          <InputField label="Secondary CTA URL" field="ctaUrl2" {...fp} />
+          <ColorField label="Background Color" field="backgroundColor" {...fp} />
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-2">
+              Bullet Points
+            </label>
+            {bullets.map((bullet, i) => (
+              <div key={i} className="flex items-center gap-2 mb-2">
+                <input
+                  type="text"
+                  value={bullet.text}
+                  onChange={(e) => {
+                    const updated = [...bullets];
+                    updated[i] = { text: e.target.value };
+                    updateProp("bullets", updated);
+                  }}
+                  placeholder="Bullet text (use **bold** for emphasis)"
+                  className="flex-1 px-2 py-1 text-xs border rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => updateProp("bullets", bullets.filter((_, j) => j !== i))}
+                  className="p-1 text-red-500 hover:bg-red-50 rounded"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => updateProp("bullets", [...bullets, { text: "" }])}
+              className="flex items-center gap-1 text-xs text-[#B07D3A] hover:underline"
+            >
+              <Plus size={12} /> Add Bullet
+            </button>
+          </div>
+        </div>
+      );
+    }
 
     default:
       return <p className="text-sm text-gray-500">No editor for this block type.</p>;

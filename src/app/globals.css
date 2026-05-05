@@ -164,3 +164,8 @@ body {
   font-weight: var(--font-subtitle-weight, 600);
   font-style: var(--font-subtitle-style, normal);
 }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -239,7 +239,7 @@ The page builder allows admins to create and edit CMS pages using drag-and-drop 
 
 | Type | Description |
 |------|-------------|
-| Hero (Video) | Full-viewport video background with overlay text and CTA |
+| Hero (Video) | Full-viewport video background with left-aligned content, staggered fadeUp animations, tagline, `*italic*` gold heading support, dual CTAs, dynamic stats from database, gold divider, and scroll hint |
 | Hero (Image) | Image background with overlay text and CTA |
 | Text Section | Rich HTML content with configurable width, padding, colors |
 | Logo Gallery | Grid of logos/images with optional grayscale effect and drag-and-drop reordering |
@@ -252,13 +252,17 @@ The page builder allows admins to create and edit CMS pages using drag-and-drop 
 | Image | Single image with alt text and caption |
 | Video Embed | YouTube/Vimeo responsive iframe |
 | Spacer | Vertical spacing (sm/md/lg/xl) |
+| Asset Cards | 4-column grid of asset class cards with numbered layout, gold accents, and navy hover effect |
+| Philosophy | Navy section with large italic serif quote (supports `*italic*` gold text) and pillars sidebar with gold left border |
+| Process Steps | Roman-numeral numbered steps with a sticky navy sidebar card showing stats and quote; optional dynamic stats from database |
+| CTA Split | Two-column CTA layout with heading, description, dual buttons on left and bullet list with gold dots on right |
 
 ### Admin Page Editor
 
 **Page List** (`/admin/pages`): Table showing drag handle, title, slug, status (Draft/Published/Archived), homepage indicator, nav indicator, nav order, blog indicator, block count, last updated, and view (opens in new tab)/edit/delete actions. Pages are sorted by nav order ascending. Drag and drop rows to reorder pages -- the new order is saved automatically and reflected in the public site navigation.
 
 **Create/Edit Page** (`/admin/pages/new`, `/admin/pages/[id]/edit`): Two-column layout with:
-- **Main area:** Title, slug, and block editor with drag-and-drop reordering (@dnd-kit). Add blocks via a picker dialog showing all 13 block types. Each block expands/collapses to show its editor form.
+- **Main area:** Title, slug, and block editor with drag-and-drop reordering (@dnd-kit). Add blocks via a picker dialog showing all 17 block types. Each block expands/collapses to show its editor form.
 - **Sidebar:** Status dropdown, homepage checkbox, blog page checkbox, navigation settings, hero image (via media picker), SEO fields, save button.
 - **Two Column nested blocks:** When editing a Two Column block, each column has its own "Add Block" button and mini block editor. Sub-blocks are stored as arrays (`leftBlocks`/`rightBlocks`) in the block's JSON props. Existing Two Column blocks using `leftContent`/`rightContent` HTML continue to render correctly.
 
@@ -1175,7 +1179,7 @@ Both entries record the admin's user ID and the target client ID.
 - Custom branded date picker component (react-day-picker v9)
 - Public marketing website with header, footer, and newsletter signup
 - Blog system ("Partner Thoughts") with categories, tags, rich text editor, SEO metadata
-- Page builder with 13 drag-and-drop block types and live preview
+- Page builder with 17 drag-and-drop block types and live preview
 - Media library with upload, browse, and picker integration
 - Contact form with rate limiting and email notification
 - Marketing header with transparent-to-solid scroll effect
@@ -1201,3 +1205,7 @@ Both entries record the admin's user ID and the target client ID.
 - SEO-friendly media filenames (slugified original names instead of UUIDs) with in-place rename support
 - Drag-and-drop file upload in media picker (in addition to click-to-upload)
 - Drag-and-drop reordering for logo gallery items in the page block editor
+- Hero video block redesign: left-aligned layout, staggered fadeUp animations, tagline, `*italic*` gold text heading, dual CTAs, dynamic investment stats, gold divider, scroll hint
+- Public stats API (`/api/stats`): total capital deployed, weighted avg net return, asset class count
+- 4 new page builder block types: Asset Cards, Philosophy, Process Steps, CTA Split
+- Shared `parseHeading()` utility for `*italic*` gold text and line break support across blocks

@@ -15,6 +15,7 @@ import {
   ImageIcon,
   Play,
   Minus,
+  ListOrdered,
   X,
 } from "lucide-react";
 
@@ -32,6 +33,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
   ImageIcon,
   Play,
   Minus,
+  ListOrdered,
 };
 
 interface BlockTypePickerProps {

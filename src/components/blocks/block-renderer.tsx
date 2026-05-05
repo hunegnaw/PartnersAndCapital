@@ -11,6 +11,10 @@ import { QuoteBlock } from "./quote-block";
 import { ImageBlock } from "./image-block";
 import { EmbedBlock } from "./embed-block";
 import { SpacerBlock } from "./spacer-block";
+import { AssetCardsBlock } from "./asset-cards-block";
+import { PhilosophyBlock } from "./philosophy-block";
+import { ProcessStepsBlock } from "./process-steps-block";
+import { CtaSplitBlock } from "./cta-split-block";
 
 export const BLOCK_MAP: Record<
   string,
@@ -29,6 +33,10 @@ export const BLOCK_MAP: Record<
   image: ImageBlock,
   embed: EmbedBlock,
   spacer: SpacerBlock,
+  asset_cards: AssetCardsBlock,
+  philosophy: PhilosophyBlock,
+  process_steps: ProcessStepsBlock,
+  cta_split: CtaSplitBlock,
 };
 
 interface Block {
