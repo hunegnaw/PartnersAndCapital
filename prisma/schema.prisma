@@ -748,6 +748,7 @@ model BlogPost {
   authorId     String
   categoryId   String?
   viewCount    Int       @default(0)
+  sortOrder    Int       @default(0)
   readTime     Int?
   isPublished  Boolean   @default(false)
   isDraft      Boolean   @default(true)

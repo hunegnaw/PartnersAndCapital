@@ -34,7 +34,25 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
+  GripVertical,
 } from "lucide-react"
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core"
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 
 interface BlogCategory {
   id: string
@@ -50,9 +68,120 @@ interface BlogPost {
   excerpt: string | null
   isPublished: boolean
   views: number
+  sortOrder: number
   publishedAt: string | null
   createdAt: string
   category: BlogCategory | null
+}
+
+function SortableRow({
+  post,
+  deleting,
+  onDelete,
+}: {
+  post: BlogPost
+  deleting: string | null
+  onDelete: (id: string) => void
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: post.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell className="w-8">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+      </TableCell>
+      <TableCell className="font-medium max-w-[300px]">
+        <div className="truncate">{post.title}</div>
+      </TableCell>
+      <TableCell>
+        {post.category ? (
+          <Badge
+            variant="secondary"
+            style={{
+              backgroundColor: post.category.color
+                ? `${post.category.color}20`
+                : undefined,
+              color: post.category.color || undefined,
+              borderColor: post.category.color || undefined,
+            }}
+            className={post.category.color ? "border" : ""}
+          >
+            {post.category.name}
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground">--</span>
+        )}
+      </TableCell>
+      <TableCell>
+        <Badge
+          variant={post.isPublished ? "default" : "secondary"}
+          className={
+            post.isPublished
+              ? "bg-[#eaf3de] text-[#3b6d11] hover:bg-[#eaf3de]"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-100"
+          }
+        >
+          {post.isPublished ? "Published" : "Draft"}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-center">
+        <div className="flex items-center justify-center gap-1 text-muted-foreground">
+          <Eye className="h-3.5 w-3.5" />
+          {post.views}
+        </div>
+      </TableCell>
+      <TableCell className="hidden md:table-cell">
+        {post.publishedAt ? formatDate(post.publishedAt) : "--"}
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="flex items-center justify-end gap-1">
+          <a
+            href={`/blog/${post.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-gray-100 transition-colors"
+            title="View post"
+          >
+            <ExternalLink className="h-4 w-4 text-gray-600" />
+          </a>
+          <Link
+            href={`/admin/blog/${post.id}/edit`}
+            className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-gray-100 transition-colors"
+          >
+            <Pencil className="h-4 w-4 text-gray-600" />
+          </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete(post.id)}
+            disabled={deleting === post.id}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  )
 }
 
 export default function AdminBlogPage() {
@@ -67,6 +196,13 @@ export default function AdminBlogPage() {
   const [deleting, setDeleting] = useState<string | null>(null)
 
   const totalPages = Math.ceil(total / pageSize)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
   const fetchPosts = useCallback(async () => {
     setLoading(true)
@@ -114,6 +250,36 @@ export default function AdminBlogPage() {
       setError(err instanceof Error ? err.message : "Failed to delete blog post")
     } finally {
       setDeleting(null)
+    }
+  }
+
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const oldIndex = posts.findIndex((p) => p.id === active.id)
+    const newIndex = posts.findIndex((p) => p.id === over.id)
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const reordered = arrayMove(posts, oldIndex, newIndex).map((p, i) => ({
+      ...p,
+      sortOrder: i,
+    }))
+
+    setPosts(reordered)
+
+    try {
+      const res = await fetch("/api/admin/blog/reorder", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          posts: reordered.map((p, i) => ({ id: p.id, sortOrder: i })),
+        }),
+      })
+      if (!res.ok) throw new Error("Failed to save post order")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save post order")
+      fetchPosts()
     }
   }
 
@@ -185,6 +351,7 @@ export default function AdminBlogPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-8"></TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Status</TableHead>
@@ -197,6 +364,7 @@ export default function AdminBlogPage() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
@@ -207,87 +375,32 @@ export default function AdminBlogPage() {
                 ))
               ) : posts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                     {search
                       ? "No blog posts match your search."
                       : "No blog posts yet. Create your first post to get started."}
                   </TableCell>
                 </TableRow>
               ) : (
-                posts.map((post) => (
-                  <TableRow key={post.id}>
-                    <TableCell className="font-medium max-w-[300px]">
-                      <div className="truncate">{post.title}</div>
-                    </TableCell>
-                    <TableCell>
-                      {post.category ? (
-                        <Badge
-                          variant="secondary"
-                          style={{
-                            backgroundColor: post.category.color
-                              ? `${post.category.color}20`
-                              : undefined,
-                            color: post.category.color || undefined,
-                            borderColor: post.category.color || undefined,
-                          }}
-                          className={post.category.color ? "border" : ""}
-                        >
-                          {post.category.name}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">--</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={post.isPublished ? "default" : "secondary"}
-                        className={
-                          post.isPublished
-                            ? "bg-[#eaf3de] text-[#3b6d11] hover:bg-[#eaf3de]"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-100"
-                        }
-                      >
-                        {post.isPublished ? "Published" : "Draft"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1 text-muted-foreground">
-                        <Eye className="h-3.5 w-3.5" />
-                        {post.views}
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {post.publishedAt ? formatDate(post.publishedAt) : "--"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <a
-                          href={`/blog/${post.slug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-gray-100 transition-colors"
-                          title="View post"
-                        >
-                          <ExternalLink className="h-4 w-4 text-gray-600" />
-                        </a>
-                        <Link
-                          href={`/admin/blog/${post.id}/edit`}
-                          className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-gray-100 transition-colors"
-                        >
-                          <Pencil className="h-4 w-4 text-gray-600" />
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(post.id)}
-                          disabled={deleting === post.id}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={posts.map((p) => p.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {posts.map((post) => (
+                      <SortableRow
+                        key={post.id}
+                        post={post}
+                        deleting={deleting}
+                        onDelete={handleDelete}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
               )}
             </TableBody>
           </Table>

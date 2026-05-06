@@ -34,7 +34,7 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
   const [posts, total, categories, tags] = await Promise.all([
     prisma.blogPost.findMany({
       where,
-      orderBy: { publishedAt: "desc" },
+      orderBy: [{ sortOrder: "asc" }, { publishedAt: "desc" }],
       skip: (page - 1) * pageSize,
       take: pageSize,
       include: {
