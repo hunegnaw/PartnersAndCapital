@@ -24,21 +24,21 @@ export const TYPOGRAPHY_CATEGORIES: { key: keyof TypographySettings; label: stri
 
 export const DEFAULT_TYPOGRAPHY: TypographySettings = {
   heroTitle: {
-    fontFamily: "Playfair Display",
-    fontWeight: "700",
+    fontFamily: "Cormorant Garamond",
+    fontWeight: "500",
     fontStyle: "normal",
     color: "#ffffff",
     fontSize: "48px",
   },
   subtitle: {
-    fontFamily: "Open Sans",
-    fontWeight: "600",
+    fontFamily: "Cormorant Garamond",
+    fontWeight: "500",
     fontStyle: "normal",
     color: "#1A2640",
     fontSize: "24px",
   },
   body: {
-    fontFamily: "Open Sans",
+    fontFamily: "Inter",
     fontWeight: "400",
     fontStyle: "normal",
     color: "#333333",
