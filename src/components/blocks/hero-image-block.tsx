@@ -17,6 +17,11 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
   const headingFont = resolveBlockFont((props.headingFont as string) || "");
   const subheadingFont = resolveBlockFont((props.subheadingFont as string) || "");
 
+  const headingColor = (props.headingColor as string) || "";
+  const subheadingColor = (props.subheadingColor as string) || "";
+  const ctaButtonColor = (props.ctaButtonColor as string) || "#B07D3A";
+  const ctaButtonTextColor = (props.ctaButtonTextColor as string) || "#1A2640";
+
   return (
     <section
       className="relative flex items-center justify-center bg-cover bg-center"
@@ -43,6 +48,7 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
               fontStyle: "var(--font-hero-title-style, normal)",
               fontSize: "clamp(48px, 7vw, 88px)",
               ...(headingFont ?? {}),
+              ...(headingColor ? { color: headingColor } : {}),
             }}
             dangerouslySetInnerHTML={{ __html: heading }}
           />
@@ -56,7 +62,7 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
               fontStyle: "var(--font-subtitle-style, italic)",
               fontSize: "clamp(16px, 2vw, 22px)",
               lineHeight: 1.6,
-              color: "rgba(232,213,176,0.65)",
+              color: subheadingColor || "rgba(232,213,176,0.65)",
               ...(subheadingFont ?? {}),
             }}
             dangerouslySetInnerHTML={{ __html: subheading }}
@@ -68,8 +74,8 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
             className="mt-10 inline-block px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] transition hover:brightness-110"
             style={{
               fontFamily: "var(--font-body-family, Inter), sans-serif",
-              backgroundColor: "#B07D3A",
-              color: "#1A2640",
+              backgroundColor: ctaButtonColor,
+              color: ctaButtonTextColor,
             }}
           >
             {ctaText}

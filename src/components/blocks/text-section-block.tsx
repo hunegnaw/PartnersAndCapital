@@ -1,3 +1,5 @@
+import { resolveBlockFont } from "@/lib/block-fonts";
+
 interface TextSectionBlockProps {
   props: Record<string, unknown>;
 }
@@ -28,6 +30,8 @@ export function TextSectionBlock({ props }: TextSectionBlockProps) {
   const backgroundColor = (props.backgroundColor as string) ?? undefined;
   const textColor = (props.textColor as string) ?? undefined;
 
+  const contentFont = resolveBlockFont((props.contentFont as string) || "");
+
   const maxWidthClass = MAX_WIDTH_MAP[maxWidth] ?? "max-w-5xl";
   const paddingYClass = PADDING_Y_MAP[paddingY] ?? "py-16";
 
@@ -41,6 +45,7 @@ export function TextSectionBlock({ props }: TextSectionBlockProps) {
           className="prose prose-lg max-w-none"
           style={{
             fontFamily: "var(--font-body-family, Inter), sans-serif",
+            ...(contentFont ?? {}),
           }}
           dangerouslySetInnerHTML={{ __html: content }}
         />

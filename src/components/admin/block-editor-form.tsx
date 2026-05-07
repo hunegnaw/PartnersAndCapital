@@ -584,6 +584,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <ImageField label="Poster Image" field="posterImageUrl" {...ifp} />
           <InputField label="Tagline" field="tagline" placeholder="e.g. Private Markets · Alternative Investments" {...fp} />
           <FontField label="Tagline Font" field="taglineFont" {...fp} />
+          <ColorField label="Tagline Color" field="taglineColor" {...fp} />
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Heading</label>
             <textarea
@@ -596,15 +597,22 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
             <p className="mt-1 text-xs text-gray-400">Supports HTML. Use &lt;em&gt; for italic gold text, &lt;br&gt; for line breaks, &lt;span class=&quot;block&quot;&gt; for block lines.</p>
           </div>
           <FontField label="Heading Font" field="headingFont" {...fp} />
+          <ColorField label="Heading Color" field="headingColor" {...fp} />
           <InputField label="Subtitle" field="subheading" {...fp} />
           <FontField label="Subtitle Font" field="subheadingFont" {...fp} />
+          <ColorField label="Subtitle Color" field="subheadingColor" {...fp} />
           <InputField label="Primary CTA Text" field="ctaText" {...fp} />
           <InputField label="Primary CTA URL" field="ctaUrl" {...fp} />
+          <ColorField label="Primary CTA Button Color" field="ctaButtonColor" {...fp} />
+          <ColorField label="Primary CTA Text Color" field="ctaButtonTextColor" {...fp} />
           <InputField label="Secondary CTA Text" field="ctaText2" {...fp} />
           <InputField label="Secondary CTA URL" field="ctaUrl2" {...fp} />
+          <ColorField label="Secondary CTA Button Color" field="cta2ButtonColor" {...fp} />
+          <ColorField label="Secondary CTA Text Color" field="cta2ButtonTextColor" {...fp} />
           <CheckboxField label="Show Dynamic Stats" field="showStats" {...fp} />
           <InputField label="Scroll Hint Text" field="scrollHintText" {...fp} />
           <RangeField label="Overlay Opacity" field="overlayOpacity" {...fp} />
+          <ColorField label="Background Color" field="backgroundColor" {...fp} />
           <MediaPicker
             open={mediaPicker.open}
             onClose={() => setMediaPicker({ ...mediaPicker, open: false })}
@@ -620,10 +628,14 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <ImageField label="Background Image" field="imageUrl" {...ifp} />
           <InputField label="Heading" field="heading" {...fp} />
           <FontField label="Heading Font" field="headingFont" {...fp} />
+          <ColorField label="Heading Color" field="headingColor" {...fp} />
           <InputField label="Subheading" field="subheading" {...fp} />
           <FontField label="Subtitle Font" field="subheadingFont" {...fp} />
+          <ColorField label="Subtitle Color" field="subheadingColor" {...fp} />
           <InputField label="CTA Text" field="ctaText" {...fp} />
           <InputField label="CTA URL" field="ctaUrl" {...fp} />
+          <ColorField label="CTA Button Color" field="ctaButtonColor" {...fp} />
+          <ColorField label="CTA Button Text Color" field="ctaButtonTextColor" {...fp} />
           <RangeField label="Overlay Opacity" field="overlayOpacity" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
           <ColorField label="Text Color" field="textColor" {...fp} />
@@ -667,6 +679,9 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       return (
         <div className="space-y-4">
           <RichTextField label="Content" field="content" {...fp} />
+          <FontField label="Content Font" field="contentFont" {...fp} />
+          <ColorField label="Text Color" field="textColor" {...fp} />
+          <ColorField label="Background Color" field="backgroundColor" {...fp} />
           <SelectField
             label="Max Width"
             field="maxWidth"
@@ -679,8 +694,6 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
             ]}
             {...fp}
           />
-          <ColorField label="Background Color" field="backgroundColor" {...fp} />
-          <ColorField label="Text Color" field="textColor" {...fp} />
           <SelectField
             label="Vertical Padding"
             field="paddingY"
@@ -860,6 +873,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
           <ColorField label="Button Color" field="buttonColor" {...fp} />
           <ColorField label="Button Text Color" field="buttonTextColor" {...fp} />
+          <FontField label="Button Font" field="buttonFont" {...fp} />
           <SelectField
             label="Max Width"
             field="maxWidth"
@@ -887,6 +901,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
           <ColorField label="Button Color" field="buttonColor" {...fp} />
           <ColorField label="Button Text Color" field="buttonTextColor" {...fp} />
+          <FontField label="Button Font" field="buttonFont" {...fp} />
           <SelectField
             label="Max Width"
             field="maxWidth"
@@ -1032,6 +1047,10 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="Subtitle" field="subtitle" {...fp} />
           <ColorField label="Subtitle Color" field="subtitleColor" {...fp} />
           <FontField label="Subtitle Font" field="subtitleFont" {...fp} />
+          <ColorField label="Card Name Color" field="cardNameColor" {...fp} />
+          <FontField label="Card Name Font" field="cardNameFont" {...fp} />
+          <ColorField label="Card Description Color" field="cardDescColor" {...fp} />
+          <FontField label="Card Description Font" field="cardDescFont" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
           <SelectField
             label="Max Width"
@@ -1191,6 +1210,8 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       return (
         <div className="space-y-4">
           <InputField label="Tagline" field="tagline" {...fp} />
+          <FontField label="Tagline Font" field="taglineFont" {...fp} />
+          <ColorField label="Tagline Color" field="taglineColor" {...fp} />
           <div>
             <InputField label="Heading" field="heading" {...fp} />
             <p className="mt-1 text-xs text-gray-400">Supports HTML. Use &lt;em&gt; for italic gold text, &lt;br&gt; for line breaks.</p>
@@ -1253,9 +1274,15 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
             <p className="text-xs font-medium text-gray-700 mb-3">Sidebar Card</p>
             <div className="space-y-3">
               <InputField label="Sidebar Tagline" field="sidebarTagline" {...fp} />
+              <ColorField label="Sidebar Tagline Color" field="sidebarTaglineColor" {...fp} />
               <InputField label="Sidebar Stat" field="sidebarStat" placeholder="e.g. 28%" {...fp} />
+              <ColorField label="Sidebar Stat Color" field="sidebarStatColor" {...fp} />
+              <FontField label="Sidebar Stat Font" field="sidebarStatFont" {...fp} />
               <InputField label="Sidebar Label" field="sidebarLabel" {...fp} />
+              <ColorField label="Sidebar Label Color" field="sidebarLabelColor" {...fp} />
               <InputField label="Sidebar Quote" field="sidebarQuote" {...fp} />
+              <ColorField label="Sidebar Quote Color" field="sidebarQuoteColor" {...fp} />
+              <FontField label="Sidebar Quote Font" field="sidebarQuoteFont" {...fp} />
               <CheckboxField label="Use Dynamic Stats (avg net return)" field="showDynamicStats" {...fp} />
               <ColorField label="Sidebar Background" field="sidebarBgColor" {...fp} />
             </div>
@@ -1281,6 +1308,8 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       return (
         <div className="space-y-4">
           <InputField label="Tagline" field="tagline" {...fp} />
+          <FontField label="Tagline Font" field="taglineFont" {...fp} />
+          <ColorField label="Tagline Color" field="taglineColor" {...fp} />
           <div>
             <InputField label="Heading" field="heading" {...fp} />
             <p className="mt-1 text-xs text-gray-400">Supports HTML. Use &lt;em&gt; for italic gold text, &lt;br&gt; for line breaks.</p>
@@ -1296,8 +1325,11 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="Primary CTA URL" field="ctaUrl" {...fp} />
           <ColorField label="CTA Button Color" field="ctaButtonColor" {...fp} />
           <ColorField label="CTA Button Text Color" field="ctaButtonTextColor" {...fp} />
+          <FontField label="CTA Button Font" field="ctaButtonFont" {...fp} />
           <InputField label="Secondary CTA Text" field="ctaText2" {...fp} />
           <InputField label="Secondary CTA URL" field="ctaUrl2" {...fp} />
+          <ColorField label="Secondary CTA Color" field="cta2ButtonColor" {...fp} />
+          <ColorField label="Secondary CTA Text Color" field="cta2ButtonTextColor" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
           <SelectField
             label="Max Width"

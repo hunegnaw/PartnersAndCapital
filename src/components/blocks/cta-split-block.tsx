@@ -24,9 +24,15 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
   const maxWidth = (props.maxWidth as string) ?? "xl";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
+  const taglineColor = (props.taglineColor as string) || "";
+  const cta2ButtonColor = (props.cta2ButtonColor as string) || "";
+  const cta2ButtonTextColor = (props.cta2ButtonTextColor as string) || "";
+
   const headingFont = resolveBlockFont((props.headingFont as string) || "");
   const descriptionFont = resolveBlockFont((props.descriptionFont as string) || "");
   const bulletFont = resolveBlockFont((props.bulletFont as string) || "");
+  const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
+  const ctaButtonFont = resolveBlockFont((props.ctaButtonFont as string) || "");
 
   return (
     <section style={{ backgroundColor }} className="py-24 md:py-28">
@@ -38,7 +44,7 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
               <div className="mb-4 flex items-center gap-3">
                 <span
                   className="inline-block h-px w-6"
-                  style={{ backgroundColor: "var(--font-section-tag-color, #B07D3A)" }}
+                  style={{ backgroundColor: taglineColor || "var(--font-section-tag-color, #B07D3A)" }}
                 />
                 <span
                   className="uppercase tracking-[0.18em]"
@@ -46,7 +52,8 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
                     fontFamily: "var(--font-section-tag-family, Inter), sans-serif",
                     fontSize: "var(--font-section-tag-size, 10px)",
                     fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
-                    color: "var(--font-section-tag-color, #B07D3A)",
+                    color: taglineColor || "var(--font-section-tag-color, #B07D3A)",
+                    ...(taglineFont ?? {}),
                   }}
                 >
                   {tagline}
@@ -91,6 +98,7 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
                       fontFamily: "var(--font-body-family, Inter), sans-serif",
                       backgroundColor: ctaButtonColor,
                       color: ctaButtonTextColor,
+                      ...(ctaButtonFont ?? {}),
                     }}
                   >
                     {ctaText}
@@ -102,8 +110,9 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
                     className="inline-block px-8 py-3.5 text-[11px] font-normal uppercase tracking-[0.12em] transition hover:bg-gray-100"
                     style={{
                       fontFamily: "var(--font-body-family, Inter), sans-serif",
-                      border: "0.5px solid rgba(26,38,64,0.3)",
-                      color: "#2C3E5C",
+                      border: `0.5px solid ${cta2ButtonColor || "rgba(26,38,64,0.3)"}`,
+                      color: cta2ButtonTextColor || "#2C3E5C",
+                      ...(cta2ButtonColor ? { backgroundColor: cta2ButtonColor } : {}),
                     }}
                   >
                     {ctaText2}

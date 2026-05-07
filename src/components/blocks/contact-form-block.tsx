@@ -63,6 +63,7 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
 
   const headingFont = resolveBlockFont((props.headingFont as string) || "");
   const descriptionFont = resolveBlockFont((props.descriptionFont as string) || "");
+  const buttonFont = resolveBlockFont((props.buttonFont as string) || "");
 
   return (
     <section className="py-24" style={{ backgroundColor }}>
@@ -213,6 +214,7 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
               fontFamily: "var(--font-body-family, Inter), sans-serif",
               backgroundColor: buttonColor,
               color: buttonTextColor,
+              ...(buttonFont ?? {}),
             }}
           >
             {status === "loading" ? "Sending..." : "Send Message"}

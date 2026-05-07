@@ -34,6 +34,15 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
   const headingFont = resolveBlockFont((props.headingFont as string) || "");
   const subheadingFont = resolveBlockFont((props.subheadingFont as string) || "");
 
+  const taglineColor = (props.taglineColor as string) || "";
+  const headingColor = (props.headingColor as string) || "";
+  const subheadingColor = (props.subheadingColor as string) || "";
+  const ctaButtonColor = (props.ctaButtonColor as string) || "#B07D3A";
+  const ctaButtonTextColor = (props.ctaButtonTextColor as string) || "#1A2640";
+  const cta2ButtonColor = (props.cta2ButtonColor as string) || "";
+  const cta2ButtonTextColor = (props.cta2ButtonTextColor as string) || "";
+  const backgroundColor = (props.backgroundColor as string) || "";
+
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.play().catch(() => {});
@@ -49,7 +58,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
   }, [showStats]);
 
   return (
-    <section className="relative flex min-h-screen items-end overflow-hidden">
+    <section className="relative flex min-h-screen items-end overflow-hidden" style={backgroundColor ? { backgroundColor } : undefined}>
       {/* Background radial gradients */}
       <div
         className="absolute inset-0"
@@ -110,7 +119,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
                   fontFamily: "var(--font-section-tag-family, Inter), sans-serif",
                   fontSize: "var(--font-section-tag-size, 10px)",
                   fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
-                  color: "var(--font-section-tag-color, #B07D3A)",
+                  color: taglineColor || "var(--font-section-tag-color, #B07D3A)",
                   ...(taglineFont ?? {}),
                 }}
               >
@@ -130,6 +139,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
                 fontSize: "clamp(48px, 7vw, 88px)",
                 animation: "fadeUp 0.8s ease 0.25s both",
                 ...(headingFont ?? {}),
+                ...(headingColor ? { color: headingColor } : {}),
               }}
               dangerouslySetInnerHTML={{ __html: heading }}
             />
@@ -145,7 +155,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
                 fontStyle: "var(--font-subtitle-style, italic)",
                 fontSize: "clamp(16px, 2vw, 22px)",
                 lineHeight: 1.6,
-                color: "rgba(232,213,176,0.65)",
+                color: subheadingColor || "rgba(232,213,176,0.65)",
                 animation: "fadeUp 0.8s ease 0.4s both",
                 ...(subheadingFont ?? {}),
               }}
@@ -165,8 +175,8 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
                   className="inline-block px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] transition hover:brightness-110"
                   style={{
                     fontFamily: "var(--font-body-family, Inter), sans-serif",
-                    backgroundColor: "#B07D3A",
-                    color: "#1A2640",
+                    backgroundColor: ctaButtonColor,
+                    color: ctaButtonTextColor,
                   }}
                 >
                   {ctaText}
@@ -178,8 +188,9 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
                   className="inline-block px-8 py-3.5 text-[11px] font-normal uppercase tracking-[0.12em] transition hover:border-[#E8D5B0] hover:text-[#E8D5B0]"
                   style={{
                     fontFamily: "var(--font-body-family, Inter), sans-serif",
-                    border: "0.5px solid rgba(232,213,176,0.4)",
-                    color: "rgba(232,213,176,0.8)",
+                    border: `0.5px solid ${cta2ButtonColor || "rgba(232,213,176,0.4)"}`,
+                    color: cta2ButtonTextColor || "rgba(232,213,176,0.8)",
+                    ...(cta2ButtonColor ? { backgroundColor: cta2ButtonColor } : {}),
                   }}
                 >
                   {ctaText2}

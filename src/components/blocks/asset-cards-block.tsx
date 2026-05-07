@@ -32,9 +32,14 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
     "7xl": "max-w-7xl",
   };
 
+  const cardNameColor = (props.cardNameColor as string) || "";
+  const cardDescColor = (props.cardDescColor as string) || "";
+
   const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
   const headingFont = resolveBlockFont((props.headingFont as string) || "");
   const subtitleFont = resolveBlockFont((props.subtitleFont as string) || "");
+  const cardNameFont = resolveBlockFont((props.cardNameFont as string) || "");
+  const cardDescFont = resolveBlockFont((props.cardDescFont as string) || "");
 
   return (
     <section style={{ backgroundColor }} className="py-24 md:py-28">
@@ -98,7 +103,7 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
           style={{ gap: "1px", backgroundColor: "rgba(26,38,64,0.1)" }}
         >
           {cards.map((card, i) => (
-            <AssetCard key={i} card={card} index={i} />
+            <AssetCard key={i} card={card} index={i} cardNameColor={cardNameColor} cardDescColor={cardDescColor} cardNameFont={cardNameFont} cardDescFont={cardDescFont} />
           ))}
         </div>
       </div>
@@ -109,9 +114,17 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
 function AssetCard({
   card,
   index,
+  cardNameColor,
+  cardDescColor,
+  cardNameFont,
+  cardDescFont,
 }: {
   card: { name: string; description: string };
   index: number;
+  cardNameColor: string;
+  cardDescColor: string;
+  cardNameFont: import("react").CSSProperties | null;
+  cardDescFont: import("react").CSSProperties | null;
 }) {
   const [hovered, setHovered] = useState(false);
 
@@ -150,7 +163,8 @@ function AssetCard({
           fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
           fontSize: "22px",
           fontWeight: 500,
-          color: hovered ? "#E8D5B0" : "#1A2640",
+          color: hovered ? "#E8D5B0" : (cardNameColor || "#1A2640"),
+          ...(cardNameFont ?? {}),
         }}
       >
         {card.name}
@@ -163,7 +177,8 @@ function AssetCard({
           fontFamily: "var(--font-body-family, Inter), sans-serif",
           fontSize: "12px",
           fontWeight: 300,
-          color: hovered ? "rgba(255,255,255,0.55)" : "#888780",
+          color: hovered ? "rgba(255,255,255,0.55)" : (cardDescColor || "#888780"),
+          ...(cardDescFont ?? {}),
         }}
       >
         {card.description}

@@ -36,12 +36,20 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
   const stepNameColor = (props.stepNameColor as string) || "#1A2640";
   const stepDescColor = (props.stepDescColor as string) || "#888780";
   const sidebarBgColor = (props.sidebarBgColor as string) || "#1A2640";
+  const taglineColor = (props.taglineColor as string) || "";
+  const sidebarTaglineColor = (props.sidebarTaglineColor as string) || "";
+  const sidebarStatColor = (props.sidebarStatColor as string) || "#E8D5B0";
+  const sidebarLabelColor = (props.sidebarLabelColor as string) || "";
+  const sidebarQuoteColor = (props.sidebarQuoteColor as string) || "";
   const maxWidth = (props.maxWidth as string) ?? "xl";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
   const headingFont = resolveBlockFont((props.headingFont as string) || "");
   const stepNameFont = resolveBlockFont((props.stepNameFont as string) || "");
   const stepDescFont = resolveBlockFont((props.stepDescFont as string) || "");
+  const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
+  const sidebarStatFont = resolveBlockFont((props.sidebarStatFont as string) || "");
+  const sidebarQuoteFont = resolveBlockFont((props.sidebarQuoteFont as string) || "");
 
   return (
     <section className="py-24 md:py-28" style={{ backgroundColor }}>
@@ -52,7 +60,7 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
             <div className="mb-4 flex items-center gap-3">
               <span
                 className="inline-block h-px w-6"
-                style={{ backgroundColor: "var(--font-section-tag-color, #B07D3A)" }}
+                style={{ backgroundColor: taglineColor || "var(--font-section-tag-color, #B07D3A)" }}
               />
               <span
                 className="uppercase tracking-[0.18em]"
@@ -60,7 +68,8 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
                   fontFamily: "var(--font-section-tag-family, Inter), sans-serif",
                   fontSize: "var(--font-section-tag-size, 10px)",
                   fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
-                  color: "var(--font-section-tag-color, #B07D3A)",
+                  color: taglineColor || "var(--font-section-tag-color, #B07D3A)",
+                  ...(taglineFont ?? {}),
                 }}
               >
                 {tagline}
@@ -143,7 +152,7 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
                     fontFamily: "var(--font-section-tag-family, Inter), sans-serif",
                     fontSize: "10px",
                     fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
-                    color: "#B07D3A",
+                    color: sidebarTaglineColor || "#B07D3A",
                   }}
                 >
                   {sidebarTagline}
@@ -156,7 +165,8 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
                     fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif",
                     fontSize: "64px",
                     fontWeight: 300,
-                    color: "#E8D5B0",
+                    color: sidebarStatColor,
+                    ...(sidebarStatFont ?? {}),
                   }}
                 >
                   {displayStat}
@@ -169,7 +179,7 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
                     fontFamily: "var(--font-body-family, Inter), sans-serif",
                     fontSize: "11px",
                     fontWeight: 300,
-                    color: "rgba(255,255,255,0.4)",
+                    color: sidebarLabelColor || "rgba(255,255,255,0.4)",
                   }}
                 >
                   {sidebarLabel}
@@ -183,7 +193,8 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
                     fontSize: "20px",
                     fontWeight: 300,
                     fontStyle: "italic",
-                    color: "rgba(232,213,176,0.8)",
+                    color: sidebarQuoteColor || "rgba(232,213,176,0.8)",
+                    ...(sidebarQuoteFont ?? {}),
                   }}
                 >
                   &ldquo;{sidebarQuote}&rdquo;
