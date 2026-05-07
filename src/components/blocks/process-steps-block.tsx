@@ -57,7 +57,7 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
           )}
           {heading && (
             <h2
-              className="leading-[1.15]"
+              className="heading-light leading-[1.15]"
               style={{
                 fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
                 fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,

@@ -46,7 +46,7 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
             )}
             {quote && (
               <blockquote
-                className="leading-[1.3]"
+                className="quote-accent leading-[1.3]"
                 style={{
                   fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif",
                   fontWeight: 300,

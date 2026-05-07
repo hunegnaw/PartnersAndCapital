@@ -13,10 +13,19 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
   const cards =
     (props.cards as { name: string; description: string }[]) ?? [];
   const backgroundColor = (props.backgroundColor as string) || "#F5F3EE";
+  const maxWidth = (props.maxWidth as string) ?? "7xl";
+
+  const maxWidthClass: Record<string, string> = {
+    "4xl": "max-w-4xl",
+    "5xl": "max-w-5xl",
+    "6xl": "max-w-6xl",
+    "7xl": "max-w-7xl",
+    full: "max-w-full",
+  };
 
   return (
     <section style={{ backgroundColor }} className="py-24 md:py-28">
-      <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-16">
+      <div className={`mx-auto ${maxWidthClass[maxWidth] ?? "max-w-7xl"} px-6 md:px-12 lg:px-16`}>
         {/* Header */}
         <div className="mb-14">
           {tagline && (
@@ -40,7 +49,7 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
           )}
           {heading && (
             <h2
-              className="leading-[1.15]"
+              className="heading-light leading-[1.15]"
               style={{
                 fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
                 fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,

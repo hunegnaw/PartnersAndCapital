@@ -31,7 +31,7 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
       <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
         {heading && (
           <h1
-            className="leading-[1.05] tracking-tight text-white"
+            className="heading-dark leading-[1.05] tracking-tight text-white"
             style={{
               fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif",
               fontWeight: "var(--font-hero-title-weight, 300)" as unknown as number,

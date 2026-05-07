@@ -42,7 +42,7 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
             )}
             {heading && (
               <h2
-                className="leading-[1.15] mb-4"
+                className="heading-light leading-[1.15] mb-4"
                 style={{
                   fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
                   fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,

@@ -576,7 +576,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               rows={4}
               className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50 resize-y"
             />
-            <p className="mt-1 text-xs text-gray-400">Each line renders on its own row. Wrap text in **double asterisks** for italic gold text.</p>
+            <p className="mt-1 text-xs text-gray-400">Supports HTML. Use &lt;em&gt; for italic gold text, &lt;br&gt; for line breaks, &lt;span class=&quot;block&quot;&gt; for block lines.</p>
           </div>
           <InputField label="Subtitle" field="subheading" {...fp} />
           <InputField label="Primary CTA Text" field="ctaText" {...fp} />
@@ -884,10 +884,24 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="Tagline" field="tagline" {...fp} />
           <div>
             <InputField label="Heading" field="heading" {...fp} />
-            <p className="mt-1 text-xs text-gray-400">Wrap text in **double asterisks** for italic gold text</p>
+            <p className="mt-1 text-xs text-gray-400">Supports HTML. Use &lt;em&gt; for italic gold text, &lt;br&gt; for line breaks.</p>
           </div>
           <InputField label="Subtitle" field="subtitle" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Max Width</label>
+            <select
+              value={(props.maxWidth as string) || "7xl"}
+              onChange={(e) => updateProp("maxWidth", e.target.value)}
+              className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
+            >
+              <option value="4xl">4xl (896px)</option>
+              <option value="5xl">5xl (1024px)</option>
+              <option value="6xl">6xl (1152px)</option>
+              <option value="7xl">7xl (1280px)</option>
+              <option value="full">Full Width</option>
+            </select>
+          </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
               Cards
@@ -950,7 +964,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               value={(props.quote as string) || ""}
               onChange={(e) => updateProp("quote", e.target.value)}
               rows={4}
-              placeholder="Wrap text in **double asterisks** for italic gold text"
+              placeholder="Use &lt;em&gt; for italic gold text"
               className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
             />
           </div>
@@ -1015,7 +1029,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="Tagline" field="tagline" {...fp} />
           <div>
             <InputField label="Heading" field="heading" {...fp} />
-            <p className="mt-1 text-xs text-gray-400">Wrap text in **double asterisks** for italic gold text</p>
+            <p className="mt-1 text-xs text-gray-400">Supports HTML. Use &lt;em&gt; for italic gold text, &lt;br&gt; for line breaks.</p>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
@@ -1085,7 +1099,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="Tagline" field="tagline" {...fp} />
           <div>
             <InputField label="Heading" field="heading" {...fp} />
-            <p className="mt-1 text-xs text-gray-400">Wrap text in **double asterisks** for italic gold text</p>
+            <p className="mt-1 text-xs text-gray-400">Supports HTML. Use &lt;em&gt; for italic gold text, &lt;br&gt; for line breaks.</p>
           </div>
           <InputField label="Description" field="description" {...fp} />
           <InputField label="Primary CTA Text" field="ctaText" {...fp} />

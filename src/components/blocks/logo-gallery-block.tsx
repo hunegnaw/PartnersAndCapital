@@ -29,7 +29,7 @@ export function LogoGalleryBlock({ props }: LogoGalleryBlockProps) {
       <div className="mx-auto max-w-6xl px-6 md:px-12 lg:px-16">
         {heading && (
           <h2
-            className="mb-14 text-center leading-[1.15]"
+            className="heading-light mb-14 text-center leading-[1.15]"
             style={{
               fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
               fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
