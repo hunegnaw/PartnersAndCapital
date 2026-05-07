@@ -1,5 +1,7 @@
 "use client";
 
+import { parseFontValue, buildFontValue } from "@/lib/block-fonts";
+
 interface FontFieldProps {
   label: string;
   field: string;
@@ -7,32 +9,65 @@ interface FontFieldProps {
   updateProp: (key: string, value: unknown) => void;
 }
 
-const FONT_OPTIONS = [
+const FAMILY_OPTIONS = [
   { value: "", label: "Default" },
-  { value: "heroTitle", label: "Hero Title Font" },
-  { value: "sectionHeading", label: "Section Heading Font" },
-  { value: "sectionTag", label: "Tag Font" },
-  { value: "subtitle", label: "Subtitle Font" },
-  { value: "body", label: "Body Font" },
+  { value: "heroTitle", label: "Hero Title" },
+  { value: "sectionHeading", label: "Section Heading" },
+  { value: "sectionTag", label: "Tag" },
+  { value: "subtitle", label: "Subtitle" },
+  { value: "body", label: "Body" },
+];
+
+const STYLE_OPTIONS = [
+  { value: "", label: "Default" },
+  { value: "light", label: "Light" },
+  { value: "light-italic", label: "Light Italic" },
+  { value: "regular", label: "Regular" },
+  { value: "italic", label: "Italic" },
+  { value: "medium", label: "Medium" },
+  { value: "medium-italic", label: "Medium Italic" },
+  { value: "semibold", label: "Semi-Bold" },
+  { value: "semibold-italic", label: "Semi-Bold Italic" },
+  { value: "bold", label: "Bold" },
+  { value: "bold-italic", label: "Bold Italic" },
 ];
 
 export function FontField({ label, field, props, updateProp }: FontFieldProps) {
+  const raw = (props[field] as string) || "";
+  const { family, style } = parseFontValue(raw);
+
+  const setFamily = (f: string) => updateProp(field, buildFontValue(f, style));
+  const setStyle = (s: string) => updateProp(field, buildFontValue(family, s));
+
   return (
     <div>
       <label className="block text-xs font-medium text-gray-700 mb-1">
         {label}
       </label>
-      <select
-        value={(props[field] as string) || ""}
-        onChange={(e) => updateProp(field, e.target.value)}
-        className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
-      >
-        {FONT_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+      <div className="flex gap-2">
+        <select
+          value={family}
+          onChange={(e) => setFamily(e.target.value)}
+          className="flex-1 px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
+        >
+          {FAMILY_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={style}
+          onChange={(e) => setStyle(e.target.value)}
+          className="flex-1 px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
+        >
+          {STYLE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }
