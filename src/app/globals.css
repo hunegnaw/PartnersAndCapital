@@ -160,8 +160,8 @@ body {
   font-style: var(--font-section-heading-style, normal);
 }
 
-.marketing-typography p,
-.marketing-typography span,
+.marketing-typography p:not(.subtitle-font),
+.marketing-typography span:not(.subtitle-font),
 .marketing-typography li,
 .marketing-typography a {
   font-family: var(--font-body-family, inherit) !important;
