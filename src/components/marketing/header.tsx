@@ -33,6 +33,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
 
   const solid = !transparent || scrolled;
   const btnColor = solid ? org.secondaryColor : "#ffffff";
+  const currentLogo = solid ? (org.logoScrolledUrl || org.logoUrl) : org.logoUrl;
 
   const logoHref = session?.user
     ? (session.user as { role?: string }).role === "ADMIN"
@@ -54,12 +55,12 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
         {/* Logo */}
         <Link
           href={logoHref}
-          className={org.logoUrl ? "block" : "font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 transition-colors hover:border-white/70"}
+          className={currentLogo ? "block" : "font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 transition-colors hover:border-white/70"}
         >
-          {org.logoUrl ? (
+          {currentLogo ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
-              src={org.logoUrl}
+              src={currentLogo}
               alt={org.name}
               className="h-8 w-auto object-contain"
             />

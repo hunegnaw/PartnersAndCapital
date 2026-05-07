@@ -10,6 +10,7 @@ interface OrgConfig {
   secondaryColor: string;
   accentColor: string;
   logoUrl?: string | null;
+  logoScrolledUrl?: string | null;
   disclaimer?: string | null;
   email?: string | null;
   phone?: string | null;
@@ -46,6 +47,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
           secondaryColor: data.secondaryColor || defaultOrg.secondaryColor,
           accentColor: data.accentColor || defaultOrg.accentColor,
           logoUrl: data.logoUrl,
+          logoScrolledUrl: data.logoScrolledUrl,
           disclaimer: data.disclaimer,
           email: data.email,
           phone: data.phone,

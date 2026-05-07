@@ -159,6 +159,7 @@ model Organization {
   name            String
   legalName       String?
   logoUrl         String?
+  logoScrolledUrl String?
   faviconUrl      String?
   primaryColor    String  @default("#1e3a5f")
   secondaryColor  String  @default("#2563eb")

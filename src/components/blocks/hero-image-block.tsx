@@ -39,9 +39,8 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
               fontWeight: "var(--font-hero-title-weight, 700)" as unknown as number,
               fontStyle: "var(--font-hero-title-style, normal)",
             }}
-          >
-            {heading}
-          </h1>
+            dangerouslySetInnerHTML={{ __html: heading }}
+          />
         )}
         {subheading && (
           <p
@@ -51,9 +50,8 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
               opacity: 0.8,
               fontFamily: "var(--font-subtitle-family, inherit)",
             }}
-          >
-            {subheading}
-          </p>
+            dangerouslySetInnerHTML={{ __html: subheading }}
+          />
         )}
         {ctaText && ctaUrl && (
           <a

@@ -23,9 +23,8 @@ export function PageHero({ title, imageUrl }: PageHeroProps) {
           <h1
             className="text-4xl md:text-5xl lg:text-6xl font-bold text-white text-center px-6 tracking-tight"
             style={titleStyle}
-          >
-            {title}
-          </h1>
+            dangerouslySetInnerHTML={{ __html: title }}
+          />
         </div>
       </div>
     );
@@ -36,9 +35,8 @@ export function PageHero({ title, imageUrl }: PageHeroProps) {
       <h1
         className="text-4xl md:text-5xl lg:text-6xl font-bold text-white text-center px-6 tracking-tight"
         style={titleStyle}
-      >
-        {title}
-      </h1>
+        dangerouslySetInnerHTML={{ __html: title }}
+      />
     </div>
   );
 }

@@ -41,6 +41,7 @@ interface Organization {
   name: string
   legalName: string | null
   logoUrl: string | null
+  logoScrolledUrl: string | null
   faviconUrl: string | null
   primaryColor: string | null
   secondaryColor: string | null
@@ -67,6 +68,7 @@ export default function AdminSettingsPage() {
   const [name, setName] = useState("")
   const [legalName, setLegalName] = useState("")
   const [logoUrl, setLogoUrl] = useState("")
+  const [logoScrolledUrl, setLogoScrolledUrl] = useState("")
   const [faviconUrl, setFaviconUrl] = useState("")
   const [primaryColor, setPrimaryColor] = useState("")
   const [secondaryColor, setSecondaryColor] = useState("")
@@ -81,6 +83,7 @@ export default function AdminSettingsPage() {
   const [twoFactorPolicy, setTwoFactorPolicy] = useState("")
   const [typography, setTypography] = useState<TypographySettings>(DEFAULT_TYPOGRAPHY)
   const [logoPickerOpen, setLogoPickerOpen] = useState(false)
+  const [logoScrolledPickerOpen, setLogoScrolledPickerOpen] = useState(false)
   const [faviconPickerOpen, setFaviconPickerOpen] = useState(false)
 
   useEffect(() => {
@@ -93,6 +96,7 @@ export default function AdminSettingsPage() {
         setName(data.name || "")
         setLegalName(data.legalName || "")
         setLogoUrl(data.logoUrl || "")
+        setLogoScrolledUrl(data.logoScrolledUrl || "")
         setFaviconUrl(data.faviconUrl || "")
         setPrimaryColor(data.primaryColor || "")
         setSecondaryColor(data.secondaryColor || "")
@@ -131,6 +135,7 @@ export default function AdminSettingsPage() {
           name,
           legalName: legalName || null,
           logoUrl: logoUrl || null,
+          logoScrolledUrl: logoScrolledUrl || null,
           faviconUrl: faviconUrl || null,
           primaryColor: primaryColor || null,
           secondaryColor: secondaryColor || null,
@@ -272,6 +277,36 @@ export default function AdminSettingsPage() {
                 )}
               </div>
               <div className="grid gap-2">
+                <Label htmlFor="org-logo-scrolled">Logo (Scrolled)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="org-logo-scrolled"
+                    value={logoScrolledUrl}
+                    onChange={(e) => setLogoScrolledUrl(e.target.value)}
+                    placeholder="Logo shown on scrolled header"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setLogoScrolledPickerOpen(true)}
+                    title="Browse media library"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+                {logoScrolledUrl && (
+                  <div className="mt-1 p-2 border rounded bg-[#1A2640]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={logoScrolledUrl} alt="Scrolled logo preview" className="max-h-12 object-contain" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-2">
                 <Label htmlFor="org-favicon">Favicon URL</Label>
                 <div className="flex gap-2">
                   <Input
@@ -304,6 +339,12 @@ export default function AdminSettingsPage() {
               open={logoPickerOpen}
               onClose={() => setLogoPickerOpen(false)}
               onSelect={(media) => setLogoUrl(media.filePath)}
+              accept="image"
+            />
+            <MediaPicker
+              open={logoScrolledPickerOpen}
+              onClose={() => setLogoScrolledPickerOpen(false)}
+              onSelect={(media) => setLogoScrolledUrl(media.filePath)}
               accept="image"
             />
             <MediaPicker

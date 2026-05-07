@@ -1,8 +1,6 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { parseHeading } from "@/lib/parse-heading";
-
 interface HeroVideoBlockProps {
   props: Record<string, unknown>;
 }
@@ -119,9 +117,8 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
                 animation: "fadeUp 0.7s ease both",
                 animationDelay: "0.25s",
               }}
-            >
-              {parseHeading(heading)}
-            </h1>
+              dangerouslySetInnerHTML={{ __html: heading }}
+            />
           )}
 
           {/* Subtitle */}
@@ -133,9 +130,8 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
                 animation: "fadeUp 0.7s ease both",
                 animationDelay: "0.4s",
               }}
-            >
-              {subheading}
-            </p>
+              dangerouslySetInnerHTML={{ __html: subheading }}
+            />
           )}
 
           {/* CTA Buttons */}
