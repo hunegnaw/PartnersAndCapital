@@ -6,6 +6,7 @@ export function ImageBlock({ props }: ImageBlockProps) {
   const src = (props.imageUrl as string) ?? (props.src as string) ?? "";
   const alt = (props.alt as string) ?? "";
   const caption = (props.caption as string) ?? "";
+  const captionColor = (props.captionColor as string) || "#6b7280";
   const maxWidth = (props.maxWidth as string) ?? "md";
 
   const maxWidthMap: Record<string, string> = {
@@ -35,7 +36,7 @@ export function ImageBlock({ props }: ImageBlockProps) {
             className="mx-auto h-auto w-full rounded-lg"
           />
           {caption && (
-            <figcaption className="mt-3 text-sm text-gray-500">
+            <figcaption className="mt-3 text-sm" style={{ color: captionColor }}>
               {caption}
             </figcaption>
           )}

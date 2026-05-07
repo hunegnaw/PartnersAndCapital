@@ -18,16 +18,18 @@ const COLUMNS_MAP: Record<number, string> = {
 
 export function LogoGalleryBlock({ props }: LogoGalleryBlockProps) {
   const heading = (props.heading as string) ?? "";
+  const headingColor = (props.headingColor as string) || "";
   const logos = (props.logos as Logo[]) ?? [];
   const columns = (props.columns as number) ?? 4;
   const grayscale = (props.grayscale as boolean) ?? false;
+  const backgroundColor = (props.backgroundColor as string) || undefined;
 
   const columnsClass = COLUMNS_MAP[columns] ?? "grid-cols-2 md:grid-cols-4";
   const maxWidth = (props.maxWidth as string) ?? "lg";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
   return (
-    <section className="py-20">
+    <section className="py-20" style={{ backgroundColor }}>
       <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-6xl"} px-6 md:px-12 lg:px-16`}>
         {heading && (
           <h2
@@ -36,7 +38,7 @@ export function LogoGalleryBlock({ props }: LogoGalleryBlockProps) {
               fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
               fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
               fontSize: "clamp(32px, 4vw, 52px)",
-              color: "var(--font-section-heading-color, #1A2640)",
+              color: headingColor || "var(--font-section-heading-color, #1A2640)",
             }}
             dangerouslySetInnerHTML={{ __html: heading }}
           />

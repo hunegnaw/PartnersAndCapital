@@ -12,6 +12,8 @@ export function StatsBlock({ props }: StatsBlockProps) {
   const stats = (props.stats as Stat[]) ?? [];
   const backgroundColor = (props.backgroundColor as string) ?? "#1A2640";
   const textColor = (props.textColor as string) || "#ffffff";
+  const statValueColor = (props.statValueColor as string) || "#E8D5B0";
+  const statLabelColor = (props.statLabelColor as string) || "#ffffff59";
   const maxWidth = (props.maxWidth as string) ?? "lg";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
@@ -39,7 +41,7 @@ export function StatsBlock({ props }: StatsBlockProps) {
                   fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif",
                   fontSize: "36px",
                   fontWeight: 300,
-                  color: "#E8D5B0",
+                  color: statValueColor,
                 }}
               >
                 {stat.value}
@@ -50,7 +52,7 @@ export function StatsBlock({ props }: StatsBlockProps) {
                   fontFamily: "var(--font-body-family, Inter), sans-serif",
                   fontSize: "10px",
                   fontWeight: 400,
-                  color: "rgba(255,255,255,0.35)",
+                  color: statLabelColor,
                 }}
               >
                 {stat.label}

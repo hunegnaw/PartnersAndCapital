@@ -14,7 +14,11 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
   const ctaUrl2 = (props.ctaUrl2 as string) ?? "";
   const bullets = (props.bullets as { text: string }[]) ?? [];
   const backgroundColor = (props.backgroundColor as string) || "#F5F3EE";
-  const textColor = (props.textColor as string) || "";
+  const headingColor = (props.headingColor as string) || "";
+  const descriptionColor = (props.descriptionColor as string) || "#888780";
+  const bulletColor = (props.bulletColor as string) || "#1A1A18";
+  const ctaButtonColor = (props.ctaButtonColor as string) || "#B07D3A";
+  const ctaButtonTextColor = (props.ctaButtonTextColor as string) || "#1A2640";
   const maxWidth = (props.maxWidth as string) ?? "xl";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
@@ -50,7 +54,7 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
                   fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
                   fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
                   fontStyle: "var(--font-section-heading-style, normal)",
-                  color: textColor || "var(--font-section-heading-color, #1A2640)",
+                  color: headingColor || "var(--font-section-heading-color, #1A2640)",
                   fontSize: "clamp(32px, 4vw, 52px)",
                 }}
                 dangerouslySetInnerHTML={{ __html: heading }}
@@ -63,7 +67,7 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
                   fontFamily: "var(--font-body-family, Inter), sans-serif",
                   fontSize: "13px",
                   fontWeight: 300,
-                  color: "#888780",
+                  color: descriptionColor,
                 }}
               >
                 {description}
@@ -77,8 +81,8 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
                     className="inline-block px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] transition hover:brightness-110"
                     style={{
                       fontFamily: "var(--font-body-family, Inter), sans-serif",
-                      backgroundColor: "#B07D3A",
-                      color: "#1A2640",
+                      backgroundColor: ctaButtonColor,
+                      color: ctaButtonTextColor,
                     }}
                   >
                     {ctaText}
@@ -120,7 +124,7 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
                         fontFamily: "var(--font-body-family, Inter), sans-serif",
                         fontSize: "12px",
                         fontWeight: 300,
-                        color: "#1A1A18",
+                        color: bulletColor,
                       }}
                       dangerouslySetInnerHTML={{ __html: bullet.text }}
                     />

@@ -262,25 +262,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
           </div>
         )}
 
-        {/* Scroll hint — bottom left */}
-        {scrollHintText && (
-          <div className="mt-12 flex items-center gap-3">
-            <span
-              className="inline-block h-px w-10"
-              style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
-            />
-            <span
-              className="uppercase tracking-[0.15em]"
-              style={{
-                fontFamily: "var(--font-body-family, Inter), sans-serif",
-                fontSize: "10px",
-                color: "rgba(255,255,255,0.25)",
-              }}
-            >
-              {scrollHintText}
-            </span>
-          </div>
-        )}
+        {/* Scroll hint — bottom left (hidden when empty) */}
       </div>
 
       {/* Gold divider at bottom */}

@@ -11,6 +11,11 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
   const pillars =
     (props.pillars as { name: string; description: string }[]) ?? [];
   const backgroundColor = (props.backgroundColor as string) || "#1A2640";
+  const taglineColor = (props.taglineColor as string) || "";
+  const quoteColor = (props.quoteColor as string) || "#ffffffe6";
+  const attributionColor = (props.attributionColor as string) || "#ffffff4d";
+  const pillarNameColor = (props.pillarNameColor as string) || "#E8D5B0";
+  const pillarDescColor = (props.pillarDescColor as string) || "#ffffff66";
   const maxWidth = (props.maxWidth as string) ?? "xl";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
@@ -39,7 +44,7 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
                     fontFamily: "var(--font-section-tag-family, Inter), sans-serif",
                     fontSize: "var(--font-section-tag-size, 10px)",
                     fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
-                    color: "var(--font-section-tag-color, #B07D3A)",
+                    color: taglineColor || "var(--font-section-tag-color, #B07D3A)",
                   }}
                 >
                   {tagline}
@@ -54,7 +59,7 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
                   fontWeight: 300,
                   fontStyle: "italic",
                   fontSize: "clamp(28px, 4vw, 48px)",
-                  color: "rgba(255,255,255,0.9)",
+                  color: quoteColor,
                 }}
                 dangerouslySetInnerHTML={{ __html: `\u201c${quote}\u201d` }}
               />
@@ -71,7 +76,7 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
                     fontFamily: "var(--font-body-family, Inter), sans-serif",
                     fontSize: "10px",
                     fontWeight: 400,
-                    color: "rgba(255,255,255,0.3)",
+                    color: attributionColor,
                   }}
                 >
                   {attribution}
@@ -95,7 +100,7 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
                       fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
                       fontSize: "16px",
                       fontWeight: 500,
-                      color: "#E8D5B0",
+                      color: pillarNameColor,
                     }}
                   >
                     {pillar.name}
@@ -106,7 +111,7 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
                       fontFamily: "var(--font-body-family, Inter), sans-serif",
                       fontSize: "11px",
                       fontWeight: 300,
-                      color: "rgba(255,255,255,0.4)",
+                      color: pillarDescColor,
                     }}
                   >
                     {pillar.description}

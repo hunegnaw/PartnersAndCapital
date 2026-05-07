@@ -13,7 +13,9 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
   const cards =
     (props.cards as { name: string; description: string }[]) ?? [];
   const backgroundColor = (props.backgroundColor as string) || "#F5F3EE";
-  const textColor = (props.textColor as string) || "";
+  const taglineColor = (props.taglineColor as string) || "";
+  const headingColor = (props.headingColor as string) || "";
+  const subtitleColor = (props.subtitleColor as string) || "";
   const maxWidth = (props.maxWidth as string) ?? "xl";
 
   const maxWidthClass: Record<string, string> = {
@@ -46,7 +48,7 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
                   fontFamily: "var(--font-section-tag-family, Inter), sans-serif",
                   fontSize: "var(--font-section-tag-size, 10px)",
                   fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
-                  color: textColor || "var(--font-section-tag-color, #B07D3A)",
+                  color: taglineColor || "var(--font-section-tag-color, #B07D3A)",
                 }}
               >
                 {tagline}
@@ -60,7 +62,7 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
                 fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
                 fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
                 fontStyle: "var(--font-section-heading-style, normal)",
-                color: textColor || "var(--font-section-heading-color, #1A2640)",
+                color: headingColor || "var(--font-section-heading-color, #1A2640)",
                 fontSize: "clamp(32px, 4vw, 52px)",
               }}
               dangerouslySetInnerHTML={{ __html: heading }}
@@ -74,7 +76,7 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
                 fontWeight: "var(--font-subtitle-weight, 300)" as unknown as number,
                 fontStyle: "var(--font-subtitle-style, italic)",
                 fontSize: "var(--font-subtitle-size, 18px)",
-                color: "var(--font-subtitle-color, #888780)",
+                color: subtitleColor || "var(--font-subtitle-color, #888780)",
               }}
             >
               {subtitle}

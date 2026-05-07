@@ -10,6 +10,10 @@ export function NewsletterSignupBlock({ props }: NewsletterSignupBlockProps) {
   const heading = (props.heading as string) ?? "Stay Updated";
   const description = (props.description as string) ?? "";
   const backgroundColor = (props.backgroundColor as string) ?? "#1A2640";
+  const headingColor = (props.headingColor as string) || "#ffffff";
+  const descriptionColor = (props.descriptionColor as string) || "#ffffff99";
+  const buttonColor = (props.buttonColor as string) || "#B07D3A";
+  const buttonTextColor = (props.buttonTextColor as string) || "#1A2640";
 
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -57,7 +61,7 @@ export function NewsletterSignupBlock({ props }: NewsletterSignupBlockProps) {
               fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
               fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
               fontSize: "clamp(28px, 3vw, 42px)",
-              color: "#ffffff",
+              color: headingColor,
             }}
           >
             {heading}
@@ -70,7 +74,7 @@ export function NewsletterSignupBlock({ props }: NewsletterSignupBlockProps) {
               fontFamily: "var(--font-body-family, Inter), sans-serif",
               fontSize: "13px",
               fontWeight: 300,
-              color: "rgba(255,255,255,0.6)",
+              color: descriptionColor,
             }}
           >
             {description}
@@ -99,8 +103,8 @@ export function NewsletterSignupBlock({ props }: NewsletterSignupBlockProps) {
             className="w-full shrink-0 px-8 py-2.5 text-[11px] font-medium uppercase tracking-[0.12em] transition hover:brightness-110 disabled:opacity-50 sm:w-auto"
             style={{
               fontFamily: "var(--font-body-family, Inter), sans-serif",
-              backgroundColor: "#B07D3A",
-              color: "#1A2640",
+              backgroundColor: buttonColor,
+              color: buttonTextColor,
             }}
           >
             {status === "loading" ? "Subscribing..." : "Subscribe"}

@@ -30,11 +30,16 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
   }, [showDynamicStats]);
 
   const displayStat = showDynamicStats && dynamicStat ? dynamicStat : sidebarStat;
+  const backgroundColor = (props.backgroundColor as string) || "#ffffff";
+  const headingColor = (props.headingColor as string) || "";
+  const stepNameColor = (props.stepNameColor as string) || "#1A2640";
+  const stepDescColor = (props.stepDescColor as string) || "#888780";
+  const sidebarBgColor = (props.sidebarBgColor as string) || "#1A2640";
   const maxWidth = (props.maxWidth as string) ?? "xl";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
   return (
-    <section className="py-24 md:py-28 bg-white">
+    <section className="py-24 md:py-28" style={{ backgroundColor }}>
       <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-7xl"} px-6 md:px-12 lg:px-16`}>
         {/* Header */}
         <div className="mb-14">
@@ -64,7 +69,7 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
                 fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
                 fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
                 fontStyle: "var(--font-section-heading-style, normal)",
-                color: "var(--font-section-heading-color, #1A2640)",
+                color: headingColor || "var(--font-section-heading-color, #1A2640)",
                 fontSize: "clamp(32px, 4vw, 52px)",
               }}
               dangerouslySetInnerHTML={{ __html: heading }}
@@ -99,7 +104,7 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
                       fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
                       fontSize: "20px",
                       fontWeight: 500,
-                      color: "#1A2640",
+                      color: stepNameColor,
                     }}
                   >
                     {step.name}
@@ -110,7 +115,7 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
                       fontFamily: "var(--font-body-family, Inter), sans-serif",
                       fontSize: "12px",
                       fontWeight: 300,
-                      color: "#888780",
+                      color: stepDescColor,
                     }}
                   >
                     {step.description}
@@ -122,7 +127,7 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
 
           {/* Sidebar card — right */}
           <div className="lg:sticky lg:top-24 lg:self-start">
-            <div className="p-10" style={{ backgroundColor: "#1A2640" }}>
+            <div className="p-10" style={{ backgroundColor: sidebarBgColor }}>
               {sidebarTagline && (
                 <div
                   className="mb-5 uppercase tracking-[0.15em]"

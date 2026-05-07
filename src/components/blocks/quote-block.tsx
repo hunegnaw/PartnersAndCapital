@@ -6,11 +6,15 @@ export function QuoteBlock({ props }: QuoteBlockProps) {
   const quote = (props.text as string) ?? "";
   const attribution = (props.attribution as string) ?? "";
   const role = (props.role as string) ?? "";
+  const quoteColor = (props.quoteColor as string) || "#1A2640e6";
+  const attributionColor = (props.attributionColor as string) || "#1A2640";
+  const roleColor = (props.roleColor as string) || "#888780";
+  const backgroundColor = (props.backgroundColor as string) || undefined;
   const maxWidth = (props.maxWidth as string) ?? "sm";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
   return (
-    <section className="py-20">
+    <section className="py-20" style={{ backgroundColor }}>
       <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-6 md:px-12`}>
         <blockquote
           className="border-l pl-6"
@@ -23,7 +27,7 @@ export function QuoteBlock({ props }: QuoteBlockProps) {
               fontWeight: 300,
               fontStyle: "italic",
               fontSize: "clamp(24px, 3vw, 36px)",
-              color: "rgba(26,38,64,0.9)",
+              color: quoteColor,
             }}
           >
             &ldquo;{quote}&rdquo;
@@ -42,7 +46,7 @@ export function QuoteBlock({ props }: QuoteBlockProps) {
                       fontFamily: "var(--font-body-family, Inter), sans-serif",
                       fontSize: "12px",
                       fontWeight: 500,
-                      color: "#1A2640",
+                      color: attributionColor,
                     }}
                   >
                     {attribution}
@@ -55,7 +59,7 @@ export function QuoteBlock({ props }: QuoteBlockProps) {
                       fontFamily: "var(--font-body-family, Inter), sans-serif",
                       fontSize: "11px",
                       fontWeight: 300,
-                      color: "#888780",
+                      color: roleColor,
                     }}
                   >
                     {role}
