@@ -126,7 +126,7 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
                 <p
                   className="mt-6 border-t border-white/10 pt-6 text-sm italic leading-relaxed"
                   style={{
-                    fontFamily: "Georgia, 'Times New Roman', serif",
+                    fontFamily: "var(--font-hero-title-family, Georgia), serif",
                     color: "rgba(255,255,255,0.6)",
                   }}
                 >

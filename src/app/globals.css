@@ -137,16 +137,17 @@ body {
   }
 }
 
-/* Marketing typography — driven by admin settings */
+/* Marketing typography — driven by admin settings.
+   Uses !important to override Tailwind base layer and body font-family. */
 .marketing-typography {
-  font-family: var(--font-body-family, inherit);
+  font-family: var(--font-body-family, inherit) !important;
   font-weight: var(--font-body-weight, 400);
   font-style: var(--font-body-style, normal);
   color: var(--font-body-color, inherit);
 }
 
 .marketing-typography h1 {
-  font-family: var(--font-hero-title-family, inherit);
+  font-family: var(--font-hero-title-family, inherit) !important;
   font-weight: var(--font-hero-title-weight, 500);
   font-style: var(--font-hero-title-style, normal);
 }
@@ -154,7 +155,7 @@ body {
 .marketing-typography h2,
 .marketing-typography h3,
 .marketing-typography h4 {
-  font-family: var(--font-subtitle-family, inherit);
+  font-family: var(--font-subtitle-family, inherit) !important;
   font-weight: var(--font-subtitle-weight, 600);
   font-style: var(--font-subtitle-style, normal);
 }
@@ -163,15 +164,15 @@ body {
 .marketing-typography span,
 .marketing-typography li,
 .marketing-typography a {
-  font-family: var(--font-body-family, inherit);
+  font-family: var(--font-body-family, inherit) !important;
 }
 
 .marketing-typography .prose {
-  font-family: var(--font-body-family, inherit);
+  font-family: var(--font-body-family, inherit) !important;
 }
 
 .marketing-typography .prose h1 {
-  font-family: var(--font-hero-title-family, inherit);
+  font-family: var(--font-hero-title-family, inherit) !important;
   font-weight: var(--font-hero-title-weight, 500);
   font-style: var(--font-hero-title-style, normal);
 }
@@ -179,7 +180,7 @@ body {
 .marketing-typography .prose h2,
 .marketing-typography .prose h3,
 .marketing-typography .prose h4 {
-  font-family: var(--font-subtitle-family, inherit);
+  font-family: var(--font-subtitle-family, inherit) !important;
   font-weight: var(--font-subtitle-weight, 600);
   font-style: var(--font-subtitle-style, normal);
 }

@@ -129,7 +129,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
             <p
               className="mt-6 max-w-[600px] text-lg italic text-white/70 md:text-xl"
               style={{
-                fontFamily: "Georgia, 'Times New Roman', serif",
+                fontFamily: "var(--font-hero-title-family, Georgia), serif",
                 animation: "fadeUp 0.7s ease both",
                 animationDelay: "0.4s",
               }}

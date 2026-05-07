@@ -47,7 +47,7 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
               <blockquote
                 className="text-2xl leading-relaxed italic md:text-3xl lg:text-4xl"
                 style={{
-                  fontFamily: "Georgia, 'Times New Roman', serif",
+                  fontFamily: "var(--font-hero-title-family, Georgia), serif",
                   color: "rgba(255,255,255,0.9)",
                 }}
               >
