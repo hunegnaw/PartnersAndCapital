@@ -131,7 +131,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
           {/* Subtitle */}
           {subheading && (
             <p
-              className="mt-6 max-w-[600px]"
+              className="subtitle-font mt-6 max-w-[600px]"
               style={{
                 fontFamily: "var(--font-subtitle-family, 'Cormorant Garamond'), serif",
                 fontWeight: "var(--font-subtitle-weight, 300)" as unknown as number,

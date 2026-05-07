@@ -473,6 +473,18 @@ function LogoGalleryEditor({
         {...fp}
       />
       <CheckboxField label="Grayscale" field="grayscale" {...fp} />
+      <SelectField
+        label="Max Width"
+        field="maxWidth"
+        options={[
+          { value: "sm", label: "Small" },
+          { value: "md", label: "Medium" },
+          { value: "lg", label: "Large" },
+          { value: "xl", label: "Extra Large" },
+          { value: "full", label: "Full Width" },
+        ]}
+        {...fp}
+      />
       <div>
         <label className="block text-xs font-medium text-gray-700 mb-2">
           Logos
@@ -650,9 +662,10 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
             label="Max Width"
             field="maxWidth"
             options={[
-              { value: "2xl", label: "Small (2xl)" },
-              { value: "4xl", label: "Medium (4xl)" },
-              { value: "6xl", label: "Large (6xl)" },
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+              { value: "xl", label: "Extra Large" },
               { value: "full", label: "Full Width" },
             ]}
             {...fp}
@@ -682,6 +695,19 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
         <div className="space-y-4">
           <InputField label="Heading" field="heading" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
+          <ColorField label="Text Color" field="textColor" {...fp} />
+          <SelectField
+            label="Max Width"
+            field="maxWidth"
+            options={[
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+              { value: "xl", label: "Extra Large" },
+              { value: "full", label: "Full Width" },
+            ]}
+            {...fp}
+          />
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
               Stats
@@ -743,6 +769,19 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="CTA Text" field="ctaText" {...fp} />
           <InputField label="CTA URL" field="ctaUrl" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
+          <ColorField label="Text Color" field="textColor" {...fp} />
+          <SelectField
+            label="Max Width"
+            field="maxWidth"
+            options={[
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+              { value: "xl", label: "Extra Large" },
+              { value: "full", label: "Full Width" },
+            ]}
+            {...fp}
+          />
         </div>
       );
 
@@ -758,6 +797,18 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               { value: "1/3", label: "1/3" },
               { value: "1/2", label: "1/2" },
               { value: "2/3", label: "2/3" },
+            ]}
+            {...fp}
+          />
+          <SelectField
+            label="Max Width"
+            field="maxWidth"
+            options={[
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+              { value: "xl", label: "Extra Large" },
+              { value: "full", label: "Full Width" },
             ]}
             {...fp}
           />
@@ -782,6 +833,18 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="Description" field="description" {...fp} />
           <CheckboxField label="Show Address" field="showAddress" {...fp} />
           <CheckboxField label="Show Email" field="showEmail" {...fp} />
+          <SelectField
+            label="Max Width"
+            field="maxWidth"
+            options={[
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+              { value: "xl", label: "Extra Large" },
+              { value: "full", label: "Full Width" },
+            ]}
+            {...fp}
+          />
         </div>
       );
 
@@ -794,6 +857,18 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <ColorField label="Text Color" field="textColor" {...fp} />
           <ColorField label="Button Color" field="buttonColor" {...fp} />
           <ColorField label="Button Text Color" field="buttonTextColor" {...fp} />
+          <SelectField
+            label="Max Width"
+            field="maxWidth"
+            options={[
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+              { value: "xl", label: "Extra Large" },
+              { value: "full", label: "Full Width" },
+            ]}
+            {...fp}
+          />
         </div>
       );
 
@@ -813,6 +888,18 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           </div>
           <InputField label="Attribution" field="attribution" {...fp} />
           <InputField label="Role / Title" field="role" {...fp} />
+          <SelectField
+            label="Max Width"
+            field="maxWidth"
+            options={[
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+              { value: "xl", label: "Extra Large" },
+              { value: "full", label: "Full Width" },
+            ]}
+            {...fp}
+          />
         </div>
       );
 
@@ -826,9 +913,10 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
             label="Max Width"
             field="maxWidth"
             options={[
-              { value: "2xl", label: "Small (2xl)" },
-              { value: "4xl", label: "Medium (4xl)" },
-              { value: "6xl", label: "Large (6xl)" },
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+              { value: "xl", label: "Extra Large" },
               { value: "full", label: "Full Width" },
             ]}
             {...fp}
@@ -854,6 +942,18 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               { value: "16/9", label: "16:9" },
               { value: "4/3", label: "4:3" },
               { value: "1/1", label: "1:1" },
+            ]}
+            {...fp}
+          />
+          <SelectField
+            label="Max Width"
+            field="maxWidth"
+            options={[
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+              { value: "xl", label: "Extra Large" },
+              { value: "full", label: "Full Width" },
             ]}
             {...fp}
           />
@@ -888,20 +988,19 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           </div>
           <InputField label="Subtitle" field="subtitle" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Max Width</label>
-            <select
-              value={(props.maxWidth as string) || "7xl"}
-              onChange={(e) => updateProp("maxWidth", e.target.value)}
-              className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
-            >
-              <option value="4xl">4xl (896px)</option>
-              <option value="5xl">5xl (1024px)</option>
-              <option value="6xl">6xl (1152px)</option>
-              <option value="7xl">7xl (1280px)</option>
-              <option value="full">Full Width</option>
-            </select>
-          </div>
+          <ColorField label="Text Color" field="textColor" {...fp} />
+          <SelectField
+            label="Max Width"
+            field="maxWidth"
+            options={[
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+              { value: "xl", label: "Extra Large" },
+              { value: "full", label: "Full Width" },
+            ]}
+            {...fp}
+          />
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
               Cards
@@ -971,6 +1070,18 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="Attribution" field="attribution" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
           <ColorField label="Text Color" field="textColor" {...fp} />
+          <SelectField
+            label="Max Width"
+            field="maxWidth"
+            options={[
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+              { value: "xl", label: "Extra Large" },
+              { value: "full", label: "Full Width" },
+            ]}
+            {...fp}
+          />
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
               Pillars
@@ -1088,6 +1199,18 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
               <CheckboxField label="Use Dynamic Stats (avg net return)" field="showDynamicStats" {...fp} />
             </div>
           </div>
+          <SelectField
+            label="Max Width"
+            field="maxWidth"
+            options={[
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+              { value: "xl", label: "Extra Large" },
+              { value: "full", label: "Full Width" },
+            ]}
+            {...fp}
+          />
         </div>
       );
     }
@@ -1107,6 +1230,19 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <InputField label="Secondary CTA Text" field="ctaText2" {...fp} />
           <InputField label="Secondary CTA URL" field="ctaUrl2" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
+          <ColorField label="Text Color" field="textColor" {...fp} />
+          <SelectField
+            label="Max Width"
+            field="maxWidth"
+            options={[
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+              { value: "xl", label: "Extra Large" },
+              { value: "full", label: "Full Width" },
+            ]}
+            {...fp}
+          />
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
               Bullet Points

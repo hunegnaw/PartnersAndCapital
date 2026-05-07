@@ -94,11 +94,13 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
               color: btnColor,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = btnColor;
+              e.currentTarget.style.backgroundColor = solid ? btnColor : "#B07D3A";
+              e.currentTarget.style.borderColor = solid ? btnColor : "#B07D3A";
               e.currentTarget.style.color = "#ffffff";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.borderColor = btnColor;
               e.currentTarget.style.color = btnColor;
             }}
           >

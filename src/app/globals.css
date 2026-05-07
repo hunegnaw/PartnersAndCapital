@@ -185,6 +185,13 @@ body {
   font-style: var(--font-section-heading-style, normal);
 }
 
+/* Subtitle font override — more specific than .marketing-typography p */
+.marketing-typography .subtitle-font {
+  font-family: var(--font-subtitle-family, 'Cormorant Garamond'), serif !important;
+  font-weight: var(--font-subtitle-weight, 300);
+  font-style: var(--font-subtitle-style, italic);
+}
+
 /* Heading accent: em on light backgrounds → dark gold italic */
 .heading-light em {
   font-style: italic;

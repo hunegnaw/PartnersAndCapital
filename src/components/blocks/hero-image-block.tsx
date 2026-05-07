@@ -43,7 +43,7 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
         )}
         {subheading && (
           <p
-            className="mt-6"
+            className="subtitle-font mt-6"
             style={{
               fontFamily: "var(--font-subtitle-family, 'Cormorant Garamond'), serif",
               fontWeight: "var(--font-subtitle-weight, 300)" as unknown as number,

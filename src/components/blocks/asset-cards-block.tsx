@@ -13,14 +13,20 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
   const cards =
     (props.cards as { name: string; description: string }[]) ?? [];
   const backgroundColor = (props.backgroundColor as string) || "#F5F3EE";
-  const maxWidth = (props.maxWidth as string) ?? "7xl";
+  const textColor = (props.textColor as string) || "";
+  const maxWidth = (props.maxWidth as string) ?? "xl";
 
   const maxWidthClass: Record<string, string> = {
+    sm: "max-w-4xl",
+    md: "max-w-5xl",
+    lg: "max-w-6xl",
+    xl: "max-w-7xl",
+    full: "max-w-full",
+    // legacy keys
     "4xl": "max-w-4xl",
     "5xl": "max-w-5xl",
     "6xl": "max-w-6xl",
     "7xl": "max-w-7xl",
-    full: "max-w-full",
   };
 
   return (
@@ -40,7 +46,7 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
                   fontFamily: "var(--font-section-tag-family, Inter), sans-serif",
                   fontSize: "var(--font-section-tag-size, 10px)",
                   fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
-                  color: "var(--font-section-tag-color, #B07D3A)",
+                  color: textColor || "var(--font-section-tag-color, #B07D3A)",
                 }}
               >
                 {tagline}
@@ -54,7 +60,7 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
                 fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
                 fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
                 fontStyle: "var(--font-section-heading-style, normal)",
-                color: "var(--font-section-heading-color, #1A2640)",
+                color: textColor || "var(--font-section-heading-color, #1A2640)",
                 fontSize: "clamp(32px, 4vw, 52px)",
               }}
               dangerouslySetInnerHTML={{ __html: heading }}

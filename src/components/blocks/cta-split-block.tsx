@@ -14,10 +14,13 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
   const ctaUrl2 = (props.ctaUrl2 as string) ?? "";
   const bullets = (props.bullets as { text: string }[]) ?? [];
   const backgroundColor = (props.backgroundColor as string) || "#F5F3EE";
+  const textColor = (props.textColor as string) || "";
+  const maxWidth = (props.maxWidth as string) ?? "xl";
+  const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
   return (
     <section style={{ backgroundColor }} className="py-24 md:py-28">
-      <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-16">
+      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-7xl"} px-6 md:px-12 lg:px-16`}>
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 lg:items-center">
           {/* Left — CTA content */}
           <div>
@@ -47,7 +50,7 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
                   fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
                   fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
                   fontStyle: "var(--font-section-heading-style, normal)",
-                  color: "var(--font-section-heading-color, #1A2640)",
+                  color: textColor || "var(--font-section-heading-color, #1A2640)",
                   fontSize: "clamp(32px, 4vw, 52px)",
                 }}
                 dangerouslySetInnerHTML={{ __html: heading }}
