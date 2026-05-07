@@ -1,20 +1,7 @@
 "use client";
 
-import { parseHeading } from "@/lib/parse-heading";
-
 interface CtaSplitBlockProps {
   props: Record<string, unknown>;
-}
-
-function parseBulletText(text: string): React.ReactNode {
-  // Convert **bold** to <strong> elements
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={i}>{part.slice(2, -2)}</strong>;
-    }
-    return part;
-  });
 }
 
 export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
@@ -29,20 +16,25 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
   const backgroundColor = (props.backgroundColor as string) || "#F5F3EE";
 
   return (
-    <section style={{ backgroundColor }} className="py-20 md:py-28">
+    <section style={{ backgroundColor }} className="py-24 md:py-28">
       <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-16">
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-20">
+        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 lg:items-center">
           {/* Left — CTA content */}
           <div>
             {tagline && (
               <div className="mb-4 flex items-center gap-3">
                 <span
-                  className="inline-block h-px w-8"
-                  style={{ backgroundColor: "#B07D3A" }}
+                  className="inline-block h-px w-6"
+                  style={{ backgroundColor: "var(--font-section-tag-color, #B07D3A)" }}
                 />
                 <span
-                  className="text-xs font-medium uppercase tracking-[0.2em]"
-                  style={{ color: "#B07D3A" }}
+                  className="uppercase tracking-[0.18em]"
+                  style={{
+                    fontFamily: "var(--font-section-tag-family, Inter), sans-serif",
+                    fontSize: "var(--font-section-tag-size, 10px)",
+                    fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
+                    color: "var(--font-section-tag-color, #B07D3A)",
+                  }}
                 >
                   {tagline}
                 </span>
@@ -50,24 +42,41 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
             )}
             {heading && (
               <h2
-                className="text-3xl font-bold leading-tight md:text-4xl lg:text-5xl"
-                style={{ color: "#1A2640" }}
-              >
-                {parseHeading(heading)}
-              </h2>
+                className="leading-[1.15] mb-4"
+                style={{
+                  fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
+                  fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
+                  fontStyle: "var(--font-section-heading-style, normal)",
+                  color: "var(--font-section-heading-color, #1A2640)",
+                  fontSize: "clamp(32px, 4vw, 52px)",
+                }}
+                dangerouslySetInnerHTML={{ __html: heading }}
+              />
             )}
             {description && (
-              <p className="mt-6 text-lg leading-relaxed text-gray-600">
+              <p
+                className="leading-[1.8]"
+                style={{
+                  fontFamily: "var(--font-body-family, Inter), sans-serif",
+                  fontSize: "13px",
+                  fontWeight: 300,
+                  color: "#888780",
+                }}
+              >
                 {description}
               </p>
             )}
             {(ctaText || ctaText2) && (
-              <div className="mt-10 flex flex-wrap gap-4">
+              <div className="mt-8 flex flex-wrap gap-3">
                 {ctaText && ctaUrl && (
                   <a
                     href={ctaUrl}
-                    className="inline-block rounded-sm px-8 py-3 text-sm font-semibold uppercase tracking-wider text-white transition hover:brightness-110"
-                    style={{ backgroundColor: "#B07D3A" }}
+                    className="inline-block px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] transition hover:brightness-110"
+                    style={{
+                      fontFamily: "var(--font-body-family, Inter), sans-serif",
+                      backgroundColor: "#B07D3A",
+                      color: "#1A2640",
+                    }}
                   >
                     {ctaText}
                   </a>
@@ -75,10 +84,11 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
                 {ctaText2 && ctaUrl2 && (
                   <a
                     href={ctaUrl2}
-                    className="inline-block rounded-sm border px-8 py-3 text-sm font-semibold uppercase tracking-wider transition hover:bg-gray-100"
+                    className="inline-block px-8 py-3.5 text-[11px] font-normal uppercase tracking-[0.12em] transition hover:bg-gray-100"
                     style={{
-                      borderColor: "#1A2640",
-                      color: "#1A2640",
+                      fontFamily: "var(--font-body-family, Inter), sans-serif",
+                      border: "0.5px solid rgba(26,38,64,0.3)",
+                      color: "#2C3E5C",
                     }}
                   >
                     {ctaText2}
@@ -91,22 +101,29 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
           {/* Right — bullet list */}
           {bullets.length > 0 && (
             <div
-              className="border-l-2 pl-8 lg:pl-12"
-              style={{ borderColor: "#E8D5B0" }}
+              className="border-l pl-10 lg:pl-16"
+              style={{ borderColor: "rgba(26,38,64,0.12)" }}
             >
-              <ul className="space-y-5">
+              <div className="flex flex-col gap-4">
                 {bullets.map((bullet, i) => (
-                  <li key={i} className="flex gap-3">
+                  <div key={i} className="flex items-start gap-3.5">
                     <span
-                      className="mt-2 h-2 w-2 shrink-0 rounded-full"
+                      className="mt-1.5 h-1 w-1 shrink-0 rounded-full"
                       style={{ backgroundColor: "#B07D3A" }}
                     />
-                    <span className="text-base leading-relaxed text-gray-700">
-                      {parseBulletText(bullet.text)}
-                    </span>
-                  </li>
+                    <span
+                      className="leading-[1.6]"
+                      style={{
+                        fontFamily: "var(--font-body-family, Inter), sans-serif",
+                        fontSize: "12px",
+                        fontWeight: 300,
+                        color: "#1A1A18",
+                      }}
+                      dangerouslySetInnerHTML={{ __html: bullet.text }}
+                    />
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
         </div>

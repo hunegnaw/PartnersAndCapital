@@ -10,24 +10,42 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
   const backgroundColor = (props.backgroundColor as string) ?? "#1A2640";
 
   return (
-    <section className="py-20" style={{ backgroundColor }}>
+    <section className="py-24" style={{ backgroundColor }}>
       <div className="mx-auto max-w-4xl px-6 text-center">
         {heading && (
           <h2
-            className="text-3xl font-bold text-white"
+            className="leading-[1.15]"
             style={{
-              fontFamily: "var(--font-subtitle-family, inherit)",
-              fontWeight: "var(--font-subtitle-weight, 600)" as unknown as number,
+              fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
+              fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
+              fontSize: "clamp(32px, 4vw, 52px)",
+              color: "#ffffff",
+            }}
+            dangerouslySetInnerHTML={{ __html: heading }}
+          />
+        )}
+        {text && (
+          <p
+            className="mt-4 leading-[1.7]"
+            style={{
+              fontFamily: "var(--font-body-family, Inter), sans-serif",
+              fontSize: "13px",
+              fontWeight: 300,
+              color: "rgba(255,255,255,0.6)",
             }}
           >
-            {heading}
-          </h2>
+            {text}
+          </p>
         )}
-        {text && <p className="mt-4 text-lg text-white/80">{text}</p>}
         {ctaText && ctaUrl && (
           <a
             href={ctaUrl}
-            className="mt-8 inline-block rounded-full bg-white px-8 py-3 text-lg font-semibold text-[#1A2640] transition hover:bg-white/90"
+            className="mt-10 inline-block px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] transition hover:brightness-110"
+            style={{
+              fontFamily: "var(--font-body-family, Inter), sans-serif",
+              backgroundColor: "#B07D3A",
+              color: "#1A2640",
+            }}
           >
             {ctaText}
           </a>

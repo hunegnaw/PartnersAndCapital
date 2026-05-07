@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { parseHeading } from "@/lib/parse-heading";
 
 interface ProcessStepsBlockProps {
   props: Record<string, unknown>;
@@ -33,19 +32,24 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
   const displayStat = showDynamicStats && dynamicStat ? dynamicStat : sidebarStat;
 
   return (
-    <section className="py-20 md:py-28">
+    <section className="py-24 md:py-28 bg-white">
       <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-16">
         {/* Header */}
-        <div className="mb-16 max-w-2xl">
+        <div className="mb-14">
           {tagline && (
             <div className="mb-4 flex items-center gap-3">
               <span
-                className="inline-block h-px w-8"
-                style={{ backgroundColor: "#B07D3A" }}
+                className="inline-block h-px w-6"
+                style={{ backgroundColor: "var(--font-section-tag-color, #B07D3A)" }}
               />
               <span
-                className="text-xs font-medium uppercase tracking-[0.2em]"
-                style={{ color: "#B07D3A" }}
+                className="uppercase tracking-[0.18em]"
+                style={{
+                  fontFamily: "var(--font-section-tag-family, Inter), sans-serif",
+                  fontSize: "var(--font-section-tag-size, 10px)",
+                  fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
+                  color: "var(--font-section-tag-color, #B07D3A)",
+                }}
               >
                 {tagline}
               </span>
@@ -53,81 +57,118 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
           )}
           {heading && (
             <h2
-              className="text-3xl font-bold leading-tight md:text-4xl lg:text-5xl"
-              style={{ color: "#1A2640" }}
-            >
-              {parseHeading(heading)}
-            </h2>
+              className="leading-[1.15]"
+              style={{
+                fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
+                fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
+                fontStyle: "var(--font-section-heading-style, normal)",
+                color: "var(--font-section-heading-color, #1A2640)",
+                fontSize: "clamp(32px, 4vw, 52px)",
+              }}
+              dangerouslySetInnerHTML={{ __html: heading }}
+            />
           )}
         </div>
 
-        <div className="grid gap-12 lg:grid-cols-3 lg:gap-16">
-          {/* Steps — left 2 columns */}
-          <div className="lg:col-span-2">
-            <div className="divide-y divide-gray-200">
-              {steps.map((step, i) => (
-                <div key={i} className="py-8 first:pt-0 last:pb-0">
-                  <div className="flex gap-6">
-                    <span
-                      className="shrink-0 text-sm font-medium"
-                      style={{ color: "#B07D3A" }}
-                    >
-                      {ROMAN_NUMERALS[i] ?? `${i + 1}`}.
-                    </span>
-                    <div>
-                      <h3
-                        className="mb-2 text-lg font-semibold"
-                        style={{ color: "#1A2640" }}
-                      >
-                        {step.name}
-                      </h3>
-                      <p className="text-sm leading-relaxed text-gray-600">
-                        {step.description}
-                      </p>
-                    </div>
-                  </div>
+        <div className="grid gap-16 lg:grid-cols-[1fr_1fr] lg:gap-20">
+          {/* Steps — left */}
+          <div>
+            {steps.map((step, i) => (
+              <div
+                key={i}
+                className="flex gap-6 py-6 first:pt-0"
+                style={{ borderBottom: "0.5px solid rgba(26,38,64,0.1)" }}
+              >
+                <span
+                  className="shrink-0 pt-0.5"
+                  style={{
+                    fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
+                    fontSize: "13px",
+                    fontWeight: 400,
+                    color: "#B07D3A",
+                  }}
+                >
+                  {ROMAN_NUMERALS[i] ?? `${i + 1}`}.
+                </span>
+                <div>
+                  <h3
+                    className="mb-2"
+                    style={{
+                      fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
+                      fontSize: "20px",
+                      fontWeight: 500,
+                      color: "#1A2640",
+                    }}
+                  >
+                    {step.name}
+                  </h3>
+                  <p
+                    className="leading-[1.7]"
+                    style={{
+                      fontFamily: "var(--font-body-family, Inter), sans-serif",
+                      fontSize: "12px",
+                      fontWeight: 300,
+                      color: "#888780",
+                    }}
+                  >
+                    {step.description}
+                  </p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
 
-          {/* Sidebar card — right column */}
-          <div className="lg:sticky lg:top-32 lg:self-start">
-            <div
-              className="rounded-lg p-8"
-              style={{ backgroundColor: "#1A2640" }}
-            >
+          {/* Sidebar card — right */}
+          <div className="lg:sticky lg:top-24 lg:self-start">
+            <div className="p-10" style={{ backgroundColor: "#1A2640" }}>
               {sidebarTagline && (
-                <div className="mb-4 flex items-center gap-3">
-                  <span
-                    className="inline-block h-px w-6"
-                    style={{ backgroundColor: "#B07D3A" }}
-                  />
-                  <span
-                    className="text-xs font-medium uppercase tracking-[0.2em]"
-                    style={{ color: "#B07D3A" }}
-                  >
-                    {sidebarTagline}
-                  </span>
+                <div
+                  className="mb-5 uppercase tracking-[0.15em]"
+                  style={{
+                    fontFamily: "var(--font-section-tag-family, Inter), sans-serif",
+                    fontSize: "10px",
+                    fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
+                    color: "#B07D3A",
+                  }}
+                >
+                  {sidebarTagline}
                 </div>
               )}
               {displayStat && (
                 <div
-                  className="text-5xl font-bold"
-                  style={{ color: "#E8D5B0" }}
+                  className="leading-none"
+                  style={{
+                    fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif",
+                    fontSize: "64px",
+                    fontWeight: 300,
+                    color: "#E8D5B0",
+                  }}
                 >
                   {displayStat}
                 </div>
               )}
               {sidebarLabel && (
-                <div className="mt-2 text-sm text-white/50">{sidebarLabel}</div>
+                <div
+                  className="mt-2 tracking-[0.08em]"
+                  style={{
+                    fontFamily: "var(--font-body-family, Inter), sans-serif",
+                    fontSize: "11px",
+                    fontWeight: 300,
+                    color: "rgba(255,255,255,0.4)",
+                  }}
+                >
+                  {sidebarLabel}
+                </div>
               )}
               {sidebarQuote && (
                 <p
-                  className="mt-6 border-t border-white/10 pt-6 text-sm italic leading-relaxed"
+                  className="mt-8 border-t border-white/10 pt-8 leading-[1.5]"
                   style={{
-                    fontFamily: "var(--font-hero-title-family, Georgia), serif",
-                    color: "rgba(255,255,255,0.6)",
+                    fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif",
+                    fontSize: "20px",
+                    fontWeight: 300,
+                    fontStyle: "italic",
+                    color: "rgba(232,213,176,0.8)",
                   }}
                 >
                   &ldquo;{sidebarQuote}&rdquo;

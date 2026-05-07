@@ -31,9 +31,12 @@ export function TextSectionBlock({ props }: TextSectionBlockProps) {
       className={paddingYClass}
       style={{ backgroundColor, color: textColor }}
     >
-      <div className={`mx-auto px-6 ${maxWidthClass}`}>
+      <div className={`mx-auto px-6 md:px-12 lg:px-16 ${maxWidthClass}`}>
         <div
           className="prose prose-lg max-w-none"
+          style={{
+            fontFamily: "var(--font-body-family, Inter), sans-serif",
+          }}
           dangerouslySetInnerHTML={{ __html: content }}
         />
       </div>

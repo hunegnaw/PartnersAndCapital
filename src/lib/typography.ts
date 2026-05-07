@@ -8,6 +8,8 @@ export interface FontSetting {
 
 export interface TypographySettings {
   heroTitle: FontSetting;
+  sectionHeading: FontSetting;
+  sectionTag: FontSetting;
   subtitle: FontSetting;
   body: FontSetting;
   adminBody: FontSetting;
@@ -16,6 +18,8 @@ export interface TypographySettings {
 
 export const TYPOGRAPHY_CATEGORIES: { key: keyof TypographySettings; label: string }[] = [
   { key: "heroTitle", label: "Hero Title" },
+  { key: "sectionHeading", label: "Section Heading" },
+  { key: "sectionTag", label: "Section Tag / Label" },
   { key: "subtitle", label: "Subtitle" },
   { key: "body", label: "Body Text" },
   { key: "adminBody", label: "Admin Body" },
@@ -25,24 +29,38 @@ export const TYPOGRAPHY_CATEGORIES: { key: keyof TypographySettings; label: stri
 export const DEFAULT_TYPOGRAPHY: TypographySettings = {
   heroTitle: {
     fontFamily: "Cormorant Garamond",
-    fontWeight: "500",
+    fontWeight: "300",
     fontStyle: "normal",
     color: "#ffffff",
     fontSize: "48px",
   },
-  subtitle: {
+  sectionHeading: {
     fontFamily: "Cormorant Garamond",
-    fontWeight: "500",
+    fontWeight: "300",
     fontStyle: "normal",
     color: "#1A2640",
-    fontSize: "24px",
+    fontSize: "48px",
   },
-  body: {
+  sectionTag: {
     fontFamily: "Inter",
     fontWeight: "400",
     fontStyle: "normal",
+    color: "#B07D3A",
+    fontSize: "10px",
+  },
+  subtitle: {
+    fontFamily: "Cormorant Garamond",
+    fontWeight: "300",
+    fontStyle: "italic",
+    color: "#888780",
+    fontSize: "18px",
+  },
+  body: {
+    fontFamily: "Inter",
+    fontWeight: "300",
+    fontStyle: "normal",
     color: "#333333",
-    fontSize: "16px",
+    fontSize: "13px",
   },
   adminBody: {
     fontFamily: "Inter",

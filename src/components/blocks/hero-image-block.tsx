@@ -10,7 +10,6 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
   const imageUrl = (props.imageUrl as string) ?? "";
   const overlayOpacity = (props.overlayOpacity as number) ?? 0.5;
   const backgroundColor = (props.backgroundColor as string) ?? "#1A2640";
-  const textColor = (props.textColor as string) ?? "#ffffff";
   const height = (props.height as string) ?? "70vh";
 
   return (
@@ -32,23 +31,26 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
       <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
         {heading && (
           <h1
-            className="text-5xl font-bold tracking-tight md:text-7xl"
+            className="leading-[1.05] tracking-tight text-white"
             style={{
-              color: textColor,
-              fontFamily: "var(--font-hero-title-family, inherit)",
-              fontWeight: "var(--font-hero-title-weight, 700)" as unknown as number,
+              fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif",
+              fontWeight: "var(--font-hero-title-weight, 300)" as unknown as number,
               fontStyle: "var(--font-hero-title-style, normal)",
+              fontSize: "clamp(48px, 7vw, 88px)",
             }}
             dangerouslySetInnerHTML={{ __html: heading }}
           />
         )}
         {subheading && (
           <p
-            className="mt-6 text-xl"
+            className="mt-6"
             style={{
-              color: textColor,
-              opacity: 0.8,
-              fontFamily: "var(--font-subtitle-family, inherit)",
+              fontFamily: "var(--font-subtitle-family, 'Cormorant Garamond'), serif",
+              fontWeight: "var(--font-subtitle-weight, 300)" as unknown as number,
+              fontStyle: "var(--font-subtitle-style, italic)",
+              fontSize: "clamp(16px, 2vw, 22px)",
+              lineHeight: 1.6,
+              color: "rgba(232,213,176,0.65)",
             }}
             dangerouslySetInnerHTML={{ __html: subheading }}
           />
@@ -56,7 +58,12 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
         {ctaText && ctaUrl && (
           <a
             href={ctaUrl}
-            className="mt-8 inline-block rounded-full bg-[#B07D3A] px-8 py-3 text-lg font-semibold text-white transition hover:bg-[#7A5520]"
+            className="mt-10 inline-block px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] transition hover:brightness-110"
+            style={{
+              fontFamily: "var(--font-body-family, Inter), sans-serif",
+              backgroundColor: "#B07D3A",
+              color: "#1A2640",
+            }}
           >
             {ctaText}
           </a>

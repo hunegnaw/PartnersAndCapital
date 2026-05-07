@@ -1,7 +1,5 @@
 "use client";
 
-import { parseHeading } from "@/lib/parse-heading";
-
 interface PhilosophyBlockProps {
   props: Record<string, unknown>;
 }
@@ -13,16 +11,14 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
   const pillars =
     (props.pillars as { name: string; description: string }[]) ?? [];
   const backgroundColor = (props.backgroundColor as string) || "#1A2640";
-  const textColor = (props.textColor as string) || "#ffffff";
 
   return (
     <section
-      className="relative py-20 md:py-28"
+      className="relative overflow-hidden py-24 md:py-32"
       style={{
         backgroundColor,
-        color: textColor,
         backgroundImage:
-          "radial-gradient(ellipse at 30% 50%, rgba(176,125,58,0.06) 0%, transparent 60%)",
+          "radial-gradient(ellipse at 80% 20%, rgba(176,125,58,0.06) 0%, transparent 50%)",
       }}
     >
       <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-16">
@@ -32,12 +28,17 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
             {tagline && (
               <div className="mb-6 flex items-center gap-3">
                 <span
-                  className="inline-block h-px w-8"
-                  style={{ backgroundColor: "#B07D3A" }}
+                  className="inline-block h-px w-6"
+                  style={{ backgroundColor: "var(--font-section-tag-color, #B07D3A)" }}
                 />
                 <span
-                  className="text-xs font-medium uppercase tracking-[0.2em]"
-                  style={{ color: "#B07D3A" }}
+                  className="uppercase tracking-[0.18em]"
+                  style={{
+                    fontFamily: "var(--font-section-tag-family, Inter), sans-serif",
+                    fontSize: "var(--font-section-tag-size, 10px)",
+                    fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
+                    color: "var(--font-section-tag-color, #B07D3A)",
+                  }}
                 >
                   {tagline}
                 </span>
@@ -45,24 +46,31 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
             )}
             {quote && (
               <blockquote
-                className="text-2xl leading-relaxed italic md:text-3xl lg:text-4xl"
+                className="leading-[1.3]"
                 style={{
-                  fontFamily: "var(--font-hero-title-family, Georgia), serif",
+                  fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif",
+                  fontWeight: 300,
+                  fontStyle: "italic",
+                  fontSize: "clamp(28px, 4vw, 48px)",
                   color: "rgba(255,255,255,0.9)",
                 }}
-              >
-                &ldquo;{parseHeading(quote)}&rdquo;
-              </blockquote>
+                dangerouslySetInnerHTML={{ __html: `\u201c${quote}\u201d` }}
+              />
             )}
             {attribution && (
               <div className="mt-8 flex items-center gap-3">
                 <span
-                  className="inline-block h-px w-8"
-                  style={{ backgroundColor: "#B07D3A" }}
+                  className="inline-block h-px w-6"
+                  style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
                 />
                 <span
-                  className="text-sm font-medium tracking-wide"
-                  style={{ color: "#E8D5B0" }}
+                  className="uppercase tracking-[0.15em]"
+                  style={{
+                    fontFamily: "var(--font-body-family, Inter), sans-serif",
+                    fontSize: "10px",
+                    fontWeight: 400,
+                    color: "rgba(255,255,255,0.3)",
+                  }}
                 >
                   {attribution}
                 </span>
@@ -72,22 +80,32 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
 
           {/* Right — pillars */}
           {pillars.length > 0 && (
-            <div className="space-y-8">
+            <div className="flex flex-col justify-center gap-5">
               {pillars.map((pillar, i) => (
                 <div
                   key={i}
-                  className="border-l-2 pl-6"
-                  style={{ borderColor: "#B07D3A" }}
+                  className="border-l pl-5"
+                  style={{ borderColor: "rgba(176,125,58,0.3)" }}
                 >
                   <h3
-                    className="mb-2 text-lg font-semibold"
-                    style={{ color: "#E8D5B0" }}
+                    className="mb-1"
+                    style={{
+                      fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
+                      fontSize: "16px",
+                      fontWeight: 500,
+                      color: "#E8D5B0",
+                    }}
                   >
                     {pillar.name}
                   </h3>
                   <p
-                    className="text-sm leading-relaxed"
-                    style={{ color: "rgba(255,255,255,0.6)" }}
+                    className="max-w-[200px] leading-[1.5]"
+                    style={{
+                      fontFamily: "var(--font-body-family, Inter), sans-serif",
+                      fontSize: "11px",
+                      fontWeight: 300,
+                      color: "rgba(255,255,255,0.4)",
+                    }}
                   >
                     {pillar.description}
                   </p>

@@ -25,12 +25,19 @@ export function LogoGalleryBlock({ props }: LogoGalleryBlockProps) {
   const columnsClass = COLUMNS_MAP[columns] ?? "grid-cols-2 md:grid-cols-4";
 
   return (
-    <section className="py-16">
-      <div className="mx-auto max-w-6xl px-6">
+    <section className="py-20">
+      <div className="mx-auto max-w-6xl px-6 md:px-12 lg:px-16">
         {heading && (
-          <h2 className="mb-12 text-center text-3xl font-bold text-[#1A2640]">
-            {heading}
-          </h2>
+          <h2
+            className="mb-14 text-center leading-[1.15]"
+            style={{
+              fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
+              fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
+              fontSize: "clamp(32px, 4vw, 52px)",
+              color: "var(--font-section-heading-color, #1A2640)",
+            }}
+            dangerouslySetInnerHTML={{ __html: heading }}
+          />
         )}
         <div
           className={`grid ${columnsClass} items-center gap-8`}

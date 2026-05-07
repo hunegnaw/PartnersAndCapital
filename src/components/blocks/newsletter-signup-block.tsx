@@ -10,9 +10,6 @@ export function NewsletterSignupBlock({ props }: NewsletterSignupBlockProps) {
   const heading = (props.heading as string) ?? "Stay Updated";
   const description = (props.description as string) ?? "";
   const backgroundColor = (props.backgroundColor as string) ?? "#1A2640";
-  const textColor = (props.textColor as string) ?? "#ffffff";
-  const buttonColor = (props.buttonColor as string) ?? "#B07D3A";
-  const buttonTextColor = (props.buttonTextColor as string) ?? "#ffffff";
 
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -48,52 +45,88 @@ export function NewsletterSignupBlock({ props }: NewsletterSignupBlockProps) {
   }
 
   return (
-    <section className="py-20" style={{ backgroundColor, color: textColor }}>
+    <section className="py-24" style={{ backgroundColor }}>
       <div className="mx-auto max-w-2xl px-6 text-center">
         {heading && (
           <h2
-            className="text-3xl font-bold"
+            className="leading-[1.15]"
             style={{
-              color: textColor,
-              fontFamily: "var(--font-subtitle-family, inherit)",
-              fontWeight: "var(--font-subtitle-weight, 600)" as unknown as number,
+              fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
+              fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
+              fontSize: "clamp(28px, 3vw, 42px)",
+              color: "#ffffff",
             }}
           >
             {heading}
           </h2>
         )}
         {description && (
-          <p className="mt-4 text-lg" style={{ color: textColor, opacity: 0.8 }}>{description}</p>
+          <p
+            className="mt-4 leading-[1.7]"
+            style={{
+              fontFamily: "var(--font-body-family, Inter), sans-serif",
+              fontSize: "13px",
+              fontWeight: 300,
+              color: "rgba(255,255,255,0.6)",
+            }}
+          >
+            {description}
+          </p>
         )}
 
         <form
           onSubmit={handleSubmit}
-          className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
+          className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
         >
           <input
             name="email"
             type="email"
             required
             placeholder="Enter your email"
-            className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder:text-white/50 outline-none transition focus:border-[#B07D3A] focus:ring-2 focus:ring-[#B07D3A]/30 sm:max-w-sm"
+            className="w-full border bg-white/5 px-4 py-2.5 text-white placeholder:text-white/40 outline-none transition focus:border-[#B07D3A] sm:max-w-sm"
+            style={{
+              fontFamily: "var(--font-body-family, Inter), sans-serif",
+              fontSize: "12px",
+              borderColor: "rgba(255,255,255,0.15)",
+            }}
           />
           <button
             type="submit"
             disabled={status === "loading"}
-            className="w-full shrink-0 rounded-lg px-6 py-2.5 font-semibold transition hover:opacity-90 disabled:opacity-50 sm:w-auto"
-            style={{ backgroundColor: buttonColor, color: buttonTextColor }}
+            className="w-full shrink-0 px-8 py-2.5 text-[11px] font-medium uppercase tracking-[0.12em] transition hover:brightness-110 disabled:opacity-50 sm:w-auto"
+            style={{
+              fontFamily: "var(--font-body-family, Inter), sans-serif",
+              backgroundColor: "#B07D3A",
+              color: "#1A2640",
+            }}
           >
             {status === "loading" ? "Subscribing..." : "Subscribe"}
           </button>
         </form>
 
         {status === "success" && (
-          <p className="mt-4 text-green-300">
+          <p
+            className="mt-4"
+            style={{
+              fontFamily: "var(--font-body-family, Inter), sans-serif",
+              fontSize: "12px",
+              color: "rgba(232,213,176,0.8)",
+            }}
+          >
             Thank you! You have been subscribed.
           </p>
         )}
         {status === "error" && (
-          <p className="mt-4 text-red-300">{errorMessage}</p>
+          <p
+            className="mt-4"
+            style={{
+              fontFamily: "var(--font-body-family, Inter), sans-serif",
+              fontSize: "12px",
+              color: "#fc8181",
+            }}
+          >
+            {errorMessage}
+          </p>
         )}
       </div>
     </section>

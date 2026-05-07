@@ -53,37 +53,57 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
   }
 
   return (
-    <section className="py-20 bg-[#f5f5f3]">
-      <div className="mx-auto max-w-2xl px-6">
+    <section className="py-24" style={{ backgroundColor: "#F5F3EE" }}>
+      <div className="mx-auto max-w-2xl px-6 md:px-12">
         {heading && (
-          <h2 className="text-3xl font-bold text-[#1A2640]">{heading}</h2>
+          <h2
+            className="leading-[1.15]"
+            style={{
+              fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
+              fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
+              fontSize: "clamp(32px, 4vw, 52px)",
+              color: "var(--font-section-heading-color, #1A2640)",
+            }}
+          >
+            {heading}
+          </h2>
         )}
         {description && (
-          <p className="mt-4 text-lg text-[#1A2640]/70">{description}</p>
+          <p
+            className="mt-4 leading-[1.8]"
+            style={{
+              fontFamily: "var(--font-body-family, Inter), sans-serif",
+              fontSize: "13px",
+              fontWeight: 300,
+              color: "#888780",
+            }}
+          >
+            {description}
+          </p>
         )}
 
         {/* Contact info */}
         {(showAddress || showEmail) && (
-          <div className="mt-6 space-y-2 text-[#1A2640]/80">
-            {showAddress && org.address && (
-              <p>{org.address}</p>
-            )}
+          <div
+            className="mt-6 space-y-2"
+            style={{
+              fontFamily: "var(--font-body-family, Inter), sans-serif",
+              fontSize: "12px",
+              fontWeight: 300,
+              color: "#1A2640",
+            }}
+          >
+            {showAddress && org.address && <p>{org.address}</p>}
             {showEmail && org.email && (
               <p>
-                <a
-                  href={`mailto:${org.email}`}
-                  className="text-[#B07D3A] underline hover:text-[#7A5520]"
-                >
+                <a href={`mailto:${org.email}`} className="underline" style={{ color: "#B07D3A" }}>
                   {org.email}
                 </a>
               </p>
             )}
             {showEmail && org.phone && (
               <p>
-                <a
-                  href={`tel:${org.phone}`}
-                  className="text-[#B07D3A] underline hover:text-[#7A5520]"
-                >
+                <a href={`tel:${org.phone}`} className="underline" style={{ color: "#B07D3A" }}>
                   {org.phone}
                 </a>
               </p>
@@ -91,11 +111,17 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        <form onSubmit={handleSubmit} className="mt-10 space-y-6">
           <div>
             <label
               htmlFor="contact-name"
-              className="mb-1 block text-sm font-medium text-[#1A2640]"
+              className="mb-1.5 block uppercase tracking-[0.12em]"
+              style={{
+                fontFamily: "var(--font-body-family, Inter), sans-serif",
+                fontSize: "10px",
+                fontWeight: 500,
+                color: "#1A2640",
+              }}
             >
               Name
             </label>
@@ -104,13 +130,24 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
               name="name"
               type="text"
               required
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-[#1A2640] outline-none transition focus:border-[#B07D3A] focus:ring-2 focus:ring-[#B07D3A]/30"
+              className="w-full border bg-white px-4 py-2.5 text-[#1A2640] outline-none transition focus:border-[#B07D3A]"
+              style={{
+                fontFamily: "var(--font-body-family, Inter), sans-serif",
+                fontSize: "13px",
+                borderColor: "rgba(26,38,64,0.15)",
+              }}
             />
           </div>
           <div>
             <label
               htmlFor="contact-email"
-              className="mb-1 block text-sm font-medium text-[#1A2640]"
+              className="mb-1.5 block uppercase tracking-[0.12em]"
+              style={{
+                fontFamily: "var(--font-body-family, Inter), sans-serif",
+                fontSize: "10px",
+                fontWeight: 500,
+                color: "#1A2640",
+              }}
             >
               Email
             </label>
@@ -119,13 +156,24 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
               name="email"
               type="email"
               required
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-[#1A2640] outline-none transition focus:border-[#B07D3A] focus:ring-2 focus:ring-[#B07D3A]/30"
+              className="w-full border bg-white px-4 py-2.5 text-[#1A2640] outline-none transition focus:border-[#B07D3A]"
+              style={{
+                fontFamily: "var(--font-body-family, Inter), sans-serif",
+                fontSize: "13px",
+                borderColor: "rgba(26,38,64,0.15)",
+              }}
             />
           </div>
           <div>
             <label
               htmlFor="contact-message"
-              className="mb-1 block text-sm font-medium text-[#1A2640]"
+              className="mb-1.5 block uppercase tracking-[0.12em]"
+              style={{
+                fontFamily: "var(--font-body-family, Inter), sans-serif",
+                fontSize: "10px",
+                fontWeight: 500,
+                color: "#1A2640",
+              }}
             >
               Message
             </label>
@@ -134,25 +182,51 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
               name="message"
               rows={5}
               required
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-[#1A2640] outline-none transition focus:border-[#B07D3A] focus:ring-2 focus:ring-[#B07D3A]/30"
+              className="w-full border bg-white px-4 py-2.5 text-[#1A2640] outline-none transition focus:border-[#B07D3A]"
+              style={{
+                fontFamily: "var(--font-body-family, Inter), sans-serif",
+                fontSize: "13px",
+                borderColor: "rgba(26,38,64,0.15)",
+              }}
             />
           </div>
 
           <button
             type="submit"
             disabled={status === "loading"}
-            className="w-full rounded-lg bg-[#B07D3A] px-6 py-3 font-semibold text-white transition hover:bg-[#7A5520] disabled:opacity-50"
+            className="w-full px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] transition hover:brightness-110 disabled:opacity-50"
+            style={{
+              fontFamily: "var(--font-body-family, Inter), sans-serif",
+              backgroundColor: "#B07D3A",
+              color: "#1A2640",
+            }}
           >
             {status === "loading" ? "Sending..." : "Send Message"}
           </button>
 
           {status === "success" && (
-            <p className="text-center text-green-700">
+            <p
+              className="text-center"
+              style={{
+                fontFamily: "var(--font-body-family, Inter), sans-serif",
+                fontSize: "12px",
+                color: "#2d7a3a",
+              }}
+            >
               Thank you! Your message has been sent.
             </p>
           )}
           {status === "error" && (
-            <p className="text-center text-red-600">{errorMessage}</p>
+            <p
+              className="text-center"
+              style={{
+                fontFamily: "var(--font-body-family, Inter), sans-serif",
+                fontSize: "12px",
+                color: "#c53030",
+              }}
+            >
+              {errorMessage}
+            </p>
           )}
         </form>
       </div>

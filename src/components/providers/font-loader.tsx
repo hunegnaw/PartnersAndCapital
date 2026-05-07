@@ -9,6 +9,8 @@ function getCSSVariables(typography: TypographySettings): string {
   const vars: string[] = [];
   const categories = [
     { key: "heroTitle", prefix: "hero-title" },
+    { key: "sectionHeading", prefix: "section-heading" },
+    { key: "sectionTag", prefix: "section-tag" },
     { key: "subtitle", prefix: "subtitle" },
     { key: "body", prefix: "body" },
     { key: "adminBody", prefix: "admin-body" },
