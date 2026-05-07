@@ -1,3 +1,5 @@
+import { resolveBlockFont } from "@/lib/block-fonts";
+
 interface QuoteBlockProps {
   props: Record<string, unknown>;
 }
@@ -12,6 +14,10 @@ export function QuoteBlock({ props }: QuoteBlockProps) {
   const backgroundColor = (props.backgroundColor as string) || undefined;
   const maxWidth = (props.maxWidth as string) ?? "sm";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
+
+  const quoteFont = resolveBlockFont((props.quoteFont as string) || "");
+  const attributionFont = resolveBlockFont((props.attributionFont as string) || "");
+  const roleFont = resolveBlockFont((props.roleFont as string) || "");
 
   return (
     <section className="py-20" style={{ backgroundColor }}>
@@ -28,6 +34,7 @@ export function QuoteBlock({ props }: QuoteBlockProps) {
               fontStyle: "italic",
               fontSize: "clamp(24px, 3vw, 36px)",
               color: quoteColor,
+              ...(quoteFont ?? {}),
             }}
           >
             &ldquo;{quote}&rdquo;
@@ -47,6 +54,7 @@ export function QuoteBlock({ props }: QuoteBlockProps) {
                       fontSize: "12px",
                       fontWeight: 500,
                       color: attributionColor,
+                      ...(attributionFont ?? {}),
                     }}
                   >
                     {attribution}
@@ -60,6 +68,7 @@ export function QuoteBlock({ props }: QuoteBlockProps) {
                       fontSize: "11px",
                       fontWeight: 300,
                       color: roleColor,
+                      ...(roleFont ?? {}),
                     }}
                   >
                     {role}

@@ -1,5 +1,7 @@
 "use client";
 
+import { resolveBlockFont } from "@/lib/block-fonts";
+
 interface PhilosophyBlockProps {
   props: Record<string, unknown>;
 }
@@ -18,6 +20,12 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
   const pillarDescColor = (props.pillarDescColor as string) || "#ffffff66";
   const maxWidth = (props.maxWidth as string) ?? "xl";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
+
+  const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
+  const quoteFont = resolveBlockFont((props.quoteFont as string) || "");
+  const attributionFont = resolveBlockFont((props.attributionFont as string) || "");
+  const pillarNameFont = resolveBlockFont((props.pillarNameFont as string) || "");
+  const pillarDescFont = resolveBlockFont((props.pillarDescFont as string) || "");
 
   return (
     <section
@@ -45,6 +53,7 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
                     fontSize: "var(--font-section-tag-size, 10px)",
                     fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
                     color: taglineColor || "var(--font-section-tag-color, #B07D3A)",
+                    ...(taglineFont ?? {}),
                   }}
                 >
                   {tagline}
@@ -60,6 +69,7 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
                   fontStyle: "italic",
                   fontSize: "clamp(28px, 4vw, 48px)",
                   color: quoteColor,
+                  ...(quoteFont ?? {}),
                 }}
                 dangerouslySetInnerHTML={{ __html: `\u201c${quote}\u201d` }}
               />
@@ -77,6 +87,7 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
                     fontSize: "10px",
                     fontWeight: 400,
                     color: attributionColor,
+                    ...(attributionFont ?? {}),
                   }}
                 >
                   {attribution}
@@ -101,6 +112,7 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
                       fontSize: "16px",
                       fontWeight: 500,
                       color: pillarNameColor,
+                      ...(pillarNameFont ?? {}),
                     }}
                   >
                     {pillar.name}
@@ -112,6 +124,7 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
                       fontSize: "11px",
                       fontWeight: 300,
                       color: pillarDescColor,
+                      ...(pillarDescFont ?? {}),
                     }}
                   >
                     {pillar.description}

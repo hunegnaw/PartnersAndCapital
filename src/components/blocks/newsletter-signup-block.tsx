@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { resolveBlockFont } from "@/lib/block-fonts";
 
 interface NewsletterSignupBlockProps {
   props: Record<string, unknown>;
@@ -51,6 +52,9 @@ export function NewsletterSignupBlock({ props }: NewsletterSignupBlockProps) {
   const maxWidth = (props.maxWidth as string) ?? "sm";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
+  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const descriptionFont = resolveBlockFont((props.descriptionFont as string) || "");
+
   return (
     <section className="py-24" style={{ backgroundColor }}>
       <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-6 text-center`}>
@@ -62,6 +66,7 @@ export function NewsletterSignupBlock({ props }: NewsletterSignupBlockProps) {
               fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
               fontSize: "clamp(28px, 3vw, 42px)",
               color: headingColor,
+              ...(headingFont ?? {}),
             }}
           >
             {heading}
@@ -75,6 +80,7 @@ export function NewsletterSignupBlock({ props }: NewsletterSignupBlockProps) {
               fontSize: "13px",
               fontWeight: 300,
               color: descriptionColor,
+              ...(descriptionFont ?? {}),
             }}
           >
             {description}

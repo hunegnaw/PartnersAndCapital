@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useOrganization } from "@/components/providers/organization-provider";
+import { resolveBlockFont } from "@/lib/block-fonts";
 
 interface ContactFormBlockProps {
   props: Record<string, unknown>;
@@ -60,6 +61,9 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
   const maxWidth = (props.maxWidth as string) ?? "sm";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
+  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const descriptionFont = resolveBlockFont((props.descriptionFont as string) || "");
+
   return (
     <section className="py-24" style={{ backgroundColor }}>
       <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-6 md:px-12`}>
@@ -71,6 +75,7 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
               fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
               fontSize: "clamp(32px, 4vw, 52px)",
               color: headingColor || "var(--font-section-heading-color, #1A2640)",
+              ...(headingFont ?? {}),
             }}
           >
             {heading}
@@ -84,6 +89,7 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
               fontSize: "13px",
               fontWeight: 300,
               color: descriptionColor,
+              ...(descriptionFont ?? {}),
             }}
           >
             {description}

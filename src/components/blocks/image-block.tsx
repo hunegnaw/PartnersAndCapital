@@ -1,3 +1,5 @@
+import { resolveBlockFont } from "@/lib/block-fonts";
+
 interface ImageBlockProps {
   props: Record<string, unknown>;
 }
@@ -23,6 +25,8 @@ export function ImageBlock({ props }: ImageBlockProps) {
 
   const maxWidthClass = maxWidthMap[maxWidth] ?? "max-w-5xl";
 
+  const captionFont = resolveBlockFont((props.captionFont as string) || "");
+
   if (!src) return null;
 
   return (
@@ -36,7 +40,10 @@ export function ImageBlock({ props }: ImageBlockProps) {
             className="mx-auto h-auto w-full rounded-lg"
           />
           {caption && (
-            <figcaption className="mt-3 text-sm" style={{ color: captionColor }}>
+            <figcaption
+              className="mt-3 text-sm"
+              style={{ color: captionColor, ...(captionFont ?? {}) }}
+            >
               {caption}
             </figcaption>
           )}

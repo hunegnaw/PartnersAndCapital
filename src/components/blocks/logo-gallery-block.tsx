@@ -1,3 +1,5 @@
+import { resolveBlockFont } from "@/lib/block-fonts";
+
 interface Logo {
   imageUrl: string;
   alt: string;
@@ -28,6 +30,8 @@ export function LogoGalleryBlock({ props }: LogoGalleryBlockProps) {
   const maxWidth = (props.maxWidth as string) ?? "lg";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
+  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+
   return (
     <section className="py-20" style={{ backgroundColor }}>
       <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-6xl"} px-6 md:px-12 lg:px-16`}>
@@ -39,6 +43,7 @@ export function LogoGalleryBlock({ props }: LogoGalleryBlockProps) {
               fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
               fontSize: "clamp(32px, 4vw, 52px)",
               color: headingColor || "var(--font-section-heading-color, #1A2640)",
+              ...(headingFont ?? {}),
             }}
             dangerouslySetInnerHTML={{ __html: heading }}
           />

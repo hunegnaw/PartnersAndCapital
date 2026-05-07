@@ -1,3 +1,5 @@
+import { resolveBlockFont } from "@/lib/block-fonts";
+
 interface CtaBannerBlockProps {
   props: Record<string, unknown>;
 }
@@ -15,6 +17,10 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
   const maxWidth = (props.maxWidth as string) ?? "sm";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
+  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const textFont = resolveBlockFont((props.textFont as string) || "");
+  const ctaButtonFont = resolveBlockFont((props.ctaButtonFont as string) || "");
+
   return (
     <section className="py-24" style={{ backgroundColor }}>
       <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-6 text-center`}>
@@ -26,6 +32,7 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
               fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
               fontSize: "clamp(32px, 4vw, 52px)",
               color: headingColor,
+              ...(headingFont ?? {}),
             }}
             dangerouslySetInnerHTML={{ __html: heading }}
           />
@@ -38,6 +45,7 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
               fontSize: "13px",
               fontWeight: 300,
               color: textColor,
+              ...(textFont ?? {}),
             }}
           >
             {text}
@@ -51,6 +59,7 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
               fontFamily: "var(--font-body-family, Inter), sans-serif",
               backgroundColor: ctaButtonColor,
               color: ctaButtonTextColor,
+              ...(ctaButtonFont ?? {}),
             }}
           >
             {ctaText}

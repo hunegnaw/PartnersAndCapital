@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { resolveBlockFont } from "@/lib/block-fonts";
 
 interface ProcessStepsBlockProps {
   props: Record<string, unknown>;
@@ -38,6 +39,10 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
   const maxWidth = (props.maxWidth as string) ?? "xl";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
+  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const stepNameFont = resolveBlockFont((props.stepNameFont as string) || "");
+  const stepDescFont = resolveBlockFont((props.stepDescFont as string) || "");
+
   return (
     <section className="py-24 md:py-28" style={{ backgroundColor }}>
       <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-7xl"} px-6 md:px-12 lg:px-16`}>
@@ -71,6 +76,7 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
                 fontStyle: "var(--font-section-heading-style, normal)",
                 color: headingColor || "var(--font-section-heading-color, #1A2640)",
                 fontSize: "clamp(32px, 4vw, 52px)",
+                ...(headingFont ?? {}),
               }}
               dangerouslySetInnerHTML={{ __html: heading }}
             />
@@ -105,6 +111,7 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
                       fontSize: "20px",
                       fontWeight: 500,
                       color: stepNameColor,
+                      ...(stepNameFont ?? {}),
                     }}
                   >
                     {step.name}
@@ -116,6 +123,7 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
                       fontSize: "12px",
                       fontWeight: 300,
                       color: stepDescColor,
+                      ...(stepDescFont ?? {}),
                     }}
                   >
                     {step.description}

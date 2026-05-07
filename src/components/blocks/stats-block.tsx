@@ -1,3 +1,5 @@
+import { resolveBlockFont } from "@/lib/block-fonts";
+
 interface Stat {
   value: string;
   label: string;
@@ -17,6 +19,10 @@ export function StatsBlock({ props }: StatsBlockProps) {
   const maxWidth = (props.maxWidth as string) ?? "lg";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
+  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const statValueFont = resolveBlockFont((props.statValueFont as string) || "");
+  const statLabelFont = resolveBlockFont((props.statLabelFont as string) || "");
+
   return (
     <section className="py-24" style={{ backgroundColor }}>
       <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-6xl"} px-6 md:px-12 lg:px-16`}>
@@ -28,6 +34,7 @@ export function StatsBlock({ props }: StatsBlockProps) {
               fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
               fontSize: "clamp(32px, 4vw, 52px)",
               color: textColor,
+              ...(headingFont ?? {}),
             }}
             dangerouslySetInnerHTML={{ __html: heading }}
           />
@@ -42,6 +49,7 @@ export function StatsBlock({ props }: StatsBlockProps) {
                   fontSize: "36px",
                   fontWeight: 300,
                   color: statValueColor,
+                  ...(statValueFont ?? {}),
                 }}
               >
                 {stat.value}
@@ -53,6 +61,7 @@ export function StatsBlock({ props }: StatsBlockProps) {
                   fontSize: "10px",
                   fontWeight: 400,
                   color: statLabelColor,
+                  ...(statLabelFont ?? {}),
                 }}
               >
                 {stat.label}

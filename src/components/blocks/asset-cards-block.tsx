@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { resolveBlockFont } from "@/lib/block-fonts";
 
 interface AssetCardsBlockProps {
   props: Record<string, unknown>;
@@ -31,6 +32,10 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
     "7xl": "max-w-7xl",
   };
 
+  const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
+  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const subtitleFont = resolveBlockFont((props.subtitleFont as string) || "");
+
   return (
     <section style={{ backgroundColor }} className="py-24 md:py-28">
       <div className={`mx-auto ${maxWidthClass[maxWidth] ?? "max-w-7xl"} px-6 md:px-12 lg:px-16`}>
@@ -49,6 +54,7 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
                   fontSize: "var(--font-section-tag-size, 10px)",
                   fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
                   color: taglineColor || "var(--font-section-tag-color, #B07D3A)",
+                  ...(taglineFont ?? {}),
                 }}
               >
                 {tagline}
@@ -64,6 +70,7 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
                 fontStyle: "var(--font-section-heading-style, normal)",
                 color: headingColor || "var(--font-section-heading-color, #1A2640)",
                 fontSize: "clamp(32px, 4vw, 52px)",
+                ...(headingFont ?? {}),
               }}
               dangerouslySetInnerHTML={{ __html: heading }}
             />
@@ -77,6 +84,7 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
                 fontStyle: "var(--font-subtitle-style, italic)",
                 fontSize: "var(--font-subtitle-size, 18px)",
                 color: subtitleColor || "var(--font-subtitle-color, #888780)",
+                ...(subtitleFont ?? {}),
               }}
             >
               {subtitle}

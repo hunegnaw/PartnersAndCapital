@@ -1,5 +1,7 @@
 "use client";
 
+import { resolveBlockFont } from "@/lib/block-fonts";
+
 interface CtaSplitBlockProps {
   props: Record<string, unknown>;
 }
@@ -21,6 +23,10 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
   const ctaButtonTextColor = (props.ctaButtonTextColor as string) || "#1A2640";
   const maxWidth = (props.maxWidth as string) ?? "xl";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
+
+  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const descriptionFont = resolveBlockFont((props.descriptionFont as string) || "");
+  const bulletFont = resolveBlockFont((props.bulletFont as string) || "");
 
   return (
     <section style={{ backgroundColor }} className="py-24 md:py-28">
@@ -56,6 +62,7 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
                   fontStyle: "var(--font-section-heading-style, normal)",
                   color: headingColor || "var(--font-section-heading-color, #1A2640)",
                   fontSize: "clamp(32px, 4vw, 52px)",
+                  ...(headingFont ?? {}),
                 }}
                 dangerouslySetInnerHTML={{ __html: heading }}
               />
@@ -68,6 +75,7 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
                   fontSize: "13px",
                   fontWeight: 300,
                   color: descriptionColor,
+                  ...(descriptionFont ?? {}),
                 }}
               >
                 {description}
@@ -125,6 +133,7 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
                         fontSize: "12px",
                         fontWeight: 300,
                         color: bulletColor,
+                        ...(bulletFont ?? {}),
                       }}
                       dangerouslySetInnerHTML={{ __html: bullet.text }}
                     />
