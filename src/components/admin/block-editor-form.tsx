@@ -583,6 +583,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <ImageField label="Video URL" field="videoUrl" accept="video" {...ifp} />
           <ImageField label="Poster Image" field="posterImageUrl" {...ifp} />
           <InputField label="Tagline" field="tagline" placeholder="e.g. Private Markets · Alternative Investments" {...fp} />
+          <FontField label="Tagline Font" field="taglineFont" {...fp} />
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Heading</label>
             <textarea
@@ -594,7 +595,9 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
             />
             <p className="mt-1 text-xs text-gray-400">Supports HTML. Use &lt;em&gt; for italic gold text, &lt;br&gt; for line breaks, &lt;span class=&quot;block&quot;&gt; for block lines.</p>
           </div>
+          <FontField label="Heading Font" field="headingFont" {...fp} />
           <InputField label="Subtitle" field="subheading" {...fp} />
+          <FontField label="Subtitle Font" field="subheadingFont" {...fp} />
           <InputField label="Primary CTA Text" field="ctaText" {...fp} />
           <InputField label="Primary CTA URL" field="ctaUrl" {...fp} />
           <InputField label="Secondary CTA Text" field="ctaText2" {...fp} />
@@ -616,7 +619,9 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
         <div className="space-y-4">
           <ImageField label="Background Image" field="imageUrl" {...ifp} />
           <InputField label="Heading" field="heading" {...fp} />
+          <FontField label="Heading Font" field="headingFont" {...fp} />
           <InputField label="Subheading" field="subheading" {...fp} />
+          <FontField label="Subtitle Font" field="subheadingFont" {...fp} />
           <InputField label="CTA Text" field="ctaText" {...fp} />
           <InputField label="CTA URL" field="ctaUrl" {...fp} />
           <RangeField label="Overlay Opacity" field="overlayOpacity" {...fp} />

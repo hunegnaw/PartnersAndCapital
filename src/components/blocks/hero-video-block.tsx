@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
+import { resolveBlockFont } from "@/lib/block-fonts";
 
 interface HeroVideoBlockProps {
   props: Record<string, unknown>;
@@ -28,6 +29,10 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
   const overlayOpacity = (props.overlayOpacity as number) ?? 0.5;
   const showStats = props.showStats !== false;
   const scrollHintText = (props.scrollHintText as string) ?? "Scroll";
+
+  const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
+  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const subheadingFont = resolveBlockFont((props.subheadingFont as string) || "");
 
   useEffect(() => {
     if (videoRef.current) {
@@ -106,6 +111,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
                   fontSize: "var(--font-section-tag-size, 10px)",
                   fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
                   color: "var(--font-section-tag-color, #B07D3A)",
+                  ...(taglineFont ?? {}),
                 }}
               >
                 {tagline}
@@ -123,6 +129,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
                 fontStyle: "var(--font-hero-title-style, normal)",
                 fontSize: "clamp(48px, 7vw, 88px)",
                 animation: "fadeUp 0.8s ease 0.25s both",
+                ...(headingFont ?? {}),
               }}
               dangerouslySetInnerHTML={{ __html: heading }}
             />
@@ -140,6 +147,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
                 lineHeight: 1.6,
                 color: "rgba(232,213,176,0.65)",
                 animation: "fadeUp 0.8s ease 0.4s both",
+                ...(subheadingFont ?? {}),
               }}
               dangerouslySetInnerHTML={{ __html: subheading }}
             />

@@ -1,3 +1,5 @@
+import { resolveBlockFont } from "@/lib/block-fonts";
+
 interface HeroImageBlockProps {
   props: Record<string, unknown>;
 }
@@ -11,6 +13,9 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
   const overlayOpacity = (props.overlayOpacity as number) ?? 0.5;
   const backgroundColor = (props.backgroundColor as string) ?? "#1A2640";
   const height = (props.height as string) ?? "70vh";
+
+  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const subheadingFont = resolveBlockFont((props.subheadingFont as string) || "");
 
   return (
     <section
@@ -37,6 +42,7 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
               fontWeight: "var(--font-hero-title-weight, 300)" as unknown as number,
               fontStyle: "var(--font-hero-title-style, normal)",
               fontSize: "clamp(48px, 7vw, 88px)",
+              ...(headingFont ?? {}),
             }}
             dangerouslySetInnerHTML={{ __html: heading }}
           />
@@ -51,6 +57,7 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
               fontSize: "clamp(16px, 2vw, 22px)",
               lineHeight: 1.6,
               color: "rgba(232,213,176,0.65)",
+              ...(subheadingFont ?? {}),
             }}
             dangerouslySetInnerHTML={{ __html: subheading }}
           />
