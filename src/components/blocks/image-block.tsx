@@ -6,16 +6,21 @@ export function ImageBlock({ props }: ImageBlockProps) {
   const src = (props.imageUrl as string) ?? (props.src as string) ?? "";
   const alt = (props.alt as string) ?? "";
   const caption = (props.caption as string) ?? "";
-  const maxWidth = (props.maxWidth as string) ?? "4xl";
+  const maxWidth = (props.maxWidth as string) ?? "md";
 
   const maxWidthMap: Record<string, string> = {
-    "2xl": "max-w-2xl",
-    "4xl": "max-w-4xl",
-    "6xl": "max-w-6xl",
+    sm: "max-w-4xl",
+    md: "max-w-5xl",
+    lg: "max-w-6xl",
+    xl: "max-w-7xl",
     full: "max-w-full",
+    // legacy keys
+    "2xl": "max-w-4xl",
+    "4xl": "max-w-5xl",
+    "6xl": "max-w-6xl",
   };
 
-  const maxWidthClass = maxWidthMap[maxWidth] ?? "max-w-4xl";
+  const maxWidthClass = maxWidthMap[maxWidth] ?? "max-w-5xl";
 
   if (!src) return null;
 

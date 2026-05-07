@@ -52,9 +52,12 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
     }
   }
 
+  const maxWidth = (props.maxWidth as string) ?? "sm";
+  const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
+
   return (
     <section className="py-24" style={{ backgroundColor: "#F5F3EE" }}>
-      <div className="mx-auto max-w-2xl px-6 md:px-12">
+      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-6 md:px-12`}>
         {heading && (
           <h2
             className="leading-[1.15]"

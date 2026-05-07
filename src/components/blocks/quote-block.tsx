@@ -6,10 +6,12 @@ export function QuoteBlock({ props }: QuoteBlockProps) {
   const quote = (props.text as string) ?? "";
   const attribution = (props.attribution as string) ?? "";
   const role = (props.role as string) ?? "";
+  const maxWidth = (props.maxWidth as string) ?? "sm";
+  const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
   return (
     <section className="py-20">
-      <div className="mx-auto max-w-3xl px-6 md:px-12">
+      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-6 md:px-12`}>
         <blockquote
           className="border-l pl-6"
           style={{ borderColor: "rgba(176,125,58,0.3)" }}

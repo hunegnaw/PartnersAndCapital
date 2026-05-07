@@ -28,11 +28,13 @@ export function EmbedBlock({ props }: EmbedBlockProps) {
 
   if (!url) return null;
 
+  const maxWidth = (props.maxWidth as string) ?? "sm";
+  const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
   const embedUrl = toEmbedUrl(url);
 
   return (
     <section className="py-12">
-      <div className="mx-auto max-w-4xl px-6">
+      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-6`}>
         <div
           className="relative w-full overflow-hidden rounded-lg"
           style={{ aspectRatio }}

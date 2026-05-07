@@ -30,10 +30,12 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
   }, [showDynamicStats]);
 
   const displayStat = showDynamicStats && dynamicStat ? dynamicStat : sidebarStat;
+  const maxWidth = (props.maxWidth as string) ?? "xl";
+  const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
   return (
     <section className="py-24 md:py-28 bg-white">
-      <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-16">
+      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-7xl"} px-6 md:px-12 lg:px-16`}>
         {/* Header */}
         <div className="mb-14">
           {tagline && (

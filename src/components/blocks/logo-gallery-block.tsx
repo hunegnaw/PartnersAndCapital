@@ -23,10 +23,12 @@ export function LogoGalleryBlock({ props }: LogoGalleryBlockProps) {
   const grayscale = (props.grayscale as boolean) ?? false;
 
   const columnsClass = COLUMNS_MAP[columns] ?? "grid-cols-2 md:grid-cols-4";
+  const maxWidth = (props.maxWidth as string) ?? "lg";
+  const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
   return (
     <section className="py-20">
-      <div className="mx-auto max-w-6xl px-6 md:px-12 lg:px-16">
+      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-6xl"} px-6 md:px-12 lg:px-16`}>
         {heading && (
           <h2
             className="heading-light mb-14 text-center leading-[1.15]"

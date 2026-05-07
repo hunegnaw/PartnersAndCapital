@@ -11,6 +11,8 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
   const pillars =
     (props.pillars as { name: string; description: string }[]) ?? [];
   const backgroundColor = (props.backgroundColor as string) || "#1A2640";
+  const maxWidth = (props.maxWidth as string) ?? "xl";
+  const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
   return (
     <section
@@ -21,7 +23,7 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
           "radial-gradient(ellipse at 80% 20%, rgba(176,125,58,0.06) 0%, transparent 50%)",
       }}
     >
-      <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-16">
+      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-7xl"} px-6 md:px-12 lg:px-16`}>
         <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
           {/* Left — quote */}
           <div>

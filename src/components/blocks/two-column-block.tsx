@@ -48,11 +48,13 @@ export function TwoColumnBlock({ props }: TwoColumnBlockProps) {
   const leftBlocks = (props.leftBlocks as SubBlockData[] | undefined) ?? [];
   const rightBlocks = (props.rightBlocks as SubBlockData[] | undefined) ?? [];
 
+  const maxWidth = (props.maxWidth as string) ?? "lg";
+  const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
   const widths = LEFT_WIDTH_MAP[leftWidth] ?? LEFT_WIDTH_MAP["1/2"];
 
   return (
     <section className="py-16">
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-6 md:grid-cols-12">
+      <div className={`mx-auto grid ${MAX_WIDTH[maxWidth] ?? "max-w-6xl"} grid-cols-1 gap-12 px-6 md:grid-cols-12`}>
         <div className={`${widths.left}`}>
           {renderColumn(leftBlocks, leftContent)}
         </div>
