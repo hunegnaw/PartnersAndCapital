@@ -84,6 +84,10 @@ export const BLOCK_TYPES = {
       ctaText: "",
       ctaUrl: "",
       backgroundColor: "#B07D3A",
+      headingColor: "#ffffff",
+      textColor: "#ffffffaa",
+      ctaButtonColor: "#1A2640",
+      ctaButtonTextColor: "#ffffff",
     },
   },
   two_column: {

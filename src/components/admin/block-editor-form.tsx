@@ -765,11 +765,14 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       return (
         <div className="space-y-4">
           <InputField label="Heading" field="heading" {...fp} />
+          <ColorField label="Heading Color" field="headingColor" {...fp} />
           <InputField label="Text" field="text" {...fp} />
+          <ColorField label="Text Color" field="textColor" {...fp} />
           <InputField label="CTA Text" field="ctaText" {...fp} />
           <InputField label="CTA URL" field="ctaUrl" {...fp} />
+          <ColorField label="CTA Button Color" field="ctaButtonColor" {...fp} />
+          <ColorField label="CTA Button Text Color" field="ctaButtonTextColor" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
-          <ColorField label="Text Color" field="textColor" {...fp} />
           <SelectField
             label="Max Width"
             field="maxWidth"

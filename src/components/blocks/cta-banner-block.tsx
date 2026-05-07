@@ -8,7 +8,10 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
   const ctaText = (props.ctaText as string) ?? "";
   const ctaUrl = (props.ctaUrl as string) ?? "";
   const backgroundColor = (props.backgroundColor as string) ?? "#1A2640";
-  const textColor = (props.textColor as string) || "#ffffff";
+  const headingColor = (props.headingColor as string) || "#ffffff";
+  const textColor = (props.textColor as string) || "#ffffffaa";
+  const ctaButtonColor = (props.ctaButtonColor as string) || "#1A2640";
+  const ctaButtonTextColor = (props.ctaButtonTextColor as string) || "#ffffff";
   const maxWidth = (props.maxWidth as string) ?? "sm";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
@@ -22,7 +25,7 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
               fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
               fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
               fontSize: "clamp(32px, 4vw, 52px)",
-              color: textColor,
+              color: headingColor,
             }}
             dangerouslySetInnerHTML={{ __html: heading }}
           />
@@ -34,7 +37,7 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
               fontFamily: "var(--font-body-family, Inter), sans-serif",
               fontSize: "13px",
               fontWeight: 300,
-              color: "rgba(255,255,255,0.6)",
+              color: textColor,
             }}
           >
             {text}
@@ -46,8 +49,8 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
             className="mt-10 inline-block px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.12em] transition hover:brightness-110"
             style={{
               fontFamily: "var(--font-body-family, Inter), sans-serif",
-              backgroundColor: "#B07D3A",
-              color: "#1A2640",
+              backgroundColor: ctaButtonColor,
+              color: ctaButtonTextColor,
             }}
           >
             {ctaText}
