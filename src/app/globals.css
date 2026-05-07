@@ -142,6 +142,13 @@ body {
   font-family: var(--font-body-family, inherit);
   font-weight: var(--font-body-weight, 400);
   font-style: var(--font-body-style, normal);
+  color: var(--font-body-color, inherit);
+}
+
+.marketing-typography h1 {
+  font-family: var(--font-hero-title-family, inherit);
+  font-weight: var(--font-hero-title-weight, 500);
+  font-style: var(--font-hero-title-style, normal);
 }
 
 .marketing-typography h2,
@@ -152,11 +159,23 @@ body {
   font-style: var(--font-subtitle-style, normal);
 }
 
+.marketing-typography p,
+.marketing-typography span,
+.marketing-typography li,
+.marketing-typography a {
+  font-family: var(--font-body-family, inherit);
+}
+
 .marketing-typography .prose {
   font-family: var(--font-body-family, inherit);
 }
 
-.marketing-typography .prose h1,
+.marketing-typography .prose h1 {
+  font-family: var(--font-hero-title-family, inherit);
+  font-weight: var(--font-hero-title-weight, 500);
+  font-style: var(--font-hero-title-style, normal);
+}
+
 .marketing-typography .prose h2,
 .marketing-typography .prose h3,
 .marketing-typography .prose h4 {
