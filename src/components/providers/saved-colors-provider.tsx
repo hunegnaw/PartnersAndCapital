@@ -1,17 +1,27 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  BRAND_PALETTE,
+  findBrandColor as findBrandColorFn,
+  type BrandColorCategory,
+  type BrandColor,
+} from "@/lib/brand-palette";
 
 interface SavedColorsContextValue {
   colors: string[];
   addColor: (color: string) => void;
   removeColor: (color: string) => void;
+  brandPalette: BrandColorCategory[];
+  findBrandColor: (hex: string) => BrandColor | undefined;
 }
 
 const SavedColorsContext = createContext<SavedColorsContextValue>({
   colors: [],
   addColor: () => {},
   removeColor: () => {},
+  brandPalette: BRAND_PALETTE,
+  findBrandColor: findBrandColorFn,
 });
 
 export function useSavedColors() {
@@ -66,7 +76,15 @@ export function SavedColorsProvider({ children }: { children: React.ReactNode })
   );
 
   return (
-    <SavedColorsContext.Provider value={{ colors, addColor, removeColor }}>
+    <SavedColorsContext.Provider
+      value={{
+        colors,
+        addColor,
+        removeColor,
+        brandPalette: BRAND_PALETTE,
+        findBrandColor: findBrandColorFn,
+      }}
+    >
       {children}
     </SavedColorsContext.Provider>
   );

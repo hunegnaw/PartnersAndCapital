@@ -52,6 +52,7 @@ export default async function AdminLayout({
     { href: "/admin/blog/categories", label: "Blog Categories" },
     { href: "/admin/media", label: "Media Library", count: mediaCount },
     { href: "/admin/footer", label: "Footer" },
+    { href: "/admin/brand-palette", label: "Brand Palette" },
   ];
 
   const systemNav = [

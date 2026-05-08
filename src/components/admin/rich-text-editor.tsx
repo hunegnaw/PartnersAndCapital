@@ -16,6 +16,7 @@ import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useSavedColors } from "@/components/providers/saved-colors-provider";
+import { BrandColorPickerModal } from "@/components/admin/brand-color-picker-modal";
 import {
   Bold,
   Italic,
@@ -39,6 +40,7 @@ import {
   Redo,
   Palette,
   Highlighter,
+  SwatchBook,
 } from "lucide-react";
 
 interface RichTextEditorProps {
@@ -91,14 +93,17 @@ function ToolbarColorPopover({
   onUnset: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [customColor, setCustomColor] = useState("#000000");
-  const { colors: savedColors, addColor } = useSavedColors();
+  const { colors: savedColors, addColor, findBrandColor } = useSavedColors();
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
     function handleMouseDown(e: MouseEvent) {
+      // Ignore clicks inside the dialog overlay (modal is open)
+      if ((e.target as Element)?.closest?.("[data-slot='dialog-overlay'], [data-slot='dialog-content']")) return;
       if (
         containerRef.current &&
         !containerRef.current.contains(e.target as Node) &&
@@ -109,7 +114,7 @@ function ToolbarColorPopover({
       }
     }
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape" && !modalOpen) setOpen(false);
     }
     document.addEventListener("mousedown", handleMouseDown);
     document.addEventListener("keydown", handleKeyDown);
@@ -117,7 +122,10 @@ function ToolbarColorPopover({
       document.removeEventListener("mousedown", handleMouseDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open]);
+  }, [open, modalOpen]);
+
+  // Show up to 8 saved colors for quick access
+  const quickColors = savedColors.slice(0, 8);
 
   return (
     <div className="relative">
@@ -135,32 +143,48 @@ function ToolbarColorPopover({
       {open && (
         <div
           ref={containerRef}
-          className="absolute top-full left-0 mt-1 bg-white border rounded-lg shadow-lg p-3 z-50 w-56"
+          className="absolute top-full left-0 mt-1 bg-white border rounded-lg shadow-lg p-3 z-50 w-64"
         >
-          {/* Saved colors */}
-          {savedColors.length > 0 && (
+          {/* Quick-access saved colors */}
+          {quickColors.length > 0 && (
             <div className="mb-2">
-              <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5">Saved Colors</p>
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5">Quick Colors</p>
               <div className="flex flex-wrap gap-1.5">
-                {savedColors.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    title={c}
-                    onClick={() => {
-                      onApply(c);
-                      setOpen(false);
-                    }}
-                    className="w-6 h-6 rounded-full border border-gray-300 hover:scale-110 transition-transform"
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
+                {quickColors.map((c) => {
+                  const brand = findBrandColor(c);
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      title={brand ? `${brand.name} (${brand.hex})` : c}
+                      onClick={() => {
+                        onApply(c);
+                        setOpen(false);
+                      }}
+                      className="w-6 h-6 rounded-full border border-gray-300 hover:scale-110 transition-transform"
+                      style={{ backgroundColor: c }}
+                    />
+                  );
+                })}
+                {savedColors.length > 8 && (
+                  <span className="text-[10px] text-gray-400 self-center">+{savedColors.length - 8}</span>
+                )}
               </div>
             </div>
           )}
 
+          {/* Browse Palette button */}
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="w-full flex items-center justify-center gap-1.5 text-xs text-[#B07D3A] hover:bg-[#FDF5E8] border border-[#E8D5B0] rounded-md py-1.5 mb-2 transition-colors"
+          >
+            <SwatchBook size={13} />
+            Browse Brand Palette
+          </button>
+
           {/* Custom color row */}
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-2">
             <input
               type="color"
               value={customColor}
@@ -217,6 +241,15 @@ function ToolbarColorPopover({
           </div>
         </div>
       )}
+
+      <BrandColorPickerModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSelect={(hex) => {
+          onApply(hex);
+          setOpen(false);
+        }}
+      />
     </div>
   );
 }

@@ -2,7 +2,8 @@
 
 import { useRef, useState } from "react";
 import { useSavedColors } from "@/components/providers/saved-colors-provider";
-import { X } from "lucide-react";
+import { BrandColorPickerModal } from "@/components/admin/brand-color-picker-modal";
+import { SwatchBook } from "lucide-react";
 
 const HEX6_REGEX = /^#[0-9a-fA-F]{6}$/;
 const HEX8_REGEX = /^#[0-9a-fA-F]{8}$/;
@@ -46,8 +47,8 @@ function buildColor(hex6: string, opacity: number): string {
 
 export function ColorPicker({ value, onChange }: ColorPickerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { colors: savedColors, addColor, removeColor } = useSavedColors();
-  const [hoveredColor, setHoveredColor] = useState<string | null>(null);
+  const { colors: savedColors, addColor, findBrandColor } = useSavedColors();
+  const [modalOpen, setModalOpen] = useState(false);
 
   const isTransparent = value === "transparent";
   const hex6 = extractHex6(value);
@@ -90,6 +91,9 @@ export function ColorPicker({ value, onChange }: ColorPickerProps) {
 
   const currentColor = HEX6_REGEX.test(hex6) ? hex6 : "#000000";
 
+  // Show up to 10 saved colors for quick access
+  const quickColors = savedColors.slice(0, 10);
+
   return (
     <div className="space-y-2">
       {/* Swatch + hex input + transparent button */}
@@ -100,7 +104,6 @@ export function ColorPicker({ value, onChange }: ColorPickerProps) {
           className="w-9 h-9 rounded-md border border-gray-300 shrink-0 cursor-pointer relative overflow-hidden"
           style={{ backgroundColor: isTransparent ? "transparent" : currentColor }}
         >
-          {/* Checkerboard pattern for transparent indication */}
           {isTransparent && (
             <div
               className="absolute inset-0"
@@ -160,49 +163,52 @@ export function ColorPicker({ value, onChange }: ColorPickerProps) {
         <span className="text-xs font-mono text-gray-600 w-8 text-right">{opacity}%</span>
       </div>
 
-      {/* Saved colors palette */}
-      {(savedColors.length > 0 || (value && value !== "transparent")) && (
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {savedColors.map((color) => (
-            <div
-              key={color}
-              className="relative"
-              onMouseEnter={() => setHoveredColor(color)}
-              onMouseLeave={() => setHoveredColor(null)}
-            >
-              <button
-                type="button"
-                onClick={() => handleSwatchClick(color)}
-                className="w-6 h-6 rounded-full border border-gray-300 cursor-pointer transition-transform hover:scale-110"
-                style={{ backgroundColor: color === "transparent" ? "#ffffff" : extractHex6(color) }}
-                title={color}
-              />
-              {hoveredColor === color && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeColor(color);
-                    setHoveredColor(null);
-                  }}
-                  className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-red-500 text-white rounded-full flex items-center justify-center"
-                >
-                  <X size={8} />
-                </button>
-              )}
-            </div>
-          ))}
-          {value && value !== "transparent" && HEX6_REGEX.test(extractHex6(value)) && !savedColors.includes(value.toLowerCase()) && (
+      {/* Quick-access saved colors + Browse Palette */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {quickColors.map((color) => {
+          const brand = findBrandColor(color);
+          return (
             <button
+              key={color}
               type="button"
-              onClick={() => addColor(value)}
-              className="text-[11px] text-[#B07D3A] hover:underline ml-1"
-            >
-              Save color
-            </button>
-          )}
-        </div>
-      )}
+              onClick={() => handleSwatchClick(color)}
+              className="w-6 h-6 rounded-full border border-gray-300 cursor-pointer transition-transform hover:scale-110"
+              style={{ backgroundColor: color === "transparent" ? "#ffffff" : extractHex6(color) }}
+              title={brand ? `${brand.name} (${brand.hex})` : color}
+            />
+          );
+        })}
+        {savedColors.length > 10 && (
+          <span className="text-[10px] text-gray-400">+{savedColors.length - 10}</span>
+        )}
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          className="inline-flex items-center gap-1 text-[11px] text-[#B07D3A] hover:underline ml-1"
+        >
+          <SwatchBook size={12} />
+          Browse Palette
+        </button>
+        {value && value !== "transparent" && HEX6_REGEX.test(extractHex6(value)) && !savedColors.includes(value.toLowerCase()) && (
+          <button
+            type="button"
+            onClick={() => addColor(value)}
+            className="text-[11px] text-gray-500 hover:underline ml-1"
+          >
+            Save color
+          </button>
+        )}
+      </div>
+
+      <BrandColorPickerModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSelect={(hex) => {
+          setHexInput(hex);
+          onChange(buildColor(hex, opacity));
+        }}
+        currentColor={currentColor}
+      />
     </div>
   );
 }
