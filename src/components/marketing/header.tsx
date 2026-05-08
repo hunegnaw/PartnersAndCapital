@@ -70,7 +70,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
         </Link>
 
         {/* Center nav — desktop */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-8" style={{ fontFamily: "var(--font-body-family, Inter), sans-serif" }}>
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -126,7 +126,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
 
       {/* Mobile dropdown */}
       {mobileOpen && (
-        <div className="md:hidden bg-[#1A2640] border-t border-white/10 px-6 pb-6 pt-2 space-y-4">
+        <div className="md:hidden bg-[#1A2640] border-t border-white/10 px-6 pb-6 pt-2 space-y-4" style={{ fontFamily: "var(--font-body-family, Inter), sans-serif" }}>
           {navLinks.map((link) => (
             <Link
               key={link.href}
