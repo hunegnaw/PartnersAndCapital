@@ -76,7 +76,8 @@ export function MarketingFooter({ navLinks: navLinksProp, investmentLinks }: Mar
                     <img
                       src={footer.logoUrl}
                       alt={org.name}
-                      className="h-10 object-contain"
+                      className="object-contain"
+                      style={{ width: "150px" }}
                     />
                   </div>
                 )}
