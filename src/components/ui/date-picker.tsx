@@ -96,13 +96,13 @@ export function DatePicker({
             month: "space-y-3",
             month_caption: "flex justify-center relative items-center h-8",
             caption_label: "text-sm font-semibold text-[#1a1a18] tracking-wide",
-            nav: "flex items-center gap-1 absolute inset-x-0 top-0",
+            nav: "flex items-center justify-between absolute inset-x-0 top-0 h-8",
             button_previous: cn(
-              "absolute left-0 inline-flex h-8 w-8 items-center justify-center rounded-lg",
+              "inline-flex h-8 w-8 items-center justify-center rounded-lg",
               "text-[#888780] hover:bg-[#f5f5f3] hover:text-[#1a1a18] transition-colors"
             ),
             button_next: cn(
-              "absolute right-0 inline-flex h-8 w-8 items-center justify-center rounded-lg",
+              "inline-flex h-8 w-8 items-center justify-center rounded-lg",
               "text-[#888780] hover:bg-[#f5f5f3] hover:text-[#1a1a18] transition-colors"
             ),
             weekdays: "flex",

@@ -115,6 +115,7 @@ export default function AdminInvestmentDetailPage({
   const router = useRouter()
   const [investment, setInvestment] = useState<InvestmentDetail | null>(null)
   const [allClients, setAllClients] = useState<{ id: string; name: string; email: string }[]>([])
+  const [allAssetClasses, setAllAssetClasses] = useState<AssetClass[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -159,12 +160,24 @@ export default function AdminInvestmentDetailPage({
     }
   }, [])
 
+  const fetchAssetClasses = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/asset-classes")
+      if (!res.ok) return
+      const data = await res.json()
+      setAllAssetClasses(data.map((ac: { id: string; name: string }) => ({ id: ac.id, name: ac.name })))
+    } catch {
+      // Non-critical, ignore
+    }
+  }, [])
+
   useEffect(() => {
     Promise.resolve().then(() => {
       fetchInvestment()
       fetchClients()
+      fetchAssetClasses()
     })
-  }, [fetchInvestment, fetchClients])
+  }, [fetchInvestment, fetchClients, fetchAssetClasses])
 
   if (error) {
     return (
@@ -501,7 +514,7 @@ export default function AdminInvestmentDetailPage({
         open={editOpen}
         onOpenChange={setEditOpen}
         investment={investment}
-        assetClasses={[investment.assetClass]}
+        assetClasses={allAssetClasses.length > 0 ? allAssetClasses : [investment.assetClass]}
         onSuccess={fetchInvestment}
       />
 

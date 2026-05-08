@@ -86,7 +86,7 @@ const statusVariant = (status: string) => {
 export default function AdminInvestmentsPage() {
   const router = useRouter()
   const [investments, setInvestments] = useState<Investment[]>([])
-  const [assetClasses, setAssetClasses] = useState<AssetClass[]>([])
+  const [allAssetClasses, setAllAssetClasses] = useState<AssetClass[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [pageSize] = useState(20)
@@ -118,35 +118,30 @@ export default function AdminInvestmentsPage() {
       setInvestments(data.investments)
       setTotal(data.total)
 
-      // Extract unique asset classes from results for filter dropdown
-      const seen = new Set<string>()
-      const classes: AssetClass[] = []
-      for (const inv of data.investments) {
-        if (!seen.has(inv.assetClass.id)) {
-          seen.add(inv.assetClass.id)
-          classes.push(inv.assetClass)
-        }
-      }
-      // Only update asset classes if we got results or this is the first load
-      if (classes.length > 0 || assetClasses.length === 0) {
-        setAssetClasses((prev) => {
-          const merged = new Map<string, AssetClass>()
-          for (const ac of prev) merged.set(ac.id, ac)
-          for (const ac of classes) merged.set(ac.id, ac)
-          return Array.from(merged.values())
-        })
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred")
     } finally {
       setLoading(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize, search, statusFilter, assetClassFilter])
 
+  const fetchAssetClasses = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/asset-classes")
+      if (!res.ok) return
+      const data = await res.json()
+      setAllAssetClasses(data.map((ac: { id: string; name: string }) => ({ id: ac.id, name: ac.name })))
+    } catch {
+      // silent — filter dropdown just stays empty
+    }
+  }, [])
+
   useEffect(() => {
-    Promise.resolve().then(() => fetchInvestments())
-  }, [fetchInvestments])
+    Promise.resolve().then(() => {
+      fetchInvestments()
+      fetchAssetClasses()
+    })
+  }, [fetchInvestments, fetchAssetClasses])
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -209,7 +204,7 @@ export default function AdminInvestmentsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Classes</SelectItem>
-            {assetClasses.map((ac) => (
+            {allAssetClasses.map((ac) => (
               <SelectItem key={ac.id} value={ac.id}>
                 {ac.name}
               </SelectItem>
@@ -338,7 +333,7 @@ export default function AdminInvestmentsPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         investment={editingInvestment}
-        assetClasses={assetClasses}
+        assetClasses={allAssetClasses}
         onSuccess={fetchInvestments}
       />
     </div>
