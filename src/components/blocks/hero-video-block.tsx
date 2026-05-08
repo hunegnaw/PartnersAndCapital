@@ -133,10 +133,6 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
             <h1
               className="heading-dark leading-[1.05] tracking-tight text-white"
               style={{
-                fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif",
-                fontWeight: "var(--font-hero-title-weight, 300)" as unknown as number,
-                fontStyle: "var(--font-hero-title-style, normal)",
-                fontSize: "clamp(48px, 7vw, 88px)",
                 animation: "fadeUp 0.8s ease 0.25s both",
                 ...(headingFont ?? {}),
                 ...(headingColor ? { color: headingColor } : {}),

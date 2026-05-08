@@ -148,50 +148,50 @@ body {
 
 .marketing-typography h1 {
   font-family: var(--font-h1-family, var(--font-hero-title-family, inherit)) !important;
-  font-weight: var(--font-h1-weight, var(--font-hero-title-weight, 500));
-  font-style: var(--font-h1-style, var(--font-hero-title-style, normal));
+  font-weight: var(--font-h1-weight, var(--font-hero-title-weight, 500)) !important;
+  font-style: var(--font-h1-style, var(--font-hero-title-style, normal)) !important;
   color: var(--font-h1-color, inherit);
-  font-size: var(--font-h1-size, revert);
+  font-size: var(--font-h1-size, revert) !important;
 }
 
 .marketing-typography h2 {
   font-family: var(--font-h2-family, var(--font-section-heading-family, inherit)) !important;
-  font-weight: var(--font-h2-weight, var(--font-section-heading-weight, 300));
-  font-style: var(--font-h2-style, var(--font-section-heading-style, normal));
+  font-weight: var(--font-h2-weight, var(--font-section-heading-weight, 300)) !important;
+  font-style: var(--font-h2-style, var(--font-section-heading-style, normal)) !important;
   color: var(--font-h2-color, inherit);
-  font-size: var(--font-h2-size, revert);
+  font-size: var(--font-h2-size, revert) !important;
 }
 
 .marketing-typography h3 {
   font-family: var(--font-h3-family, var(--font-section-heading-family, inherit)) !important;
-  font-weight: var(--font-h3-weight, var(--font-section-heading-weight, 300));
-  font-style: var(--font-h3-style, var(--font-section-heading-style, normal));
+  font-weight: var(--font-h3-weight, var(--font-section-heading-weight, 300)) !important;
+  font-style: var(--font-h3-style, var(--font-section-heading-style, normal)) !important;
   color: var(--font-h3-color, inherit);
-  font-size: var(--font-h3-size, revert);
+  font-size: var(--font-h3-size, revert) !important;
 }
 
 .marketing-typography h4 {
   font-family: var(--font-h4-family, var(--font-section-heading-family, inherit)) !important;
-  font-weight: var(--font-h4-weight, var(--font-section-heading-weight, 300));
-  font-style: var(--font-h4-style, var(--font-section-heading-style, normal));
+  font-weight: var(--font-h4-weight, var(--font-section-heading-weight, 300)) !important;
+  font-style: var(--font-h4-style, var(--font-section-heading-style, normal)) !important;
   color: var(--font-h4-color, inherit);
-  font-size: var(--font-h4-size, revert);
+  font-size: var(--font-h4-size, revert) !important;
 }
 
 .marketing-typography h5 {
   font-family: var(--font-h5-family, inherit) !important;
-  font-weight: var(--font-h5-weight, 500);
-  font-style: var(--font-h5-style, normal);
+  font-weight: var(--font-h5-weight, 500) !important;
+  font-style: var(--font-h5-style, normal) !important;
   color: var(--font-h5-color, inherit);
-  font-size: var(--font-h5-size, revert);
+  font-size: var(--font-h5-size, revert) !important;
 }
 
 .marketing-typography h6 {
   font-family: var(--font-h6-family, inherit) !important;
-  font-weight: var(--font-h6-weight, 500);
-  font-style: var(--font-h6-style, normal);
+  font-weight: var(--font-h6-weight, 500) !important;
+  font-style: var(--font-h6-style, normal) !important;
   color: var(--font-h6-color, inherit);
-  font-size: var(--font-h6-size, revert);
+  font-size: var(--font-h6-size, revert) !important;
 }
 
 .marketing-typography p:not(.subtitle-font),
@@ -207,50 +207,50 @@ body {
 
 .marketing-typography .prose h1 {
   font-family: var(--font-h1-family, var(--font-hero-title-family, inherit)) !important;
-  font-weight: var(--font-h1-weight, var(--font-hero-title-weight, 500));
-  font-style: var(--font-h1-style, var(--font-hero-title-style, normal));
+  font-weight: var(--font-h1-weight, var(--font-hero-title-weight, 500)) !important;
+  font-style: var(--font-h1-style, var(--font-hero-title-style, normal)) !important;
   color: var(--font-h1-color, inherit);
-  font-size: var(--font-h1-size, revert);
+  font-size: var(--font-h1-size, revert) !important;
 }
 
 .marketing-typography .prose h2 {
   font-family: var(--font-h2-family, var(--font-section-heading-family, inherit)) !important;
-  font-weight: var(--font-h2-weight, var(--font-section-heading-weight, 300));
-  font-style: var(--font-h2-style, var(--font-section-heading-style, normal));
+  font-weight: var(--font-h2-weight, var(--font-section-heading-weight, 300)) !important;
+  font-style: var(--font-h2-style, var(--font-section-heading-style, normal)) !important;
   color: var(--font-h2-color, inherit);
-  font-size: var(--font-h2-size, revert);
+  font-size: var(--font-h2-size, revert) !important;
 }
 
 .marketing-typography .prose h3 {
   font-family: var(--font-h3-family, var(--font-section-heading-family, inherit)) !important;
-  font-weight: var(--font-h3-weight, var(--font-section-heading-weight, 300));
-  font-style: var(--font-h3-style, var(--font-section-heading-style, normal));
+  font-weight: var(--font-h3-weight, var(--font-section-heading-weight, 300)) !important;
+  font-style: var(--font-h3-style, var(--font-section-heading-style, normal)) !important;
   color: var(--font-h3-color, inherit);
-  font-size: var(--font-h3-size, revert);
+  font-size: var(--font-h3-size, revert) !important;
 }
 
 .marketing-typography .prose h4 {
   font-family: var(--font-h4-family, var(--font-section-heading-family, inherit)) !important;
-  font-weight: var(--font-h4-weight, var(--font-section-heading-weight, 300));
-  font-style: var(--font-h4-style, var(--font-section-heading-style, normal));
+  font-weight: var(--font-h4-weight, var(--font-section-heading-weight, 300)) !important;
+  font-style: var(--font-h4-style, var(--font-section-heading-style, normal)) !important;
   color: var(--font-h4-color, inherit);
-  font-size: var(--font-h4-size, revert);
+  font-size: var(--font-h4-size, revert) !important;
 }
 
 .marketing-typography .prose h5 {
   font-family: var(--font-h5-family, inherit) !important;
-  font-weight: var(--font-h5-weight, 500);
-  font-style: var(--font-h5-style, normal);
+  font-weight: var(--font-h5-weight, 500) !important;
+  font-style: var(--font-h5-style, normal) !important;
   color: var(--font-h5-color, inherit);
-  font-size: var(--font-h5-size, revert);
+  font-size: var(--font-h5-size, revert) !important;
 }
 
 .marketing-typography .prose h6 {
   font-family: var(--font-h6-family, inherit) !important;
-  font-weight: var(--font-h6-weight, 500);
-  font-style: var(--font-h6-style, normal);
+  font-weight: var(--font-h6-weight, 500) !important;
+  font-style: var(--font-h6-style, normal) !important;
   color: var(--font-h6-color, inherit);
-  font-size: var(--font-h6-size, revert);
+  font-size: var(--font-h6-size, revert) !important;
 }
 
 /* Subtitle font override — more specific than .marketing-typography p */

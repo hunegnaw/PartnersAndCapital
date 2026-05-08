@@ -28,9 +28,6 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
           <h2
             className="heading-dark leading-[1.15]"
             style={{
-              fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
-              fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
-              fontSize: "clamp(32px, 4vw, 52px)",
               color: headingColor,
               ...(headingFont ?? {}),
             }}

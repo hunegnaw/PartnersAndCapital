@@ -70,11 +70,7 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
             <h2
               className="heading-light leading-[1.15]"
               style={{
-                fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
-                fontWeight: "var(--font-section-heading-weight, 300)" as unknown as number,
-                fontStyle: "var(--font-section-heading-style, normal)",
-                color: headingColor || "var(--font-section-heading-color, #1A2640)",
-                fontSize: "clamp(32px, 4vw, 52px)",
+                color: headingColor || undefined,
                 ...(headingFont ?? {}),
               }}
               dangerouslySetInnerHTML={{ __html: heading }}
