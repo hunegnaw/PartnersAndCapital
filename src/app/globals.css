@@ -207,12 +207,14 @@ body {
   --tw-prose-headings: inherit;
 }
 
-/* Reset prose heading overrides so typography settings win */
+/* Reset prose heading overrides so typography settings win.
+   Specificity (0,2,1) beats Tailwind .prose h1 (0,1,1).
+   The specific rules below override this reset by source order. */
 .marketing-typography .prose :is(h1, h2, h3, h4, h5, h6) {
-  font-size: unset !important;
-  font-weight: unset !important;
-  font-style: unset !important;
-  font-family: unset !important;
+  font-size: unset;
+  font-weight: unset;
+  font-style: unset;
+  font-family: unset;
 }
 
 .marketing-typography .prose h1 {
