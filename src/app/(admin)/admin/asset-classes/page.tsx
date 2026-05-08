@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,7 +41,6 @@ import {
   Ship,
   Cpu,
   Heart,
-  GripVertical,
 } from "lucide-react";
 
 // ── Icon map ────────────────────────────────────────────────────────
@@ -101,6 +100,8 @@ export default function AssetClassesPage() {
   // Delete
   const [deleting, setDeleting] = useState<string | null>(null);
 
+  const didFetch = useRef(false);
+
   const fetchData = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/asset-classes");
@@ -114,9 +115,10 @@ export default function AssetClassesPage() {
     }
   }, []);
 
-  useEffect(() => {
+  if (!didFetch.current) {
+    didFetch.current = true;
     fetchData();
-  }, [fetchData]);
+  }
 
   function openCreate() {
     setEditing(null);

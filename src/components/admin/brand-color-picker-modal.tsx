@@ -14,7 +14,7 @@ import {
   TooltipContent,
   TooltipProvider,
 } from "@/components/ui/tooltip";
-import { BRAND_PALETTE, findBrandColor } from "@/lib/brand-palette";
+import { BRAND_PALETTE } from "@/lib/brand-palette";
 import { Search } from "lucide-react";
 
 interface BrandColorPickerModalProps {

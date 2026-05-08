@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -34,7 +34,6 @@ function slugify(text: string): string {
 
 export default function AdminEditPagePage() {
   const params = useParams()
-  const router = useRouter()
   const pageId = params.id as string
 
   const [loading, setLoading] = useState(true)

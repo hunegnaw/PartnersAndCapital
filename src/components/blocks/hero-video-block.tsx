@@ -28,7 +28,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
   const posterImageUrl = (props.posterImageUrl as string) ?? "";
   const overlayOpacity = (props.overlayOpacity as number) ?? 0.5;
   const showStats = props.showStats !== false;
-  const scrollHintText = (props.scrollHintText as string) ?? "Scroll";
+
 
   const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
   const headingFont = resolveBlockFont((props.headingFont as string) || "");
