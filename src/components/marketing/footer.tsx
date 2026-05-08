@@ -47,13 +47,19 @@ export function MarketingFooter({ investmentLinks }: MarketingFooterProps) {
   const hasInvestments = footer.modules.investments && investmentLinks && investmentLinks.length > 0;
   const navColumns: FooterNavColumn[] = footer.navColumns || [];
 
-  // Resolve investment URLs from footer config
-  const investmentLinksWithUrls = (investmentLinks || []).map((il) => {
-    const override = (footer.investmentLinks || []).find(
-      (fl: FooterInvestmentLink) => fl.assetClassId === il.id
-    );
-    return { label: il.label, url: override?.url || "" };
-  });
+  // Resolve investment URLs from footer config, filtering by visibility
+  const investmentLinksWithUrls = (investmentLinks || [])
+    .map((il) => {
+      const override = (footer.investmentLinks || []).find(
+        (fl: FooterInvestmentLink) => fl.assetClassId === il.id
+      );
+      return {
+        label: il.label,
+        url: override?.url || "",
+        visible: override?.visible ?? true,
+      };
+    })
+    .filter((il) => il.visible);
 
   // Build list of nav columns: custom columns + investments
   const middleCols = [

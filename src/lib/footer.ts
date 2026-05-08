@@ -21,6 +21,7 @@ export interface FooterInvestmentLink {
   assetClassId: string;
   assetClassName: string;
   url: string;
+  visible: boolean;
 }
 
 export interface FooterNavColumn {
@@ -53,7 +54,7 @@ export const DEFAULT_FOOTER: FooterConfig = {
     tagline: true,
     copyright: true,
     disclaimer: true,
-    legalLinks: false,
+    legalLinks: true,
     investments: true,
   },
   logoUrl: null,
@@ -65,7 +66,10 @@ export const DEFAULT_FOOTER: FooterConfig = {
   backgroundColor: "#1A2640",
   textColor: "#ffffff",
   accentColor: "#B07D3A",
-  links: [],
+  links: [
+    { label: "Privacy Policy", url: "/privacy-policy" },
+    { label: "Terms of Use", url: "/terms-of-use" },
+  ],
   navColumns: [],
   investmentLinks: [],
 };

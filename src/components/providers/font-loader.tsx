@@ -15,6 +15,12 @@ function getCSSVariables(typography: TypographySettings): string {
     { key: "body", prefix: "body" },
     { key: "adminBody", prefix: "admin-body" },
     { key: "portalBody", prefix: "portal-body" },
+    { key: "h1", prefix: "h1" },
+    { key: "h2", prefix: "h2" },
+    { key: "h3", prefix: "h3" },
+    { key: "h4", prefix: "h4" },
+    { key: "h5", prefix: "h5" },
+    { key: "h6", prefix: "h6" },
   ] as const;
 
   for (const { key, prefix } of categories) {

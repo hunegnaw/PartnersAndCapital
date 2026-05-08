@@ -48,7 +48,9 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DraggableAttributes,
 } from "@dnd-kit/core";
+import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 import {
   arrayMove,
   SortableContext,
@@ -207,6 +209,35 @@ function PagePickerPopover({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Sortable nav column wrapper                                        */
+/* ------------------------------------------------------------------ */
+function SortableNavColumn({
+  columnId,
+  children,
+}: {
+  columnId: string;
+  children: (dragHandleProps: {
+    attributes: DraggableAttributes;
+    listeners: SyntheticListenerMap | undefined;
+  }) => React.ReactNode;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: columnId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="border rounded-lg p-4 space-y-3">
+      {children({ attributes, listeners })}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main admin page                                                    */
 /* ------------------------------------------------------------------ */
 export default function AdminFooterPage() {
@@ -352,15 +383,34 @@ export default function AdminFooterPage() {
     updateField("navColumns", updated);
   }
 
+  function handleColumnDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const cols = footer.navColumns || [];
+    const columnIds = cols.map((_: FooterNavColumn, i: number) => `col-${i}`);
+    const oldIndex = columnIds.indexOf(active.id as string);
+    const newIndex = columnIds.indexOf(over.id as string);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    updateField("navColumns", arrayMove([...cols], oldIndex, newIndex));
+  }
+
   /* ------ Investment link helpers ------ */
-  function getInvestmentUrl(assetClassId: string): string {
+  function getInvestmentLink(assetClassId: string): { url: string; visible: boolean } {
     const found = (footer.investmentLinks || []).find(
       (il: FooterInvestmentLink) => il.assetClassId === assetClassId
     );
-    return found?.url || "";
+    return { url: found?.url || "", visible: found?.visible ?? true };
   }
 
-  function setInvestmentUrl(assetClassId: string, assetClassName: string, url: string) {
+  function updateInvestmentLink(
+    assetClassId: string,
+    assetClassName: string,
+    field: "url" | "visible",
+    value: string | boolean
+  ) {
     const existing = footer.investmentLinks || [];
     const idx = existing.findIndex(
       (il: FooterInvestmentLink) => il.assetClassId === assetClassId
@@ -368,9 +418,12 @@ export default function AdminFooterPage() {
     let updated: FooterInvestmentLink[];
     if (idx >= 0) {
       updated = [...existing];
-      updated[idx] = { ...updated[idx], url };
+      updated[idx] = { ...updated[idx], [field]: value };
     } else {
-      updated = [...existing, { assetClassId, assetClassName, url }];
+      updated = [
+        ...existing,
+        { assetClassId, assetClassName, url: "", visible: true, [field]: value },
+      ];
     }
     updateField("investmentLinks", updated);
   }
@@ -625,68 +678,93 @@ export default function AdminFooterPage() {
             <p className="text-xs text-muted-foreground">
               Build footer navigation columns. Add links from your published CMS pages or create custom links. Drag to reorder.
             </p>
-            {(footer.navColumns || []).map((col: FooterNavColumn, colIdx: number) => {
-              const linkIds = col.links.map((_: FooterLink, i: number) => `${colIdx}-${i}`);
+            <DndContext
+              id={`${dndId}-columns`}
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleColumnDragEnd}
+            >
+              <SortableContext
+                items={(footer.navColumns || []).map((_: FooterNavColumn, i: number) => `col-${i}`)}
+                strategy={verticalListSortingStrategy}
+              >
+                {(footer.navColumns || []).map((col: FooterNavColumn, colIdx: number) => {
+                  const linkIds = col.links.map((_: FooterLink, i: number) => `${colIdx}-${i}`);
 
-              return (
-                <div key={colIdx} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Input
-                      value={col.title}
-                      onChange={(e) => updateColumnTitle(colIdx, e.target.value)}
-                      placeholder="Column title (e.g. Firm)"
-                      className="flex-1 font-medium"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteColumn(colIdx)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  return (
+                    <SortableNavColumn key={colIdx} columnId={`col-${colIdx}`}>
+                      {({ attributes, listeners }) => (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              {...attributes}
+                              {...listeners}
+                              className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600 shrink-0"
+                              title="Drag to reorder column"
+                            >
+                              <GripVertical className="h-4 w-4" />
+                            </button>
+                            <Input
+                              value={col.title}
+                              onChange={(e) => updateColumnTitle(colIdx, e.target.value)}
+                              placeholder="Column title (e.g. Firm)"
+                              className="flex-1 font-medium"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteColumn(colIdx)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
 
-                  {/* Sortable links */}
-                  <DndContext
-                    id={`${dndId}-col-${colIdx}`}
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={(event) => handleLinkDragEnd(colIdx, event)}
-                  >
-                    <SortableContext items={linkIds} strategy={verticalListSortingStrategy}>
-                      {col.links.map((link: FooterLink, linkIdx: number) => (
-                        <SortableLinkRow
-                          key={linkIds[linkIdx]}
-                          link={link}
-                          linkId={linkIds[linkIdx]}
-                          onChangeLabel={(v) => updateLink(colIdx, linkIdx, "label", v)}
-                          onChangeUrl={(v) => updateLink(colIdx, linkIdx, "url", v)}
-                          onDelete={() => deleteLink(colIdx, linkIdx)}
-                        />
-                      ))}
-                    </SortableContext>
-                  </DndContext>
+                          {/* Sortable links */}
+                          <DndContext
+                            id={`${dndId}-col-${colIdx}`}
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={(event) => handleLinkDragEnd(colIdx, event)}
+                          >
+                            <SortableContext items={linkIds} strategy={verticalListSortingStrategy}>
+                              {col.links.map((link: FooterLink, linkIdx: number) => (
+                                <SortableLinkRow
+                                  key={linkIds[linkIdx]}
+                                  link={link}
+                                  linkId={linkIds[linkIdx]}
+                                  onChangeLabel={(v) => updateLink(colIdx, linkIdx, "label", v)}
+                                  onChangeUrl={(v) => updateLink(colIdx, linkIdx, "url", v)}
+                                  onDelete={() => deleteLink(colIdx, linkIdx)}
+                                />
+                              ))}
+                            </SortableContext>
+                          </DndContext>
 
-                  <div className="flex items-center gap-2 pl-2">
-                    <PagePickerPopover
-                      pages={cmsPages}
-                      onSelect={(page) => addPageLink(colIdx, page)}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => addCustomLink(colIdx)}
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Add Custom Link
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
+                          <div className="flex items-center gap-2 pl-2">
+                            <PagePickerPopover
+                              pages={cmsPages}
+                              onSelect={(page) => addPageLink(colIdx, page)}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addCustomLink(colIdx)}
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Add Custom Link
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </SortableNavColumn>
+                  );
+                })}
+              </SortableContext>
+            </DndContext>
             <Button
               type="button"
               variant="outline"
@@ -721,17 +799,28 @@ export default function AdminFooterPage() {
                 No asset classes found. Create asset classes in the Investments section first.
               </p>
             )}
-            {assetClasses.map((ac) => (
-              <div key={ac.id} className="flex items-center gap-3">
-                <span className="text-sm font-medium w-48 shrink-0 truncate">{ac.name}</span>
-                <Input
-                  value={getInvestmentUrl(ac.id)}
-                  onChange={(e) => setInvestmentUrl(ac.id, ac.name, e.target.value)}
-                  placeholder="URL (e.g. /investments/real-estate)"
-                  className="flex-1"
-                />
-              </div>
-            ))}
+            {assetClasses.map((ac) => {
+              const il = getInvestmentLink(ac.id);
+              return (
+                <div key={ac.id} className="flex items-center gap-3">
+                  <Switch
+                    checked={il.visible}
+                    onCheckedChange={(checked) =>
+                      updateInvestmentLink(ac.id, ac.name, "visible", checked)
+                    }
+                  />
+                  <span className="text-sm font-medium w-48 shrink-0 truncate">{ac.name}</span>
+                  <Input
+                    value={il.url}
+                    onChange={(e) =>
+                      updateInvestmentLink(ac.id, ac.name, "url", e.target.value)
+                    }
+                    placeholder="URL (e.g. /investments/real-estate)"
+                    className="flex-1"
+                  />
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
 

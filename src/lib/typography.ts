@@ -14,6 +14,12 @@ export interface TypographySettings {
   body: FontSetting;
   adminBody: FontSetting;
   portalBody: FontSetting;
+  h1: FontSetting;
+  h2: FontSetting;
+  h3: FontSetting;
+  h4: FontSetting;
+  h5: FontSetting;
+  h6: FontSetting;
 }
 
 export const TYPOGRAPHY_CATEGORIES: { key: keyof TypographySettings; label: string }[] = [
@@ -24,6 +30,12 @@ export const TYPOGRAPHY_CATEGORIES: { key: keyof TypographySettings; label: stri
   { key: "body", label: "Body Text" },
   { key: "adminBody", label: "Admin Body" },
   { key: "portalBody", label: "Portal Body" },
+  { key: "h1", label: "Heading 1" },
+  { key: "h2", label: "Heading 2" },
+  { key: "h3", label: "Heading 3" },
+  { key: "h4", label: "Heading 4" },
+  { key: "h5", label: "Heading 5" },
+  { key: "h6", label: "Heading 6" },
 ];
 
 export const DEFAULT_TYPOGRAPHY: TypographySettings = {
@@ -75,6 +87,48 @@ export const DEFAULT_TYPOGRAPHY: TypographySettings = {
     fontStyle: "normal",
     color: "#333333",
     fontSize: "14px",
+  },
+  h1: {
+    fontFamily: "Cormorant Garamond",
+    fontWeight: "300",
+    fontStyle: "normal",
+    color: "#1A2640",
+    fontSize: "48px",
+  },
+  h2: {
+    fontFamily: "Cormorant Garamond",
+    fontWeight: "300",
+    fontStyle: "normal",
+    color: "#1A2640",
+    fontSize: "36px",
+  },
+  h3: {
+    fontFamily: "Cormorant Garamond",
+    fontWeight: "300",
+    fontStyle: "normal",
+    color: "#1A2640",
+    fontSize: "28px",
+  },
+  h4: {
+    fontFamily: "Inter",
+    fontWeight: "500",
+    fontStyle: "normal",
+    color: "#1A2640",
+    fontSize: "22px",
+  },
+  h5: {
+    fontFamily: "Inter",
+    fontWeight: "500",
+    fontStyle: "normal",
+    color: "#1A2640",
+    fontSize: "18px",
+  },
+  h6: {
+    fontFamily: "Inter",
+    fontWeight: "500",
+    fontStyle: "normal",
+    color: "#1A2640",
+    fontSize: "16px",
   },
 };
 

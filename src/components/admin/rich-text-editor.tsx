@@ -8,11 +8,14 @@ import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import { TextStyle } from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
+import { FontFamily } from "@tiptap/extension-text-style";
+import { BackgroundColor } from "@tiptap/extension-text-style";
 import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
 import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useSavedColors } from "@/components/providers/saved-colors-provider";
 import {
   Bold,
   Italic,
@@ -35,6 +38,7 @@ import {
   Undo,
   Redo,
   Palette,
+  Highlighter,
 } from "lucide-react";
 
 interface RichTextEditorProps {
@@ -69,14 +73,153 @@ function ToolbarButton({
   );
 }
 
-const COLORS = [
-  { label: "Navy", value: "#1A2640" },
-  { label: "Gold", value: "#B07D3A" },
-  { label: "Dark", value: "#1a1a18" },
-  { label: "White", value: "#ffffff" },
-  { label: "Gray", value: "#5f5e5a" },
+const FONT_OPTIONS = [
   { label: "Default", value: "" },
+  { label: "Cormorant Garamond", value: "Cormorant Garamond" },
+  { label: "Inter", value: "Inter" },
 ];
+
+function ToolbarColorPopover({
+  icon,
+  title,
+  onApply,
+  onUnset,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  onApply: (hex: string) => void;
+  onUnset: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [customColor, setCustomColor] = useState("#000000");
+  const { colors: savedColors, addColor } = useSavedColors();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleMouseDown(e: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div className="relative">
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => setOpen(!open)}
+        title={title}
+        className={`p-1.5 rounded hover:bg-gray-200 transition-colors ${
+          open ? "bg-gray-200 text-[#1A2640]" : "text-gray-600"
+        }`}
+      >
+        {icon}
+      </button>
+      {open && (
+        <div
+          ref={containerRef}
+          className="absolute top-full left-0 mt-1 bg-white border rounded-lg shadow-lg p-3 z-50 w-56"
+        >
+          {/* Saved colors */}
+          {savedColors.length > 0 && (
+            <div className="mb-2">
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5">Saved Colors</p>
+              <div className="flex flex-wrap gap-1.5">
+                {savedColors.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    title={c}
+                    onClick={() => {
+                      onApply(c);
+                      setOpen(false);
+                    }}
+                    className="w-6 h-6 rounded-full border border-gray-300 hover:scale-110 transition-transform"
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Custom color row */}
+          <div className="flex items-center gap-2 mt-2">
+            <input
+              type="color"
+              value={customColor}
+              onChange={(e) => setCustomColor(e.target.value)}
+              className="w-7 h-7 rounded border border-gray-300 cursor-pointer p-0"
+            />
+            <input
+              type="text"
+              value={customColor}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (/^#[0-9a-fA-F]{0,6}$/.test(v)) setCustomColor(v);
+              }}
+              className="flex-1 text-xs border rounded px-2 py-1 font-mono"
+              placeholder="#000000"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (/^#[0-9a-fA-F]{6}$/.test(customColor)) {
+                  onApply(customColor);
+                  setOpen(false);
+                }
+              }}
+              className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+            >
+              Apply
+            </button>
+          </div>
+
+          {/* Save + Default row */}
+          <div className="flex items-center justify-between mt-2 pt-2 border-t">
+            <button
+              type="button"
+              onClick={() => {
+                if (/^#[0-9a-fA-F]{6}$/.test(customColor)) {
+                  addColor(customColor);
+                }
+              }}
+              className="text-[11px] text-blue-600 hover:underline"
+            >
+              Save this color
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onUnset();
+                setOpen(false);
+              }}
+              className="text-[11px] text-gray-500 hover:text-gray-700"
+            >
+              Default
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function RichTextEditor({
   content,
@@ -86,7 +229,6 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const [showSource, setShowSource] = useState(false);
   const [sourceHtml, setSourceHtml] = useState("");
-  const [showColorPicker, setShowColorPicker] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -99,6 +241,8 @@ export function RichTextEditor({
       Image,
       TextStyle,
       Color,
+      FontFamily,
+      BackgroundColor,
       Table.configure({ resizable: true }),
       TableRow,
       TableCell,
@@ -166,6 +310,29 @@ export function RichTextEditor({
     <div className="border border-gray-300 rounded-lg overflow-hidden bg-white">
       {/* Toolbar */}
       <div className="border-b border-gray-200 bg-gray-50 px-2 py-1.5 flex flex-wrap items-center gap-0.5">
+        {/* Font select */}
+        <select
+          value={editor.getAttributes("textStyle").fontFamily || ""}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val) {
+              editor.chain().focus().setFontFamily(val).run();
+            } else {
+              editor.chain().focus().unsetFontFamily().run();
+            }
+          }}
+          className="h-7 text-xs border border-gray-300 rounded px-1.5 bg-white text-gray-600 focus:outline-none"
+          title="Font Family"
+        >
+          {FONT_OPTIONS.map((f) => (
+            <option key={f.value} value={f.value}>
+              {f.label}
+            </option>
+          ))}
+        </select>
+
+        <span className="w-px h-5 bg-gray-300 mx-1" />
+
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive("bold")}
@@ -275,37 +442,18 @@ export function RichTextEditor({
 
         <span className="w-px h-5 bg-gray-300 mx-1" />
 
-        <div className="relative">
-          <ToolbarButton
-            onClick={() => setShowColorPicker(!showColorPicker)}
-            title="Text Color"
-          >
-            <Palette size={16} />
-          </ToolbarButton>
-          {showColorPicker && (
-            <div className="absolute top-full left-0 mt-1 bg-white border rounded-lg shadow-lg p-2 z-50 flex gap-1">
-              {COLORS.map((c) => (
-                <button
-                  key={c.label}
-                  type="button"
-                  title={c.label}
-                  onClick={() => {
-                    if (c.value) {
-                      editor.chain().focus().setColor(c.value).run();
-                    } else {
-                      editor.chain().focus().unsetColor().run();
-                    }
-                    setShowColorPicker(false);
-                  }}
-                  className="w-6 h-6 rounded-full border border-gray-300 hover:scale-110 transition-transform"
-                  style={{
-                    backgroundColor: c.value || "#f3f4f6",
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <ToolbarColorPopover
+          icon={<Palette size={16} />}
+          title="Text Color"
+          onApply={(hex) => editor.chain().focus().setColor(hex).run()}
+          onUnset={() => editor.chain().focus().unsetColor().run()}
+        />
+        <ToolbarColorPopover
+          icon={<Highlighter size={16} />}
+          title="Background Color"
+          onApply={(hex) => editor.chain().focus().setBackgroundColor(hex).run()}
+          onUnset={() => editor.chain().focus().unsetBackgroundColor().run()}
+        />
 
         <ToolbarButton onClick={addLink} active={editor.isActive("link")} title="Link">
           <LinkIcon size={16} />
