@@ -73,6 +73,50 @@ export function resolveBlockFont(value: string): CSSProperties | null {
   return hasOverride ? result : null;
 }
 
+/**
+ * Resolve a compound font value into CSS custom properties for heading elements.
+ *
+ * Heading CSS rules use !important with var(--font-h2-size, 36px) etc.
+ * Inline styles can't beat !important, but setting the CSS custom property
+ * on the element feeds the value through the var() reference.
+ *
+ * Usage: <h2 style={{ ...resolveBlockFontVars(value, "h2") }}>
+ */
+export function resolveBlockFontVars(
+  value: string,
+  level: "h1" | "h2" | "h3" | "h4" | "h5" | "h6",
+): CSSProperties | null {
+  if (!value) return null;
+
+  const [familyKey, styleKey, sizeKey] = value.split("|");
+  const vars: Record<string, string> = {};
+  let hasOverride = false;
+
+  if (familyKey && FONT_FAMILIES[familyKey]) {
+    vars[`--font-${level}-family`] = FONT_FAMILIES[familyKey];
+    hasOverride = true;
+  }
+
+  if (styleKey && STYLE_MODIFIERS[styleKey]) {
+    const mod = STYLE_MODIFIERS[styleKey];
+    if (mod.fontWeight !== undefined) {
+      vars[`--font-${level}-weight`] = String(mod.fontWeight);
+      hasOverride = true;
+    }
+    if (mod.fontStyle !== undefined) {
+      vars[`--font-${level}-style`] = mod.fontStyle;
+      hasOverride = true;
+    }
+  }
+
+  if (sizeKey) {
+    vars[`--font-${level}-size`] = sizeKey;
+    hasOverride = true;
+  }
+
+  return hasOverride ? (vars as unknown as CSSProperties) : null;
+}
+
 /** Parse a compound value into its parts for the editor UI. */
 export function parseFontValue(value: string): {
   family: string;

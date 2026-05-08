@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { resolveBlockFont } from "@/lib/block-fonts";
+import { resolveBlockFont, resolveBlockFontVars } from "@/lib/block-fonts";
 
 interface AssetCardsBlockProps {
   props: Record<string, unknown>;
@@ -36,9 +36,9 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
   const cardDescColor = (props.cardDescColor as string) || "";
 
   const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
-  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const headingFont = resolveBlockFontVars((props.headingFont as string) || "", "h2");
   const subtitleFont = resolveBlockFont((props.subtitleFont as string) || "");
-  const cardNameFont = resolveBlockFont((props.cardNameFont as string) || "");
+  const cardNameFont = resolveBlockFontVars((props.cardNameFont as string) || "", "h3");
   const cardDescFont = resolveBlockFont((props.cardDescFont as string) || "");
 
   return (

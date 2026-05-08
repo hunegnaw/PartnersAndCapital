@@ -1,4 +1,4 @@
-import { resolveBlockFont } from "@/lib/block-fonts";
+import { resolveBlockFont, resolveBlockFontVars } from "@/lib/block-fonts";
 
 interface Stat {
   value: string;
@@ -19,7 +19,7 @@ export function StatsBlock({ props }: StatsBlockProps) {
   const maxWidth = (props.maxWidth as string) ?? "lg";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
-  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const headingFont = resolveBlockFontVars((props.headingFont as string) || "", "h2");
   const statValueFont = resolveBlockFont((props.statValueFont as string) || "");
   const statLabelFont = resolveBlockFont((props.statLabelFont as string) || "");
 

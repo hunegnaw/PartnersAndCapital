@@ -1,6 +1,6 @@
 "use client";
 
-import { resolveBlockFont } from "@/lib/block-fonts";
+import { resolveBlockFont, resolveBlockFontVars } from "@/lib/block-fonts";
 
 interface CtaSplitBlockProps {
   props: Record<string, unknown>;
@@ -28,7 +28,7 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
   const cta2ButtonColor = (props.cta2ButtonColor as string) || "";
   const cta2ButtonTextColor = (props.cta2ButtonTextColor as string) || "";
 
-  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const headingFont = resolveBlockFontVars((props.headingFont as string) || "", "h2");
   const descriptionFont = resolveBlockFont((props.descriptionFont as string) || "");
   const bulletFont = resolveBlockFont((props.bulletFont as string) || "");
   const taglineFont = resolveBlockFont((props.taglineFont as string) || "");

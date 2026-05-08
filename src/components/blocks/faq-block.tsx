@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { resolveBlockFont } from "@/lib/block-fonts";
+import { resolveBlockFont, resolveBlockFontVars } from "@/lib/block-fonts";
 
 interface FaqBlockProps {
   props: Record<string, unknown>;
@@ -27,7 +27,7 @@ export function FaqBlock({ props }: FaqBlockProps) {
   };
 
   const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
-  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const headingFont = resolveBlockFontVars((props.headingFont as string) || "", "h2");
   const questionFont = resolveBlockFont((props.questionFont as string) || "");
   const answerFont = resolveBlockFont((props.answerFont as string) || "");
 

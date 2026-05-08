@@ -1,4 +1,4 @@
-import { resolveBlockFont } from "@/lib/block-fonts";
+import { resolveBlockFont, resolveBlockFontVars } from "@/lib/block-fonts";
 
 interface CtaBannerBlockProps {
   props: Record<string, unknown>;
@@ -17,7 +17,7 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
   const maxWidth = (props.maxWidth as string) ?? "sm";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
-  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const headingFont = resolveBlockFontVars((props.headingFont as string) || "", "h2");
   const textFont = resolveBlockFont((props.textFont as string) || "");
   const ctaButtonFont = resolveBlockFont((props.ctaButtonFont as string) || "");
 

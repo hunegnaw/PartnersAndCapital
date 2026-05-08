@@ -1,4 +1,4 @@
-import { resolveBlockFont } from "@/lib/block-fonts";
+import { resolveBlockFont, resolveBlockFontVars } from "@/lib/block-fonts";
 
 interface HeroImageBlockProps {
   props: Record<string, unknown>;
@@ -14,7 +14,7 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
   const backgroundColor = (props.backgroundColor as string) ?? "#1A2640";
   const height = (props.height as string) ?? "70vh";
 
-  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const headingFont = resolveBlockFontVars((props.headingFont as string) || "", "h1");
   const subheadingFont = resolveBlockFont((props.subheadingFont as string) || "");
   const ctaButtonFont = resolveBlockFont((props.ctaButtonFont as string) || "");
 

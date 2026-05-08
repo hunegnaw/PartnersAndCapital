@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { resolveBlockFont } from "@/lib/block-fonts";
+import { resolveBlockFont, resolveBlockFontVars } from "@/lib/block-fonts";
 
 interface NewsletterSignupBlockProps {
   props: Record<string, unknown>;
@@ -52,7 +52,7 @@ export function NewsletterSignupBlock({ props }: NewsletterSignupBlockProps) {
   const maxWidth = (props.maxWidth as string) ?? "sm";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
-  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const headingFont = resolveBlockFontVars((props.headingFont as string) || "", "h2");
   const descriptionFont = resolveBlockFont((props.descriptionFont as string) || "");
   const buttonFont = resolveBlockFont((props.buttonFont as string) || "");
 

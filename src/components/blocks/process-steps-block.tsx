@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { resolveBlockFont } from "@/lib/block-fonts";
+import { resolveBlockFont, resolveBlockFontVars } from "@/lib/block-fonts";
 
 interface ProcessStepsBlockProps {
   props: Record<string, unknown>;
@@ -44,8 +44,8 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
   const maxWidth = (props.maxWidth as string) ?? "xl";
   const MAX_WIDTH: Record<string, string> = { sm: "max-w-4xl", md: "max-w-5xl", lg: "max-w-6xl", xl: "max-w-7xl", full: "max-w-full" };
 
-  const headingFont = resolveBlockFont((props.headingFont as string) || "");
-  const stepNameFont = resolveBlockFont((props.stepNameFont as string) || "");
+  const headingFont = resolveBlockFontVars((props.headingFont as string) || "", "h2");
+  const stepNameFont = resolveBlockFontVars((props.stepNameFont as string) || "", "h3");
   const stepDescFont = resolveBlockFont((props.stepDescFont as string) || "");
   const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
   const sidebarStatFont = resolveBlockFont((props.sidebarStatFont as string) || "");

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { resolveBlockFont } from "@/lib/block-fonts";
+import { resolveBlockFont, resolveBlockFontVars } from "@/lib/block-fonts";
 
 interface HeroVideoBlockProps {
   props: Record<string, unknown>;
@@ -31,7 +31,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
 
 
   const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
-  const headingFont = resolveBlockFont((props.headingFont as string) || "");
+  const headingFont = resolveBlockFontVars((props.headingFont as string) || "", "h1");
   const subheadingFont = resolveBlockFont((props.subheadingFont as string) || "");
   const ctaButtonFont = resolveBlockFont((props.ctaButtonFont as string) || "");
   const cta2ButtonFont = resolveBlockFont((props.cta2ButtonFont as string) || "");

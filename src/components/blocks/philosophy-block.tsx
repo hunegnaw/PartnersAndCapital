@@ -1,6 +1,6 @@
 "use client";
 
-import { resolveBlockFont } from "@/lib/block-fonts";
+import { resolveBlockFont, resolveBlockFontVars } from "@/lib/block-fonts";
 
 interface PhilosophyBlockProps {
   props: Record<string, unknown>;
@@ -24,7 +24,7 @@ export function PhilosophyBlock({ props }: PhilosophyBlockProps) {
   const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
   const quoteFont = resolveBlockFont((props.quoteFont as string) || "");
   const attributionFont = resolveBlockFont((props.attributionFont as string) || "");
-  const pillarNameFont = resolveBlockFont((props.pillarNameFont as string) || "");
+  const pillarNameFont = resolveBlockFontVars((props.pillarNameFont as string) || "", "h3");
   const pillarDescFont = resolveBlockFont((props.pillarDescFont as string) || "");
 
   return (
