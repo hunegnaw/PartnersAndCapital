@@ -9,11 +9,16 @@ interface NavLink {
   label: string;
 }
 
-interface MarketingFooterProps {
-  navLinks?: NavLink[];
+interface InvestmentLink {
+  label: string;
 }
 
-export function MarketingFooter({ navLinks: navLinksProp }: MarketingFooterProps) {
+interface MarketingFooterProps {
+  navLinks?: NavLink[];
+  investmentLinks?: InvestmentLink[];
+}
+
+export function MarketingFooter({ navLinks: navLinksProp, investmentLinks }: MarketingFooterProps) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -51,9 +56,10 @@ export function MarketingFooter({ navLinks: navLinksProp }: MarketingFooterProps
   // Count active top-section columns to determine grid layout
   const hasBranding = footer.modules.logo || footer.modules.tagline || footer.modules.contact;
   const hasNav = footer.modules.navigation;
+  const hasInvestments = investmentLinks && investmentLinks.length > 0;
   const hasNewsletter = footer.modules.newsletter;
-  const colCount = [hasBranding, hasNav, hasNewsletter].filter(Boolean).length;
-  const gridCols = colCount === 3 ? "md:grid-cols-3" : colCount === 2 ? "md:grid-cols-2" : "md:grid-cols-1";
+  const colCount = [hasBranding, hasNav, hasInvestments, hasNewsletter].filter(Boolean).length;
+  const gridCols = colCount >= 4 ? "md:grid-cols-4" : colCount === 3 ? "md:grid-cols-3" : colCount === 2 ? "md:grid-cols-2" : "md:grid-cols-1";
 
   return (
     <footer style={{ backgroundColor: footer.backgroundColor, color: footer.textColor }}>
@@ -114,6 +120,27 @@ export function MarketingFooter({ navLinks: navLinksProp }: MarketingFooterProps
                       >
                         {link.label}
                       </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Col: Investments */}
+            {hasInvestments && (
+              <div>
+                <p className="font-semibold text-sm tracking-wide uppercase mb-4">
+                  Investments
+                </p>
+                <ul className="space-y-2">
+                  {investmentLinks.map((link) => (
+                    <li key={link.label}>
+                      <span
+                        className="text-sm"
+                        style={{ opacity: 0.6 }}
+                      >
+                        {link.label}
+                      </span>
                     </li>
                   ))}
                 </ul>

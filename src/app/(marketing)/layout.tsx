@@ -9,15 +9,26 @@ export default async function MarketingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const navPages = await prisma.page.findMany({
-    where: { showInNav: true, status: "PUBLISHED", deletedAt: null },
-    select: { slug: true, title: true, navLabel: true, navOrder: true, isHomepage: true, isBlogPage: true },
-    orderBy: [{ navOrder: "asc" }, { title: "asc" }],
-  });
+  const [navPages, assetClasses] = await Promise.all([
+    prisma.page.findMany({
+      where: { showInNav: true, status: "PUBLISHED", deletedAt: null },
+      select: { slug: true, title: true, navLabel: true, navOrder: true, isHomepage: true, isBlogPage: true },
+      orderBy: [{ navOrder: "asc" }, { title: "asc" }],
+    }),
+    prisma.assetClass.findMany({
+      where: { deletedAt: null },
+      select: { id: true, name: true },
+      orderBy: { sortOrder: "asc" },
+    }),
+  ]);
 
   const navLinks = navPages.map((p) => ({
     href: p.isHomepage ? "/" : `/${p.slug}`,
     label: p.navLabel || p.title,
+  }));
+
+  const investmentLinks = assetClasses.map((ac) => ({
+    label: ac.name,
   }));
 
   return (
@@ -25,7 +36,7 @@ export default async function MarketingLayout({
       <MarketingHeader navLinks={navLinks} />
       <div className="min-h-screen flex flex-col marketing-typography">
         <main className="flex-1">{children}</main>
-        <MarketingFooter navLinks={navLinks} />
+        <MarketingFooter navLinks={navLinks} investmentLinks={investmentLinks} />
       </div>
     </>
   );
