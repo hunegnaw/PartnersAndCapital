@@ -86,7 +86,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
         <div className="hidden md:block">
           <Link
             href="/login"
-            className="px-4 py-1.5 rounded text-sm flex items-center gap-2 transition-colors"
+            className="px-4 py-1.5 text-sm flex items-center gap-2 transition-colors"
             style={{
               borderWidth: 1,
               borderStyle: "solid",
@@ -140,7 +140,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
           ))}
           <Link
             href="/login"
-            className="px-4 py-1.5 rounded text-sm inline-flex items-center gap-2 transition-colors"
+            className="px-4 py-1.5 text-sm inline-flex items-center gap-2 transition-colors"
             style={{
               borderWidth: 1,
               borderStyle: "solid",
