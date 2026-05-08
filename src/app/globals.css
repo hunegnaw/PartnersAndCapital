@@ -138,10 +138,10 @@ body {
 }
 
 /* Marketing typography — driven by admin settings.
-   Heading rules omit !important so block-level inline style overrides take effect.
-   Body/paragraph rules keep !important to override Tailwind base font-family. */
+   Rules omit !important so inline style overrides (from block editor and
+   rich text editor) always take precedence over these defaults. */
 .marketing-typography {
-  font-family: var(--font-body-family, inherit) !important;
+  font-family: var(--font-body-family, inherit);
   font-weight: var(--font-body-weight, 400);
   font-style: var(--font-body-style, normal);
   color: var(--font-body-color, inherit);
@@ -199,11 +199,11 @@ body {
 .marketing-typography span:not(.subtitle-font),
 .marketing-typography li,
 .marketing-typography a {
-  font-family: var(--font-body-family, inherit) !important;
+  font-family: var(--font-body-family, inherit);
 }
 
 .marketing-typography .prose {
-  font-family: var(--font-body-family, inherit) !important;
+  font-family: var(--font-body-family, inherit);
   --tw-prose-headings: inherit;
 }
 
@@ -265,7 +265,7 @@ body {
 
 /* Subtitle font override — more specific than .marketing-typography p */
 .marketing-typography .subtitle-font {
-  font-family: var(--font-subtitle-family, 'Cormorant Garamond'), serif !important;
+  font-family: var(--font-subtitle-family, 'Cormorant Garamond'), serif;
   font-weight: var(--font-subtitle-weight, 300);
   font-style: var(--font-subtitle-style, italic);
 }
