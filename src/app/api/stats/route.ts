@@ -54,15 +54,27 @@ export async function GET() {
 
     const assetClassCount = assetClassResult.length;
 
+    // Client count: non-deleted users with CLIENT role
+    const clientCount = await prisma.user.count({
+      where: { deletedAt: null, role: "CLIENT" },
+    });
+
+    // Active investment count: non-deleted investments
+    const investmentCount = await prisma.investment.count({
+      where: { deletedAt: null },
+    });
+
     return NextResponse.json({
       totalDeployed,
       avgNetReturn,
       assetClassCount,
+      clientCount,
+      investmentCount,
     });
   } catch (error) {
     console.error("Stats API error:", error);
     return NextResponse.json(
-      { totalDeployed: "$0", avgNetReturn: "0%", assetClassCount: 0 },
+      { totalDeployed: "$0", avgNetReturn: "0%", assetClassCount: 0, clientCount: 0, investmentCount: 0 },
       { status: 200 }
     );
   }

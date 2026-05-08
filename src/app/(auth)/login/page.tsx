@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -8,6 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Shield, ArrowLeft, Loader2 } from "lucide-react";
+
+interface StatsData {
+  totalDeployed: string;
+  avgNetReturn: string;
+  assetClassCount: number;
+  clientCount: number;
+  investmentCount: number;
+}
 
 function TwoFactorInput({
   value,
@@ -87,7 +95,15 @@ export default function LoginPage() {
   const [useBackupCode, setUseBackupCode] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState<StatsData | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/stats")
+      .then((r) => r.json())
+      .then((data) => setStats(data))
+      .catch(() => {});
+  }, []);
 
   async function handleCredentials(e: React.FormEvent) {
     e.preventDefault();
@@ -169,7 +185,7 @@ export default function LoginPage() {
 
   if (step === "2fa") {
     return (
-      <div>
+      <div className="rounded-lg border border-[#dfdedd] bg-white p-8 shadow-sm">
         <div className="mb-8">
           <button
             onClick={() => {
@@ -258,66 +274,129 @@ export default function LoginPage() {
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">Sign in to your account</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Enter your credentials to access the investor portal
-        </p>
+    <>
+      <div className="rounded-lg border border-[#dfdedd] bg-white p-8 shadow-sm">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold">Sign in to your account</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Enter your credentials to access the investor portal
+          </p>
+        </div>
+
+        <form onSubmit={handleCredentials} className="space-y-4">
+          {error && (
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="you@example.com"
+              className="mt-1"
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground">
+                Forgot password?
+              </Link>
+            </div>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="Enter your password"
+              className="mt-1"
+              disabled={loading}
+            />
+          </div>
+
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Sign in
+          </Button>
+
+          <p className="text-center text-sm text-muted-foreground">
+            Not a client?{" "}
+            <a href="mailto:info@partnersandcapital.com" className="text-primary hover:underline">
+              Request access
+            </a>
+          </p>
+        </form>
       </div>
 
-      <form onSubmit={handleCredentials} className="space-y-4">
-        {error && (
-          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
+      {/* Dynamic stats */}
+      {stats && (
+        <div className="mt-8 rounded-lg bg-[#1A2640] p-8">
+          <div className="grid grid-cols-3 gap-6 text-center">
+            <div>
+              <p
+                className="text-2xl leading-none text-white"
+                style={{
+                  fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif",
+                  fontWeight: 300,
+                }}
+              >
+                {stats.totalDeployed}
+              </p>
+              <p className="mt-2 text-xs text-white/50 uppercase tracking-wider"
+                style={{ fontFamily: "var(--font-body-family, Inter), sans-serif" }}
+              >
+                Capital Deployed
+              </p>
+            </div>
+            <div>
+              <p
+                className="text-2xl leading-none text-white"
+                style={{
+                  fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif",
+                  fontWeight: 300,
+                }}
+              >
+                {stats.clientCount}+
+              </p>
+              <p className="mt-2 text-xs text-white/50 uppercase tracking-wider"
+                style={{ fontFamily: "var(--font-body-family, Inter), sans-serif" }}
+              >
+                Investor Clients
+              </p>
+            </div>
+            <div>
+              <p
+                className="text-2xl leading-none text-white"
+                style={{
+                  fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif",
+                  fontWeight: 300,
+                }}
+              >
+                {stats.investmentCount}+
+              </p>
+              <p className="mt-2 text-xs text-white/50 uppercase tracking-wider"
+                style={{ fontFamily: "var(--font-body-family, Inter), sans-serif" }}
+              >
+                Active Investments
+              </p>
+            </div>
           </div>
-        )}
-
-        <div>
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="you@example.com"
-            className="mt-1"
-            disabled={loading}
-          />
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
-            <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground">
-              Forgot password?
-            </Link>
+          <div className="mt-6 border-t border-white/10 pt-4">
+            <p className="text-[10px] text-white/30" style={{ fontFamily: "var(--font-body-family, Inter), sans-serif" }}>
+              Past performance is not indicative of future results. All investments involve risk, including loss of principal. This portal is for authorized users only.
+            </p>
           </div>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Enter your password"
-            className="mt-1"
-            disabled={loading}
-          />
         </div>
-
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Sign in
-        </Button>
-
-        <p className="text-center text-sm text-muted-foreground">
-          Not a client?{" "}
-          <a href="mailto:info@partnersandcapital.com" className="text-primary hover:underline">
-            Request access
-          </a>
-        </p>
-      </form>
-    </div>
+      )}
+    </>
   );
 }

@@ -97,6 +97,16 @@ This manual covers setup, administration, and usage of the Partners + Capital in
 
 ## Admin Guide
 
+### Login Page
+
+The login page at `/login` uses the standard marketing header, footer, and typography -- matching the rest of the public site. Below the sign-in form, a navy stats bar displays live data from the `/api/stats` endpoint:
+
+- **Capital Deployed** -- Total invested across all client positions
+- **Investor Clients** -- Count of users with the CLIENT role
+- **Active Investments** -- Count of non-deleted investments
+
+The forgot-password, reset-password, and advisor-accept pages share the same marketing layout.
+
 ### Logging In
 
 1. Navigate to `/login` in your browser.
@@ -1230,3 +1240,5 @@ Both entries record the admin's user ID and the target client ID.
 - Block editor font-size and font-weight controls on every text element with hint defaults
 - Rich text editor (TipTap) font-size toolbar dropdown for inline font sizing
 - Missing FontField controls added for CTA buttons (hero blocks), sidebar tagline/label (process steps), secondary CTA (cta-split)
+- Auth pages (login, forgot-password, reset-password, advisor-accept) use the standard marketing header, footer, and typography
+- Login page stats bar pulls live data from `/api/stats` (capital deployed, client count, investment count)
