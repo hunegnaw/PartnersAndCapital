@@ -3,22 +3,17 @@
 import Link from "next/link";
 import { useState, FormEvent } from "react";
 import { useOrganization } from "@/components/providers/organization-provider";
-
-interface NavLink {
-  href: string;
-  label: string;
-}
+import type { FooterNavColumn } from "@/lib/footer";
 
 interface InvestmentLink {
   label: string;
 }
 
 interface MarketingFooterProps {
-  navLinks?: NavLink[];
   investmentLinks?: InvestmentLink[];
 }
 
-export function MarketingFooter({ navLinks: navLinksProp, investmentLinks }: MarketingFooterProps) {
+export function MarketingFooter({ investmentLinks }: MarketingFooterProps) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -48,18 +43,30 @@ export function MarketingFooter({ navLinks: navLinksProp, investmentLinks }: Mar
     }
   }
 
-  const baseLinks = navLinksProp && navLinksProp.length > 0
-    ? navLinksProp
-    : [{ href: "/", label: "Home" }];
-  const navLinks = [...baseLinks, { href: "/login", label: "Investor Login" }];
+  const hasInvestments = footer.modules.investments && investmentLinks && investmentLinks.length > 0;
+  const navColumns: FooterNavColumn[] = footer.navColumns || [];
 
-  // Count active top-section columns to determine grid layout
+  // Build list of middle columns: custom nav columns + investments
+  const middleCols = [
+    ...(footer.modules.navigation ? navColumns.map((col) => ({ title: col.title, links: col.links })) : []),
+    ...(hasInvestments
+      ? [{ title: "Investments", links: investmentLinks.map((l) => ({ label: l.label, url: "" })) }]
+      : []),
+  ];
+
   const hasBranding = footer.modules.logo || footer.modules.tagline || footer.modules.contact;
-  const hasNav = footer.modules.navigation;
-  const hasInvestments = investmentLinks && investmentLinks.length > 0;
   const hasNewsletter = footer.modules.newsletter;
-  const colCount = [hasBranding, hasNav, hasInvestments, hasNewsletter].filter(Boolean).length;
-  const gridCols = colCount >= 4 ? "md:grid-cols-4" : colCount === 3 ? "md:grid-cols-3" : colCount === 2 ? "md:grid-cols-2" : "md:grid-cols-1";
+  const colCount = (hasBranding ? 1 : 0) + middleCols.length + (hasNewsletter ? 1 : 0);
+  const gridCols =
+    colCount >= 5
+      ? "md:grid-cols-5"
+      : colCount === 4
+        ? "md:grid-cols-4"
+        : colCount === 3
+          ? "md:grid-cols-3"
+          : colCount === 2
+            ? "md:grid-cols-2"
+            : "md:grid-cols-1";
 
   return (
     <footer style={{ backgroundColor: footer.backgroundColor, color: footer.textColor }}>
@@ -103,55 +110,46 @@ export function MarketingFooter({ navLinks: navLinksProp, investmentLinks }: Mar
               </div>
             )}
 
-            {/* Col: Navigation */}
-            {hasNav && (
-              <div>
-                <p className="font-semibold text-sm tracking-wide uppercase mb-4">
-                  Navigation
+            {/* Middle columns: nav columns + investments */}
+            {middleCols.map((col, idx) => (
+              <div key={idx}>
+                <p
+                  className="font-semibold text-sm tracking-wide uppercase mb-4"
+                  style={{ color: footer.accentColor }}
+                >
+                  {col.title}
                 </p>
                 <ul className="space-y-2">
-                  {navLinks.map((link) => (
-                    <li key={link.href}>
-                      <Link
-                        href={link.href}
-                        className="text-sm transition-colors"
-                        style={{ opacity: 0.6 }}
-                        onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-                        onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}
-                      >
-                        {link.label}
-                      </Link>
+                  {col.links.map((link, i) => (
+                    <li key={i}>
+                      {link.url ? (
+                        <Link
+                          href={link.url}
+                          className="text-sm transition-colors"
+                          style={{ opacity: 0.6 }}
+                          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}
+                        >
+                          {link.label}
+                        </Link>
+                      ) : (
+                        <span className="text-sm" style={{ opacity: 0.6 }}>
+                          {link.label}
+                        </span>
+                      )}
                     </li>
                   ))}
                 </ul>
               </div>
-            )}
-
-            {/* Col: Investments */}
-            {hasInvestments && (
-              <div>
-                <p className="font-semibold text-sm tracking-wide uppercase mb-4">
-                  Investments
-                </p>
-                <ul className="space-y-2">
-                  {investmentLinks.map((link) => (
-                    <li key={link.label}>
-                      <span
-                        className="text-sm"
-                        style={{ opacity: 0.6 }}
-                      >
-                        {link.label}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            ))}
 
             {/* Col: Newsletter */}
             {hasNewsletter && (
               <div>
-                <p className="font-semibold text-sm tracking-wide uppercase mb-4">
+                <p
+                  className="font-semibold text-sm tracking-wide uppercase mb-4"
+                  style={{ color: footer.accentColor }}
+                >
                   {footer.newsletterHeading || "Stay Updated"}
                 </p>
                 {footer.newsletterDescription && (

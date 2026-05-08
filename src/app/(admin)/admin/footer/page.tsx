@@ -8,14 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2, Check, LayoutTemplate, Palette, Type, Image as ImageIcon, Link2, Plus, Trash2 } from "lucide-react";
+import { AlertCircle, Loader2, Check, LayoutTemplate, Palette, Type, Image as ImageIcon, Link2, Plus, Trash2, Columns } from "lucide-react";
 import { ColorPicker } from "@/components/admin/color-picker";
 import { MediaPicker } from "@/components/admin/media-picker";
-import { DEFAULT_FOOTER, mergeFooter, type FooterConfig, type FooterLink } from "@/lib/footer";
+import { DEFAULT_FOOTER, mergeFooter, type FooterConfig, type FooterLink, type FooterNavColumn } from "@/lib/footer";
 
 const MODULE_LABELS: { key: keyof FooterConfig["modules"]; label: string; description: string }[] = [
   { key: "logo", label: "Logo", description: "Display a logo image in the footer" },
-  { key: "navigation", label: "Navigation", description: "Show navigation links" },
+  { key: "navigation", label: "Navigation Columns", description: "Show custom navigation columns" },
+  { key: "investments", label: "Investments", description: "Dynamic column listing asset classes" },
   { key: "newsletter", label: "Newsletter", description: "Newsletter signup form" },
   { key: "contact", label: "Contact Info", description: "Email, phone, and address" },
   { key: "tagline", label: "Tagline", description: "Organization tagline text" },
@@ -313,6 +314,120 @@ export default function AdminFooterPage() {
             >
               <Plus className="h-4 w-4" />
               Add Link
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Navigation Columns */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Columns className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-base">Navigation Columns</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Add custom navigation columns to the footer (e.g. &ldquo;Firm&rdquo;, &ldquo;Investors&rdquo;). Each column has a title and a list of links. The Investments column is generated automatically from asset classes.
+            </p>
+            {(footer.navColumns || []).map((col: FooterNavColumn, colIdx: number) => (
+              <div key={colIdx} className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={col.title}
+                    onChange={(e) => {
+                      const updated = [...(footer.navColumns || [])];
+                      updated[colIdx] = { ...updated[colIdx], title: e.target.value };
+                      updateField("navColumns", updated);
+                    }}
+                    placeholder="Column title (e.g. Firm)"
+                    className="flex-1 font-medium"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      updateField("navColumns", (footer.navColumns || []).filter((_: FooterNavColumn, i: number) => i !== colIdx));
+                    }}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                {col.links.map((link: FooterLink, linkIdx: number) => (
+                  <div key={linkIdx} className="flex items-center gap-2 pl-4">
+                    <Input
+                      value={link.label}
+                      onChange={(e) => {
+                        const updated = [...(footer.navColumns || [])];
+                        const links = [...updated[colIdx].links];
+                        links[linkIdx] = { ...links[linkIdx], label: e.target.value };
+                        updated[colIdx] = { ...updated[colIdx], links };
+                        updateField("navColumns", updated);
+                      }}
+                      placeholder="Label"
+                      className="flex-1"
+                    />
+                    <Input
+                      value={link.url}
+                      onChange={(e) => {
+                        const updated = [...(footer.navColumns || [])];
+                        const links = [...updated[colIdx].links];
+                        links[linkIdx] = { ...links[linkIdx], url: e.target.value };
+                        updated[colIdx] = { ...updated[colIdx], links };
+                        updateField("navColumns", updated);
+                      }}
+                      placeholder="URL (e.g. /about)"
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        const updated = [...(footer.navColumns || [])];
+                        updated[colIdx] = {
+                          ...updated[colIdx],
+                          links: updated[colIdx].links.filter((_: FooterLink, i: number) => i !== linkIdx),
+                        };
+                        updateField("navColumns", updated);
+                      }}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="ml-4"
+                  onClick={() => {
+                    const updated = [...(footer.navColumns || [])];
+                    updated[colIdx] = {
+                      ...updated[colIdx],
+                      links: [...updated[colIdx].links, { label: "", url: "" }],
+                    };
+                    updateField("navColumns", updated);
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Link
+                </Button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                updateField("navColumns", [...(footer.navColumns || []), { title: "", links: [] }]);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Add Column
             </Button>
           </CardContent>
         </Card>

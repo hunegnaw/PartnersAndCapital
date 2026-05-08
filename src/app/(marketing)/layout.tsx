@@ -36,7 +36,7 @@ export default async function MarketingLayout({
       <MarketingHeader navLinks={navLinks} />
       <div className="min-h-screen flex flex-col marketing-typography">
         <main className="flex-1">{children}</main>
-        <MarketingFooter navLinks={navLinks} investmentLinks={investmentLinks} />
+        <MarketingFooter investmentLinks={investmentLinks} />
       </div>
     </>
   );

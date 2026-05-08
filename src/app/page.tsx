@@ -33,15 +33,23 @@ export default async function Home() {
   }
 
   // Fetch nav links for header/footer
-  const navPages = await prisma.page.findMany({
-    where: { showInNav: true, status: "PUBLISHED", deletedAt: null },
-    select: { slug: true, title: true, navLabel: true, navOrder: true, isHomepage: true },
-    orderBy: [{ navOrder: "asc" }, { title: "asc" }],
-  });
+  const [navPages, assetClasses] = await Promise.all([
+    prisma.page.findMany({
+      where: { showInNav: true, status: "PUBLISHED", deletedAt: null },
+      select: { slug: true, title: true, navLabel: true, navOrder: true, isHomepage: true },
+      orderBy: [{ navOrder: "asc" }, { title: "asc" }],
+    }),
+    prisma.assetClass.findMany({
+      where: { deletedAt: null },
+      select: { id: true, name: true },
+      orderBy: { sortOrder: "asc" },
+    }),
+  ]);
   const navLinks = navPages.map((p) => ({
     href: p.isHomepage ? "/" : `/${p.slug}`,
     label: p.navLabel || p.title,
   }));
+  const investmentLinks = assetClasses.map((ac) => ({ label: ac.name }));
 
   const blocks = homepage.blocks.map((b) => ({
     id: b.id,
@@ -56,7 +64,7 @@ export default async function Home() {
       <main className="flex-1">
         <BlockRenderer blocks={blocks} />
       </main>
-      <MarketingFooter navLinks={navLinks} />
+      <MarketingFooter investmentLinks={investmentLinks} />
 
       {/* Floating portal button for authenticated users */}
       {session?.user && (
