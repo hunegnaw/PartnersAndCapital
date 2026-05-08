@@ -77,7 +77,7 @@ export default async function AdminLayout({
           <Link href="/admin" className="font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 transition-colors hover:border-white/70">
             Partners + Capital
           </Link>
-          <span className="bg-[#B07D3A] text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full tracking-wider uppercase">
+          <span className="bg-[#B07D3A] text-white text-[10px] font-semibold px-2.5 py-0.5 tracking-wider uppercase">
             Admin Portal
           </span>
         </div>
