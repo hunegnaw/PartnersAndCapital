@@ -138,7 +138,8 @@ body {
 }
 
 /* Marketing typography — driven by admin settings.
-   Uses !important to override Tailwind base layer and body font-family. */
+   Heading rules omit !important so block-level inline style overrides take effect.
+   Body/paragraph rules keep !important to override Tailwind base font-family. */
 .marketing-typography {
   font-family: var(--font-body-family, inherit) !important;
   font-weight: var(--font-body-weight, 400);
@@ -147,51 +148,51 @@ body {
 }
 
 .marketing-typography h1 {
-  font-family: var(--font-h1-family, var(--font-hero-title-family, 'Cormorant Garamond', serif)) !important;
-  font-weight: var(--font-h1-weight, var(--font-hero-title-weight, 300)) !important;
-  font-style: var(--font-h1-style, var(--font-hero-title-style, normal)) !important;
+  font-family: var(--font-h1-family, var(--font-hero-title-family, 'Cormorant Garamond', serif));
+  font-weight: var(--font-h1-weight, var(--font-hero-title-weight, 300));
+  font-style: var(--font-h1-style, var(--font-hero-title-style, normal));
   color: var(--font-h1-color, inherit);
-  font-size: var(--font-h1-size, 48px) !important;
+  font-size: var(--font-h1-size, 48px);
 }
 
 .marketing-typography h2 {
-  font-family: var(--font-h2-family, var(--font-section-heading-family, 'Cormorant Garamond', serif)) !important;
-  font-weight: var(--font-h2-weight, var(--font-section-heading-weight, 300)) !important;
-  font-style: var(--font-h2-style, var(--font-section-heading-style, normal)) !important;
+  font-family: var(--font-h2-family, var(--font-section-heading-family, 'Cormorant Garamond', serif));
+  font-weight: var(--font-h2-weight, var(--font-section-heading-weight, 300));
+  font-style: var(--font-h2-style, var(--font-section-heading-style, normal));
   color: var(--font-h2-color, inherit);
-  font-size: var(--font-h2-size, 36px) !important;
+  font-size: var(--font-h2-size, 36px);
 }
 
 .marketing-typography h3 {
-  font-family: var(--font-h3-family, var(--font-section-heading-family, 'Cormorant Garamond', serif)) !important;
-  font-weight: var(--font-h3-weight, var(--font-section-heading-weight, 300)) !important;
-  font-style: var(--font-h3-style, var(--font-section-heading-style, normal)) !important;
+  font-family: var(--font-h3-family, var(--font-section-heading-family, 'Cormorant Garamond', serif));
+  font-weight: var(--font-h3-weight, var(--font-section-heading-weight, 300));
+  font-style: var(--font-h3-style, var(--font-section-heading-style, normal));
   color: var(--font-h3-color, inherit);
-  font-size: var(--font-h3-size, 28px) !important;
+  font-size: var(--font-h3-size, 28px);
 }
 
 .marketing-typography h4 {
-  font-family: var(--font-h4-family, var(--font-section-heading-family, 'Inter', sans-serif)) !important;
-  font-weight: var(--font-h4-weight, var(--font-section-heading-weight, 500)) !important;
-  font-style: var(--font-h4-style, var(--font-section-heading-style, normal)) !important;
+  font-family: var(--font-h4-family, var(--font-section-heading-family, 'Inter', sans-serif));
+  font-weight: var(--font-h4-weight, var(--font-section-heading-weight, 500));
+  font-style: var(--font-h4-style, var(--font-section-heading-style, normal));
   color: var(--font-h4-color, inherit);
-  font-size: var(--font-h4-size, 22px) !important;
+  font-size: var(--font-h4-size, 22px);
 }
 
 .marketing-typography h5 {
-  font-family: var(--font-h5-family, 'Inter', sans-serif) !important;
-  font-weight: var(--font-h5-weight, 500) !important;
-  font-style: var(--font-h5-style, normal) !important;
+  font-family: var(--font-h5-family, 'Inter', sans-serif);
+  font-weight: var(--font-h5-weight, 500);
+  font-style: var(--font-h5-style, normal);
   color: var(--font-h5-color, inherit);
-  font-size: var(--font-h5-size, 18px) !important;
+  font-size: var(--font-h5-size, 18px);
 }
 
 .marketing-typography h6 {
-  font-family: var(--font-h6-family, 'Inter', sans-serif) !important;
-  font-weight: var(--font-h6-weight, 500) !important;
-  font-style: var(--font-h6-style, normal) !important;
+  font-family: var(--font-h6-family, 'Inter', sans-serif);
+  font-weight: var(--font-h6-weight, 500);
+  font-style: var(--font-h6-style, normal);
   color: var(--font-h6-color, inherit);
-  font-size: var(--font-h6-size, 16px) !important;
+  font-size: var(--font-h6-size, 16px);
 }
 
 .marketing-typography p:not(.subtitle-font),
@@ -215,51 +216,51 @@ body {
 }
 
 .marketing-typography .prose h1 {
-  font-family: var(--font-h1-family, var(--font-hero-title-family, 'Cormorant Garamond', serif)) !important;
-  font-weight: var(--font-h1-weight, var(--font-hero-title-weight, 300)) !important;
-  font-style: var(--font-h1-style, var(--font-hero-title-style, normal)) !important;
+  font-family: var(--font-h1-family, var(--font-hero-title-family, 'Cormorant Garamond', serif));
+  font-weight: var(--font-h1-weight, var(--font-hero-title-weight, 300));
+  font-style: var(--font-h1-style, var(--font-hero-title-style, normal));
   color: var(--font-h1-color, inherit);
-  font-size: var(--font-h1-size, 48px) !important;
+  font-size: var(--font-h1-size, 48px);
 }
 
 .marketing-typography .prose h2 {
-  font-family: var(--font-h2-family, var(--font-section-heading-family, 'Cormorant Garamond', serif)) !important;
-  font-weight: var(--font-h2-weight, var(--font-section-heading-weight, 300)) !important;
-  font-style: var(--font-h2-style, var(--font-section-heading-style, normal)) !important;
+  font-family: var(--font-h2-family, var(--font-section-heading-family, 'Cormorant Garamond', serif));
+  font-weight: var(--font-h2-weight, var(--font-section-heading-weight, 300));
+  font-style: var(--font-h2-style, var(--font-section-heading-style, normal));
   color: var(--font-h2-color, inherit);
-  font-size: var(--font-h2-size, 36px) !important;
+  font-size: var(--font-h2-size, 36px);
 }
 
 .marketing-typography .prose h3 {
-  font-family: var(--font-h3-family, var(--font-section-heading-family, 'Cormorant Garamond', serif)) !important;
-  font-weight: var(--font-h3-weight, var(--font-section-heading-weight, 300)) !important;
-  font-style: var(--font-h3-style, var(--font-section-heading-style, normal)) !important;
+  font-family: var(--font-h3-family, var(--font-section-heading-family, 'Cormorant Garamond', serif));
+  font-weight: var(--font-h3-weight, var(--font-section-heading-weight, 300));
+  font-style: var(--font-h3-style, var(--font-section-heading-style, normal));
   color: var(--font-h3-color, inherit);
-  font-size: var(--font-h3-size, 28px) !important;
+  font-size: var(--font-h3-size, 28px);
 }
 
 .marketing-typography .prose h4 {
-  font-family: var(--font-h4-family, var(--font-section-heading-family, 'Inter', sans-serif)) !important;
-  font-weight: var(--font-h4-weight, var(--font-section-heading-weight, 500)) !important;
-  font-style: var(--font-h4-style, var(--font-section-heading-style, normal)) !important;
+  font-family: var(--font-h4-family, var(--font-section-heading-family, 'Inter', sans-serif));
+  font-weight: var(--font-h4-weight, var(--font-section-heading-weight, 500));
+  font-style: var(--font-h4-style, var(--font-section-heading-style, normal));
   color: var(--font-h4-color, inherit);
-  font-size: var(--font-h4-size, 22px) !important;
+  font-size: var(--font-h4-size, 22px);
 }
 
 .marketing-typography .prose h5 {
-  font-family: var(--font-h5-family, 'Inter', sans-serif) !important;
-  font-weight: var(--font-h5-weight, 500) !important;
-  font-style: var(--font-h5-style, normal) !important;
+  font-family: var(--font-h5-family, 'Inter', sans-serif);
+  font-weight: var(--font-h5-weight, 500);
+  font-style: var(--font-h5-style, normal);
   color: var(--font-h5-color, inherit);
-  font-size: var(--font-h5-size, 18px) !important;
+  font-size: var(--font-h5-size, 18px);
 }
 
 .marketing-typography .prose h6 {
-  font-family: var(--font-h6-family, 'Inter', sans-serif) !important;
-  font-weight: var(--font-h6-weight, 500) !important;
-  font-style: var(--font-h6-style, normal) !important;
+  font-family: var(--font-h6-family, 'Inter', sans-serif);
+  font-weight: var(--font-h6-weight, 500);
+  font-style: var(--font-h6-style, normal);
   color: var(--font-h6-color, inherit);
-  font-size: var(--font-h6-size, 16px) !important;
+  font-size: var(--font-h6-size, 16px);
 }
 
 /* Subtitle font override — more specific than .marketing-typography p */

@@ -280,6 +280,8 @@ Each FontField displays a small gray hint showing the default size for that elem
 
 Font overrides are stored as a compound string in the format `"family|style|size"` (e.g., `"heroTitle|bold|32px"` or `"||24px"` for size-only). Existing blocks without a font size set render unchanged -- the format is fully backward-compatible.
 
+Block-level font overrides (family, weight, style, size) are applied as inline styles on the rendered elements. For heading elements (h1--h6), the marketing typography CSS rules intentionally omit `!important` so that per-block inline overrides take precedence over the global CSS variable defaults. Non-heading elements (body text, buttons, bullets) never had `!important` on font-size and work with inline overrides by default.
+
 ### Rich Text Editor Font Size
 
 The Tiptap rich text editor toolbar includes a **Font Size** dropdown (next to the Font Family dropdown) for inline font size formatting. Available sizes: 10px through 72px. Selecting "Default" removes the inline font-size override. Font sizes are applied as inline `font-size` styles on the selected text via the TipTap `textStyle` mark.
