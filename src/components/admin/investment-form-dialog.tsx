@@ -322,13 +322,20 @@ export function InvestmentFormDialog({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="inv-dist-cadence">Distribution Cadence</Label>
-                <Input
-                  id="inv-dist-cadence"
-                  value={distributionCadence}
-                  onChange={(e) => setDistributionCadence(e.target.value)}
-                  placeholder="Quarterly"
-                />
+                <Label>Distribution Cadence</Label>
+                <Select value={distributionCadence} onValueChange={(v) => setDistributionCadence(v ?? "")}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select cadence" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Monthly">Monthly</SelectItem>
+                    <SelectItem value="Quarterly">Quarterly</SelectItem>
+                    <SelectItem value="Semi-Annually">Semi-Annually</SelectItem>
+                    <SelectItem value="Annually">Annually</SelectItem>
+                    <SelectItem value="At Realization">At Realization</SelectItem>
+                    <SelectItem value="None">None</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
