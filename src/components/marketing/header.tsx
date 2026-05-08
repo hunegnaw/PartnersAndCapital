@@ -35,11 +35,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
   const btnColor = solid ? org.secondaryColor : "#ffffff";
   const currentLogo = solid ? (org.logoScrolledUrl || org.logoUrl) : org.logoUrl;
 
-  const logoHref = session?.user
-    ? (session.user as { role?: string }).role === "ADMIN"
-      ? "/admin"
-      : "/dashboard"
-    : "/";
+  const logoHref = "/";
 
   const navLinks = navLinksProp && navLinksProp.length > 0
     ? navLinksProp
