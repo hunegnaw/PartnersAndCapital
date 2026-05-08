@@ -28,18 +28,20 @@ const STYLE_MODIFIERS: Record<
 };
 
 /**
- * Resolve a compound font value ("family|style") into CSS overrides.
+ * Resolve a compound font value ("family|style|size") into CSS overrides.
  *
  * Examples:
- *   ""                → null  (keep block default)
- *   "heroTitle"       → family only, default weight/style from preset
- *   "subtitle|italic" → subtitle family + italic override
- *   "|bold-italic"    → no family override, just bold italic
+ *   ""                     → null  (keep block default)
+ *   "heroTitle"            → family only, default weight/style from preset
+ *   "subtitle|italic"      → subtitle family + italic override
+ *   "|bold-italic"         → no family override, just bold italic
+ *   "heroTitle|bold|48px"  → family + bold + 48px size
+ *   "||32px"               → size override only
  */
 export function resolveBlockFont(value: string): CSSProperties | null {
   if (!value) return null;
 
-  const [familyKey, styleKey] = value.split("|");
+  const [familyKey, styleKey, sizeKey] = value.split("|");
   const result: CSSProperties = {};
   let hasOverride = false;
 
@@ -62,23 +64,36 @@ export function resolveBlockFont(value: string): CSSProperties | null {
     }
   }
 
+  // Size override
+  if (sizeKey) {
+    result.fontSize = sizeKey;
+    hasOverride = true;
+  }
+
   return hasOverride ? result : null;
 }
 
-/** Parse a compound value into its two parts for the editor UI. */
+/** Parse a compound value into its parts for the editor UI. */
 export function parseFontValue(value: string): {
   family: string;
   style: string;
+  size: string;
 } {
-  if (!value) return { family: "", style: "" };
-  const idx = value.indexOf("|");
-  if (idx === -1) return { family: value, style: "" };
-  return { family: value.slice(0, idx), style: value.slice(idx + 1) };
+  if (!value) return { family: "", style: "", size: "" };
+  const parts = value.split("|");
+  return {
+    family: parts[0] ?? "",
+    style: parts[1] ?? "",
+    size: parts[2] ?? "",
+  };
 }
 
-/** Join family + style back into the stored compound value. */
-export function buildFontValue(family: string, style: string): string {
-  if (!family && !style) return "";
-  if (!style) return family;
-  return `${family}|${style}`;
+/** Join family + style + size back into the stored compound value. */
+export function buildFontValue(family: string, style: string, size?: string): string {
+  if (!family && !style && !size) return "";
+  if (!size) {
+    if (!style) return family;
+    return `${family}|${style}`;
+  }
+  return `${family}|${style}|${size}`;
 }

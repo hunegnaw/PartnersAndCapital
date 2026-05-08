@@ -268,6 +268,22 @@ The page builder allows admins to create and edit CMS pages using drag-and-drop 
 
 Pages are saved atomically: page metadata and all blocks are updated in a single database transaction.
 
+### Block Font Controls (Family, Weight, Size)
+
+Every text element with a color picker also has a **FontField** control with three settings:
+
+- **Font Family** -- Dropdown to choose from the available font presets (Hero Title, Section Heading, Tag, Subtitle, Body) or keep the default
+- **Font Weight/Style** -- Dropdown for weight and style combinations (Light, Regular, Medium, Semi-Bold, Bold, plus italic variants)
+- **Font Size** -- Free-text input accepting any CSS size value (e.g., `16px`, `24px`, `clamp(16px, 2vw, 32px)`)
+
+Each FontField displays a small gray hint showing the default size for that element, so admins can maintain consistency when overriding. For example, heading fields show "Default: 48px (h1)" or "Default: 36px (h2)", body text shows "Default: 13px", buttons show "Default: 11px", etc.
+
+Font overrides are stored as a compound string in the format `"family|style|size"` (e.g., `"heroTitle|bold|32px"` or `"||24px"` for size-only). Existing blocks without a font size set render unchanged -- the format is fully backward-compatible.
+
+### Rich Text Editor Font Size
+
+The Tiptap rich text editor toolbar includes a **Font Size** dropdown (next to the Font Family dropdown) for inline font size formatting. Available sizes: 10px through 72px. Selecting "Default" removes the inline font-size override. Font sizes are applied as inline `font-size` styles on the selected text via the TipTap `textStyle` mark.
+
 ### Navigation Visibility
 
 Admins can control which CMS pages appear in the public header and footer navigation:
@@ -1209,3 +1225,6 @@ Both entries record the admin's user ID and the target client ID.
 - Public stats API (`/api/stats`): total capital deployed, weighted avg net return, asset class count
 - 4 new page builder block types: Asset Cards, Philosophy, Process Steps, CTA Split
 - Shared `parseHeading()` utility for `*italic*` gold text and line break support across blocks
+- Block editor font-size and font-weight controls on every text element with hint defaults
+- Rich text editor (TipTap) font-size toolbar dropdown for inline font sizing
+- Missing FontField controls added for CTA buttons (hero blocks), sidebar tagline/label (process steps), secondary CTA (cta-split)

@@ -33,6 +33,7 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
   const bulletFont = resolveBlockFont((props.bulletFont as string) || "");
   const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
   const ctaButtonFont = resolveBlockFont((props.ctaButtonFont as string) || "");
+  const cta2ButtonFont = resolveBlockFont((props.cta2ButtonFont as string) || "");
 
   return (
     <section style={{ backgroundColor }} className="py-24 md:py-28">
@@ -109,6 +110,7 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
                       border: `0.5px solid ${cta2ButtonColor || "rgba(26,38,64,0.3)"}`,
                       color: cta2ButtonTextColor || "#2C3E5C",
                       ...(cta2ButtonColor ? { backgroundColor: cta2ButtonColor } : {}),
+                      ...(cta2ButtonFont ?? {}),
                     }}
                   >
                     {ctaText2}

@@ -7,6 +7,7 @@ interface FontFieldProps {
   field: string;
   props: Record<string, unknown>;
   updateProp: (key: string, value: unknown) => void;
+  hint?: string;
 }
 
 const FAMILY_OPTIONS = [
@@ -32,12 +33,13 @@ const STYLE_OPTIONS = [
   { value: "bold-italic", label: "Bold Italic" },
 ];
 
-export function FontField({ label, field, props, updateProp }: FontFieldProps) {
+export function FontField({ label, field, props, updateProp, hint }: FontFieldProps) {
   const raw = (props[field] as string) || "";
-  const { family, style } = parseFontValue(raw);
+  const { family, style, size } = parseFontValue(raw);
 
-  const setFamily = (f: string) => updateProp(field, buildFontValue(f, style));
-  const setStyle = (s: string) => updateProp(field, buildFontValue(family, s));
+  const setFamily = (f: string) => updateProp(field, buildFontValue(f, style, size));
+  const setStyle = (s: string) => updateProp(field, buildFontValue(family, s, size));
+  const setSize = (sz: string) => updateProp(field, buildFontValue(family, style, sz));
 
   return (
     <div>
@@ -67,7 +69,17 @@ export function FontField({ label, field, props, updateProp }: FontFieldProps) {
             </option>
           ))}
         </select>
+        <input
+          type="text"
+          value={size}
+          onChange={(e) => setSize(e.target.value)}
+          placeholder="Size"
+          className="w-28 px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#B07D3A]/50"
+        />
       </div>
+      {hint && (
+        <p className="mt-1 text-[10px] text-gray-400">{hint}</p>
+      )}
     </div>
   );
 }

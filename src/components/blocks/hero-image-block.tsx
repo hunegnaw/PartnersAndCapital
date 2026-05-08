@@ -16,6 +16,7 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
 
   const headingFont = resolveBlockFont((props.headingFont as string) || "");
   const subheadingFont = resolveBlockFont((props.subheadingFont as string) || "");
+  const ctaButtonFont = resolveBlockFont((props.ctaButtonFont as string) || "");
 
   const headingColor = (props.headingColor as string) || "";
   const subheadingColor = (props.subheadingColor as string) || "";
@@ -72,6 +73,7 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
               fontFamily: "var(--font-body-family, Inter), sans-serif",
               backgroundColor: ctaButtonColor,
               color: ctaButtonTextColor,
+              ...(ctaButtonFont ?? {}),
             }}
           >
             {ctaText}

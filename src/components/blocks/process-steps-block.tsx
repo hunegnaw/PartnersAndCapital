@@ -49,6 +49,8 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
   const stepDescFont = resolveBlockFont((props.stepDescFont as string) || "");
   const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
   const sidebarStatFont = resolveBlockFont((props.sidebarStatFont as string) || "");
+  const sidebarTaglineFont = resolveBlockFont((props.sidebarTaglineFont as string) || "");
+  const sidebarLabelFont = resolveBlockFont((props.sidebarLabelFont as string) || "");
   const sidebarQuoteFont = resolveBlockFont((props.sidebarQuoteFont as string) || "");
 
   return (
@@ -149,6 +151,7 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
                     fontSize: "10px",
                     fontWeight: "var(--font-section-tag-weight, 400)" as unknown as number,
                     color: sidebarTaglineColor || "#B07D3A",
+                    ...(sidebarTaglineFont ?? {}),
                   }}
                 >
                   {sidebarTagline}
@@ -176,6 +179,7 @@ export function ProcessStepsBlock({ props }: ProcessStepsBlockProps) {
                     fontSize: "11px",
                     fontWeight: 300,
                     color: sidebarLabelColor || "rgba(255,255,255,0.4)",
+                    ...(sidebarLabelFont ?? {}),
                   }}
                 >
                   {sidebarLabel}

@@ -33,6 +33,8 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
   const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
   const headingFont = resolveBlockFont((props.headingFont as string) || "");
   const subheadingFont = resolveBlockFont((props.subheadingFont as string) || "");
+  const ctaButtonFont = resolveBlockFont((props.ctaButtonFont as string) || "");
+  const cta2ButtonFont = resolveBlockFont((props.cta2ButtonFont as string) || "");
 
   const taglineColor = (props.taglineColor as string) || "";
   const headingColor = (props.headingColor as string) || "";
@@ -173,6 +175,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
                     fontFamily: "var(--font-body-family, Inter), sans-serif",
                     backgroundColor: ctaButtonColor,
                     color: ctaButtonTextColor,
+                    ...(ctaButtonFont ?? {}),
                   }}
                 >
                   {ctaText}
@@ -187,6 +190,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
                     border: `0.5px solid ${cta2ButtonColor || "rgba(232,213,176,0.4)"}`,
                     color: cta2ButtonTextColor || "rgba(232,213,176,0.8)",
                     ...(cta2ButtonColor ? { backgroundColor: cta2ButtonColor } : {}),
+                    ...(cta2ButtonFont ?? {}),
                   }}
                 >
                   {ctaText2}

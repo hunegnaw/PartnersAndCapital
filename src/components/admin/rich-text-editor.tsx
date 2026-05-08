@@ -10,6 +10,7 @@ import { TextStyle } from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
 import { FontFamily } from "@tiptap/extension-text-style";
 import { BackgroundColor } from "@tiptap/extension-text-style";
+import { Extension } from "@tiptap/core";
 import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
 import { TableCell } from "@tiptap/extension-table-cell";
@@ -80,6 +81,69 @@ const FONT_OPTIONS = [
   { label: "Cormorant Garamond", value: "Cormorant Garamond" },
   { label: "Inter", value: "Inter" },
 ];
+
+const FONT_SIZE_OPTIONS = [
+  { label: "Default", value: "" },
+  { label: "10px", value: "10px" },
+  { label: "12px", value: "12px" },
+  { label: "14px", value: "14px" },
+  { label: "16px", value: "16px" },
+  { label: "18px", value: "18px" },
+  { label: "20px", value: "20px" },
+  { label: "24px", value: "24px" },
+  { label: "28px", value: "28px" },
+  { label: "32px", value: "32px" },
+  { label: "36px", value: "36px" },
+  { label: "40px", value: "40px" },
+  { label: "48px", value: "48px" },
+  { label: "56px", value: "56px" },
+  { label: "64px", value: "64px" },
+  { label: "72px", value: "72px" },
+];
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    fontSize: {
+      setFontSize: (size: string) => ReturnType;
+      unsetFontSize: () => ReturnType;
+    };
+  }
+}
+
+const FontSize = Extension.create({
+  name: "fontSize",
+
+  addGlobalAttributes() {
+    return [
+      {
+        types: ["textStyle"],
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: (element) => element.style.fontSize || null,
+            renderHTML: (attributes) => {
+              if (!attributes.fontSize) return {};
+              return { style: `font-size: ${attributes.fontSize}` };
+            },
+          },
+        },
+      },
+    ];
+  },
+
+  addCommands() {
+    return {
+      setFontSize:
+        (size: string) =>
+        ({ chain }) =>
+          chain().setMark("textStyle", { fontSize: size }).run(),
+      unsetFontSize:
+        () =>
+        ({ chain }) =>
+          chain().setMark("textStyle", { fontSize: null }).removeEmptyTextStyle().run(),
+    };
+  },
+});
 
 function ToolbarColorPopover({
   icon,
@@ -275,6 +339,7 @@ export function RichTextEditor({
       TextStyle,
       Color,
       FontFamily,
+      FontSize,
       BackgroundColor,
       Table.configure({ resizable: true }),
       TableRow,
@@ -358,6 +423,27 @@ export function RichTextEditor({
           title="Font Family"
         >
           {FONT_OPTIONS.map((f) => (
+            <option key={f.value} value={f.value}>
+              {f.label}
+            </option>
+          ))}
+        </select>
+
+        {/* Font size select */}
+        <select
+          value={editor.getAttributes("textStyle").fontSize || ""}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val) {
+              editor.chain().focus().setFontSize(val).run();
+            } else {
+              editor.chain().focus().unsetFontSize().run();
+            }
+          }}
+          className="h-7 text-xs border border-gray-300 rounded px-1.5 bg-white text-gray-600 focus:outline-none"
+          title="Font Size"
+        >
+          {FONT_SIZE_OPTIONS.map((f) => (
             <option key={f.value} value={f.value}>
               {f.label}
             </option>
