@@ -340,13 +340,20 @@ export function InvestmentFormDialog({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="inv-fund-status">Fund Status</Label>
-              <Input
-                id="inv-fund-status"
-                value={fundStatus}
-                onChange={(e) => setFundStatus(e.target.value)}
-                placeholder="Open for investment"
-              />
+              <Label>Fund Status</Label>
+              <Select value={fundStatus} onValueChange={(v) => setFundStatus(v ?? "")}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select fund status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Open for Investment">Open for Investment</SelectItem>
+                  <SelectItem value="Fully Committed">Fully Committed</SelectItem>
+                  <SelectItem value="Deploying Capital">Deploying Capital</SelectItem>
+                  <SelectItem value="Harvest Period">Harvest Period</SelectItem>
+                  <SelectItem value="Fully Realized">Fully Realized</SelectItem>
+                  <SelectItem value="Closed">Closed</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
