@@ -128,6 +128,7 @@ export default function InvestmentDetailPage({
 }) {
   const { id } = use(params);
   const [data, setData] = useState<InvestmentDetail | null>(null);
+  const [valuationData, setValuationData] = useState<{ date: string; value: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -145,6 +146,17 @@ export default function InvestmentDetailPage({
     }
   }, [id]);
 
+  const fetchValuations = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/portal/investments/${id}/valuations`);
+      if (!res.ok) return;
+      const json = await res.json();
+      setValuationData(json);
+    } catch {
+      // Non-critical
+    }
+  }, [id]);
+
   const holdingMonths = (() => {
     if (!data?.investmentDate) return null;
     const investDate = new Date(data.investmentDate);
@@ -154,8 +166,11 @@ export default function InvestmentDetailPage({
   })();
 
   useEffect(() => {
-    Promise.resolve().then(() => fetchDetail());
-  }, [fetchDetail]);
+    Promise.resolve().then(() => {
+      fetchDetail();
+      fetchValuations();
+    });
+  }, [fetchDetail, fetchValuations]);
 
   if (loading) return <DetailSkeleton />;
 
@@ -175,7 +190,15 @@ export default function InvestmentDetailPage({
     ? parseInt(data.investment.targetHoldPeriod) * 12
     : null;
 
-  const growthData = generateGrowthData(
+  // Use real valuation data if available (2+ points), otherwise fall back to contribution-based
+  const realValuationChart = valuationData.length >= 2
+    ? valuationData.map((v) => ({
+        date: formatShortDate(v.date),
+        value: v.value,
+      }))
+    : null;
+
+  const growthData = realValuationChart || generateGrowthData(
     data.contributions,
     data.distributions,
     data.currentValue

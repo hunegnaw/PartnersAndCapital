@@ -20,7 +20,17 @@ import { InvestmentFormDialog } from "@/components/admin/investment-form-dialog"
 import { ClientInvestmentDialog } from "@/components/admin/client-investment-dialog"
 import { DealRoomUpdateDialog } from "@/components/admin/deal-room-update-dialog"
 import { DocumentUploadDialog } from "@/components/admin/document-upload-dialog"
+import { ValuationFormDialog } from "@/components/admin/valuation-form-dialog"
 import { formatCurrency, formatDate, formatDateOnly, formatPercentage } from "@/lib/utils"
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts"
 import {
   ArrowLeft,
   Pencil,
@@ -31,6 +41,8 @@ import {
   FileText,
   BarChart3,
   Upload,
+  TrendingUp,
+  Trash2,
 } from "lucide-react"
 
 interface ClientPosition {
@@ -61,6 +73,15 @@ interface InvestmentDocument {
   fileName: string
   fileSize: number
   createdAt: string
+}
+
+interface Valuation {
+  id: string
+  date: string
+  totalValue: number | string
+  notes: string | null
+  createdAt: string
+  createdBy: { id: string; name: string | null; email: string } | null
 }
 
 interface AssetClass {
@@ -119,6 +140,12 @@ export default function AdminInvestmentDetailPage({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Valuations state
+  const [valuations, setValuations] = useState<Valuation[]>([])
+  const [valuationsLoading, setValuationsLoading] = useState(false)
+  const [addValuationOpen, setAddValuationOpen] = useState(false)
+  const [editingValuation, setEditingValuation] = useState<Valuation | null>(null)
+
   // Dialogs
   const [editOpen, setEditOpen] = useState(false)
   const [addClientOpen, setAddClientOpen] = useState(false)
@@ -140,6 +167,20 @@ export default function AdminInvestmentDetailPage({
       setError(err instanceof Error ? err.message : "An unexpected error occurred")
     } finally {
       setLoading(false)
+    }
+  }, [id])
+
+  const fetchValuations = useCallback(async () => {
+    setValuationsLoading(true)
+    try {
+      const res = await fetch(`/api/admin/investments/${id}/valuations`)
+      if (!res.ok) return
+      const data = await res.json()
+      setValuations(data)
+    } catch {
+      // Non-critical
+    } finally {
+      setValuationsLoading(false)
     }
   }, [id])
 
@@ -174,10 +215,32 @@ export default function AdminInvestmentDetailPage({
   useEffect(() => {
     Promise.resolve().then(() => {
       fetchInvestment()
+      fetchValuations()
       fetchClients()
       fetchAssetClasses()
     })
-  }, [fetchInvestment, fetchClients, fetchAssetClasses])
+  }, [fetchInvestment, fetchValuations, fetchClients, fetchAssetClasses])
+
+  const handleDeleteValuation = async (valuationId: string) => {
+    if (!confirm("Delete this valuation?")) return
+    try {
+      const res = await fetch(
+        `/api/admin/investments/${id}/valuations/${valuationId}`,
+        { method: "DELETE" }
+      )
+      if (res.ok) {
+        fetchValuations()
+        fetchInvestment()
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const handleValuationSuccess = () => {
+    fetchValuations()
+    fetchInvestment()
+  }
 
   if (error) {
     return (
@@ -219,6 +282,14 @@ export default function AdminInvestmentDetailPage({
     (sum, ci) => sum + Number(ci.currentValue),
     0
   )
+
+  // Chart data: valuations sorted by date ascending
+  const chartData = [...valuations]
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map((v) => ({
+      date: formatDateOnly(v.date),
+      value: Number(v.totalValue),
+    }))
 
   return (
     <div className="p-8 space-y-6">
@@ -288,6 +359,10 @@ export default function AdminInvestmentDetailPage({
           <TabsTrigger value="clients">
             <Users className="h-4 w-4 mr-1.5" />
             Client Positions ({investment.clientInvestments.length})
+          </TabsTrigger>
+          <TabsTrigger value="valuations">
+            <TrendingUp className="h-4 w-4 mr-1.5" />
+            Valuations ({valuations.length})
           </TabsTrigger>
           <TabsTrigger value="dealroom">
             <MessageSquare className="h-4 w-4 mr-1.5" />
@@ -408,6 +483,135 @@ export default function AdminInvestmentDetailPage({
                           {formatCurrency(ci.currentValue)}
                         </TableCell>
                         <TableCell>{formatDateOnly(ci.investmentDate)}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Valuations Tab */}
+        <TabsContent value="valuations" className="mt-4 space-y-4">
+          <div className="flex justify-end">
+            <Button size="sm" onClick={() => setAddValuationOpen(true)}>
+              <Plus className="h-4 w-4" />
+              Add Valuation
+            </Button>
+          </div>
+
+          {/* NAV Chart */}
+          {chartData.length >= 2 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Fund NAV Over Time</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(val) =>
+                        val >= 1_000_000
+                          ? `$${(val / 1_000_000).toFixed(1)}M`
+                          : `$${(val / 1_000).toFixed(0)}K`
+                      }
+                      width={70}
+                    />
+                    <Tooltip
+                      formatter={(value) => [
+                        formatCurrency(Number(value ?? 0)),
+                        "Total Value",
+                      ]}
+                      contentStyle={{
+                        backgroundColor: "#fff",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "8px",
+                        fontSize: "13px",
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#2563eb"
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                      activeDot={{ r: 5 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Valuations Table */}
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Total Value</TableHead>
+                    <TableHead>Notes</TableHead>
+                    <TableHead>Entered By</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {valuationsLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                        Loading valuations...
+                      </TableCell>
+                    </TableRow>
+                  ) : valuations.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                        <TrendingUp className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+                        <p>No valuations yet. Add a valuation to track fund NAV.</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    valuations.map((v) => (
+                      <TableRow key={v.id}>
+                        <TableCell>{formatDateOnly(v.date)}</TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(Number(v.totalValue))}
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate">
+                          {v.notes || "--"}
+                        </TableCell>
+                        <TableCell>
+                          {v.createdBy?.name || v.createdBy?.email || "--"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingValuation(v)}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteValuation(v.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -538,6 +742,21 @@ export default function AdminInvestmentDetailPage({
         onOpenChange={setDocUploadOpen}
         investments={[{ id: investment.id, name: investment.name }]}
         onSuccess={fetchInvestment}
+      />
+
+      <ValuationFormDialog
+        open={addValuationOpen}
+        onOpenChange={setAddValuationOpen}
+        investmentId={investment.id}
+        onSuccess={handleValuationSuccess}
+      />
+
+      <ValuationFormDialog
+        open={!!editingValuation}
+        onOpenChange={(open) => { if (!open) setEditingValuation(null) }}
+        investmentId={investment.id}
+        onSuccess={handleValuationSuccess}
+        existing={editingValuation || undefined}
       />
     </div>
   )
