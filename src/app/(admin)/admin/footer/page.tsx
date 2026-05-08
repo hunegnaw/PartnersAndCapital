@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,73 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2, Check, LayoutTemplate, Palette, Type, Image as ImageIcon, Link2, Plus, Trash2, Columns } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  AlertCircle,
+  Loader2,
+  Check,
+  LayoutTemplate,
+  Palette,
+  Type,
+  Image as ImageIcon,
+  Link2,
+  Plus,
+  Trash2,
+  Columns,
+  GripVertical,
+  FileText,
+  ExternalLink,
+  TrendingUp,
+} from "lucide-react";
 import { ColorPicker } from "@/components/admin/color-picker";
 import { MediaPicker } from "@/components/admin/media-picker";
-import { DEFAULT_FOOTER, mergeFooter, type FooterConfig, type FooterLink, type FooterNavColumn } from "@/lib/footer";
+import {
+  DEFAULT_FOOTER,
+  mergeFooter,
+  type FooterConfig,
+  type FooterLink,
+  type FooterNavColumn,
+  type FooterInvestmentLink,
+} from "@/lib/footer";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
-const MODULE_LABELS: { key: keyof FooterConfig["modules"]; label: string; description: string }[] = [
+interface CmsPage {
+  id: string;
+  title: string;
+  slug: string;
+  isHomepage: boolean;
+}
+
+interface AssetClassRecord {
+  id: string;
+  name: string;
+}
+
+const MODULE_LABELS: {
+  key: keyof FooterConfig["modules"];
+  label: string;
+  description: string;
+}[] = [
   { key: "logo", label: "Logo", description: "Display a logo image in the footer" },
   { key: "navigation", label: "Navigation Columns", description: "Show custom navigation columns" },
   { key: "investments", label: "Investments", description: "Dynamic column listing asset classes" },
@@ -25,6 +86,129 @@ const MODULE_LABELS: { key: keyof FooterConfig["modules"]; label: string; descri
   { key: "legalLinks", label: "Legal Links", description: "Links like Terms of Use, Privacy Policy" },
 ];
 
+/* ------------------------------------------------------------------ */
+/*  Sortable link row within a nav column                             */
+/* ------------------------------------------------------------------ */
+function SortableLinkRow({
+  link,
+  linkId,
+  onChangeLabel,
+  onChangeUrl,
+  onDelete,
+}: {
+  link: FooterLink;
+  linkId: string;
+  onChangeLabel: (v: string) => void;
+  onChangeUrl: (v: string) => void;
+  onDelete: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: linkId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center gap-2 pl-2">
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600 shrink-0"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <div className="shrink-0 text-muted-foreground">
+        {link.source === "page" ? (
+          <FileText className="h-4 w-4" />
+        ) : (
+          <ExternalLink className="h-4 w-4" />
+        )}
+      </div>
+      <Input
+        value={link.label}
+        onChange={(e) => onChangeLabel(e.target.value)}
+        placeholder="Label"
+        className="flex-1"
+      />
+      <Input
+        value={link.url}
+        onChange={(e) => onChangeUrl(e.target.value)}
+        placeholder="URL (e.g. /about)"
+        className="flex-1"
+      />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={onDelete}
+        className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page picker popover                                                */
+/* ------------------------------------------------------------------ */
+function PagePickerPopover({
+  pages,
+  onSelect,
+}: {
+  pages: CmsPage[];
+  onSelect: (page: CmsPage) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        render={
+          <Button type="button" variant="outline" size="sm">
+            <FileText className="h-4 w-4" />
+            Add Page Link
+          </Button>
+        }
+      />
+      <PopoverContent align="start" className="w-64 p-0">
+        <div className="p-2 border-b">
+          <p className="text-xs font-medium text-muted-foreground">Published Pages</p>
+        </div>
+        <div className="max-h-60 overflow-y-auto">
+          {pages.length === 0 && (
+            <p className="p-3 text-xs text-muted-foreground">No published pages found.</p>
+          )}
+          {pages.map((page) => (
+            <button
+              key={page.id}
+              type="button"
+              className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors flex items-center gap-2"
+              onClick={() => {
+                onSelect(page);
+                setOpen(false);
+              }}
+            >
+              <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <span className="truncate">{page.title}</span>
+              <span className="text-xs text-muted-foreground ml-auto shrink-0">
+                /{page.isHomepage ? "" : page.slug}
+              </span>
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main admin page                                                    */
+/* ------------------------------------------------------------------ */
 export default function AdminFooterPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -32,12 +216,25 @@ export default function AdminFooterPage() {
   const [success, setSuccess] = useState(false);
   const [footer, setFooter] = useState<FooterConfig>(DEFAULT_FOOTER);
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const [cmsPages, setCmsPages] = useState<CmsPage[]>([]);
+  const [assetClasses, setAssetClasses] = useState<AssetClassRecord[]>([]);
+
+  const dndId = useId();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   useEffect(() => {
-    fetch("/api/admin/settings")
-      .then((res) => res.json())
-      .then((data) => {
-        setFooter(mergeFooter(data.footer));
+    Promise.all([
+      fetch("/api/admin/settings").then((r) => r.json()),
+      fetch("/api/admin/footer").then((r) => r.json()),
+    ])
+      .then(([settingsData, footerData]) => {
+        setFooter(mergeFooter(settingsData.footer));
+        setCmsPages(footerData.pages || []);
+        setAssetClasses(footerData.assetClasses || []);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "Failed to load settings");
@@ -81,6 +278,101 @@ export default function AdminFooterPage() {
 
   function updateField<K extends keyof FooterConfig>(key: K, value: FooterConfig[K]) {
     setFooter((prev) => ({ ...prev, [key]: value }));
+  }
+
+  /* ------ Nav column helpers ------ */
+  function updateColumnTitle(colIdx: number, title: string) {
+    const updated = [...(footer.navColumns || [])];
+    updated[colIdx] = { ...updated[colIdx], title };
+    updateField("navColumns", updated);
+  }
+
+  function deleteColumn(colIdx: number) {
+    updateField(
+      "navColumns",
+      (footer.navColumns || []).filter((_: FooterNavColumn, i: number) => i !== colIdx)
+    );
+  }
+
+  function updateLink(colIdx: number, linkIdx: number, field: "label" | "url", value: string) {
+    const updated = [...(footer.navColumns || [])];
+    const links = [...updated[colIdx].links];
+    links[linkIdx] = { ...links[linkIdx], [field]: value };
+    updated[colIdx] = { ...updated[colIdx], links };
+    updateField("navColumns", updated);
+  }
+
+  function deleteLink(colIdx: number, linkIdx: number) {
+    const updated = [...(footer.navColumns || [])];
+    updated[colIdx] = {
+      ...updated[colIdx],
+      links: updated[colIdx].links.filter((_: FooterLink, i: number) => i !== linkIdx),
+    };
+    updateField("navColumns", updated);
+  }
+
+  function addPageLink(colIdx: number, page: CmsPage) {
+    const updated = [...(footer.navColumns || [])];
+    const url = page.isHomepage ? "/" : `/${page.slug}`;
+    updated[colIdx] = {
+      ...updated[colIdx],
+      links: [
+        ...updated[colIdx].links,
+        { label: page.title, url, source: "page" as const, pageId: page.id },
+      ],
+    };
+    updateField("navColumns", updated);
+  }
+
+  function addCustomLink(colIdx: number) {
+    const updated = [...(footer.navColumns || [])];
+    updated[colIdx] = {
+      ...updated[colIdx],
+      links: [...updated[colIdx].links, { label: "", url: "", source: "custom" as const }],
+    };
+    updateField("navColumns", updated);
+  }
+
+  function handleLinkDragEnd(colIdx: number, event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const col = (footer.navColumns || [])[colIdx];
+    const ids = col.links.map((_: FooterLink, i: number) => `${colIdx}-${i}`);
+    const oldIndex = ids.indexOf(active.id as string);
+    const newIndex = ids.indexOf(over.id as string);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const updated = [...(footer.navColumns || [])];
+    updated[colIdx] = {
+      ...updated[colIdx],
+      links: arrayMove([...updated[colIdx].links], oldIndex, newIndex),
+    };
+    updateField("navColumns", updated);
+  }
+
+  /* ------ Investment link helpers ------ */
+  function getInvestmentUrl(assetClassId: string): string {
+    const found = (footer.investmentLinks || []).find(
+      (il: FooterInvestmentLink) => il.assetClassId === assetClassId
+    );
+    return found?.url || "";
+  }
+
+  function setInvestmentUrl(assetClassId: string, assetClassName: string, url: string) {
+    const existing = footer.investmentLinks || [];
+    const idx = existing.findIndex(
+      (il: FooterInvestmentLink) => il.assetClassId === assetClassId
+    );
+    let updated: FooterInvestmentLink[];
+    if (idx >= 0) {
+      updated = [...existing];
+      updated[idx] = { ...updated[idx], url };
+    } else {
+      updated = [...existing, { assetClassId, assetClassName, url }];
+    }
+    updateField("investmentLinks", updated);
   }
 
   if (loading) {
@@ -296,7 +588,10 @@ export default function AdminFooterPage() {
                   variant="ghost"
                   size="icon"
                   onClick={() => {
-                    updateField("links", footer.links.filter((_: FooterLink, j: number) => j !== i));
+                    updateField(
+                      "links",
+                      footer.links.filter((_: FooterLink, j: number) => j !== i)
+                    );
                   }}
                   className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
                 >
@@ -318,7 +613,7 @@ export default function AdminFooterPage() {
           </CardContent>
         </Card>
 
-        {/* Navigation Columns */}
+        {/* Navigation Columns — WordPress-style menu builder */}
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -328,107 +623,115 @@ export default function AdminFooterPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-xs text-muted-foreground">
-              Add custom navigation columns to the footer (e.g. &ldquo;Firm&rdquo;, &ldquo;Investors&rdquo;). Each column has a title and a list of links. The Investments column is generated automatically from asset classes.
+              Build footer navigation columns. Add links from your published CMS pages or create custom links. Drag to reorder.
             </p>
-            {(footer.navColumns || []).map((col: FooterNavColumn, colIdx: number) => (
-              <div key={colIdx} className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={col.title}
-                    onChange={(e) => {
-                      const updated = [...(footer.navColumns || [])];
-                      updated[colIdx] = { ...updated[colIdx], title: e.target.value };
-                      updateField("navColumns", updated);
-                    }}
-                    placeholder="Column title (e.g. Firm)"
-                    className="flex-1 font-medium"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      updateField("navColumns", (footer.navColumns || []).filter((_: FooterNavColumn, i: number) => i !== colIdx));
-                    }}
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                {col.links.map((link: FooterLink, linkIdx: number) => (
-                  <div key={linkIdx} className="flex items-center gap-2 pl-4">
+            {(footer.navColumns || []).map((col: FooterNavColumn, colIdx: number) => {
+              const linkIds = col.links.map((_: FooterLink, i: number) => `${colIdx}-${i}`);
+
+              return (
+                <div key={colIdx} className="border rounded-lg p-4 space-y-3">
+                  <div className="flex items-center gap-2">
                     <Input
-                      value={link.label}
-                      onChange={(e) => {
-                        const updated = [...(footer.navColumns || [])];
-                        const links = [...updated[colIdx].links];
-                        links[linkIdx] = { ...links[linkIdx], label: e.target.value };
-                        updated[colIdx] = { ...updated[colIdx], links };
-                        updateField("navColumns", updated);
-                      }}
-                      placeholder="Label"
-                      className="flex-1"
-                    />
-                    <Input
-                      value={link.url}
-                      onChange={(e) => {
-                        const updated = [...(footer.navColumns || [])];
-                        const links = [...updated[colIdx].links];
-                        links[linkIdx] = { ...links[linkIdx], url: e.target.value };
-                        updated[colIdx] = { ...updated[colIdx], links };
-                        updateField("navColumns", updated);
-                      }}
-                      placeholder="URL (e.g. /about)"
-                      className="flex-1"
+                      value={col.title}
+                      onChange={(e) => updateColumnTitle(colIdx, e.target.value)}
+                      placeholder="Column title (e.g. Firm)"
+                      className="flex-1 font-medium"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      onClick={() => {
-                        const updated = [...(footer.navColumns || [])];
-                        updated[colIdx] = {
-                          ...updated[colIdx],
-                          links: updated[colIdx].links.filter((_: FooterLink, i: number) => i !== linkIdx),
-                        };
-                        updateField("navColumns", updated);
-                      }}
+                      onClick={() => deleteColumn(colIdx)}
                       className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="ml-4"
-                  onClick={() => {
-                    const updated = [...(footer.navColumns || [])];
-                    updated[colIdx] = {
-                      ...updated[colIdx],
-                      links: [...updated[colIdx].links, { label: "", url: "" }],
-                    };
-                    updateField("navColumns", updated);
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Link
-                </Button>
-              </div>
-            ))}
+
+                  {/* Sortable links */}
+                  <DndContext
+                    id={`${dndId}-col-${colIdx}`}
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={(event) => handleLinkDragEnd(colIdx, event)}
+                  >
+                    <SortableContext items={linkIds} strategy={verticalListSortingStrategy}>
+                      {col.links.map((link: FooterLink, linkIdx: number) => (
+                        <SortableLinkRow
+                          key={linkIds[linkIdx]}
+                          link={link}
+                          linkId={linkIds[linkIdx]}
+                          onChangeLabel={(v) => updateLink(colIdx, linkIdx, "label", v)}
+                          onChangeUrl={(v) => updateLink(colIdx, linkIdx, "url", v)}
+                          onDelete={() => deleteLink(colIdx, linkIdx)}
+                        />
+                      ))}
+                    </SortableContext>
+                  </DndContext>
+
+                  <div className="flex items-center gap-2 pl-2">
+                    <PagePickerPopover
+                      pages={cmsPages}
+                      onSelect={(page) => addPageLink(colIdx, page)}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addCustomLink(colIdx)}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Add Custom Link
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => {
-                updateField("navColumns", [...(footer.navColumns || []), { title: "", links: [] }]);
+                updateField("navColumns", [
+                  ...(footer.navColumns || []),
+                  { title: "", links: [] },
+                ]);
               }}
             >
               <Plus className="h-4 w-4" />
               Add Column
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Investment Links */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-base">Investment Links</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Assign URLs to each asset class. These are used in the Investments column of the footer. Leave blank to render as plain text.
+            </p>
+            {assetClasses.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No asset classes found. Create asset classes in the Investments section first.
+              </p>
+            )}
+            {assetClasses.map((ac) => (
+              <div key={ac.id} className="flex items-center gap-3">
+                <span className="text-sm font-medium w-48 shrink-0 truncate">{ac.name}</span>
+                <Input
+                  value={getInvestmentUrl(ac.id)}
+                  onChange={(e) => setInvestmentUrl(ac.id, ac.name, e.target.value)}
+                  placeholder="URL (e.g. /investments/real-estate)"
+                  className="flex-1"
+                />
+              </div>
+            ))}
           </CardContent>
         </Card>
 

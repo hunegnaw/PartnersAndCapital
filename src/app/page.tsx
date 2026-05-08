@@ -49,7 +49,7 @@ export default async function Home() {
     href: p.isHomepage ? "/" : `/${p.slug}`,
     label: p.navLabel || p.title,
   }));
-  const investmentLinks = assetClasses.map((ac) => ({ label: ac.name }));
+  const investmentLinks = assetClasses.map((ac) => ({ id: ac.id, label: ac.name }));
 
   const blocks = homepage.blocks.map((b) => ({
     id: b.id,

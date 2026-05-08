@@ -13,6 +13,14 @@ export interface FooterModules {
 export interface FooterLink {
   label: string;
   url: string;
+  source?: "custom" | "page";
+  pageId?: string;
+}
+
+export interface FooterInvestmentLink {
+  assetClassId: string;
+  assetClassName: string;
+  url: string;
 }
 
 export interface FooterNavColumn {
@@ -33,6 +41,7 @@ export interface FooterConfig {
   accentColor: string;
   links: FooterLink[];
   navColumns: FooterNavColumn[];
+  investmentLinks: FooterInvestmentLink[];
 }
 
 export const DEFAULT_FOOTER: FooterConfig = {
@@ -58,6 +67,7 @@ export const DEFAULT_FOOTER: FooterConfig = {
   accentColor: "#B07D3A",
   links: [],
   navColumns: [],
+  investmentLinks: [],
 };
 
 /** Deep-merge saved footer config over defaults */
@@ -73,5 +83,6 @@ export function mergeFooter(saved?: Partial<FooterConfig> | null): FooterConfig 
     },
     links: Array.isArray(saved.links) ? saved.links : DEFAULT_FOOTER.links,
     navColumns: Array.isArray(saved.navColumns) ? saved.navColumns : DEFAULT_FOOTER.navColumns,
+    investmentLinks: Array.isArray(saved.investmentLinks) ? saved.investmentLinks : DEFAULT_FOOTER.investmentLinks,
   };
 }

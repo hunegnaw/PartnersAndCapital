@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useState, FormEvent } from "react";
 import { useOrganization } from "@/components/providers/organization-provider";
-import type { FooterNavColumn } from "@/lib/footer";
+import type { FooterNavColumn, FooterInvestmentLink } from "@/lib/footer";
 
 interface InvestmentLink {
+  id: string;
   label: string;
 }
 
@@ -46,11 +47,19 @@ export function MarketingFooter({ investmentLinks }: MarketingFooterProps) {
   const hasInvestments = footer.modules.investments && investmentLinks && investmentLinks.length > 0;
   const navColumns: FooterNavColumn[] = footer.navColumns || [];
 
+  // Resolve investment URLs from footer config
+  const investmentLinksWithUrls = (investmentLinks || []).map((il) => {
+    const override = (footer.investmentLinks || []).find(
+      (fl: FooterInvestmentLink) => fl.assetClassId === il.id
+    );
+    return { label: il.label, url: override?.url || "" };
+  });
+
   // Build list of nav columns: custom columns + investments
   const middleCols = [
     ...(footer.modules.navigation ? navColumns.map((col) => ({ title: col.title, links: col.links })) : []),
     ...(hasInvestments
-      ? [{ title: "Investments", links: investmentLinks.map((l) => ({ label: l.label, url: "" })) }]
+      ? [{ title: "Investments", links: investmentLinksWithUrls }]
       : []),
   ];
 
@@ -108,57 +117,6 @@ export function MarketingFooter({ investmentLinks }: MarketingFooterProps) {
                   {org.phone && <p>{org.phone}</p>}
                 </div>
               )}
-
-              {/* Newsletter inline (below branding on larger screens) */}
-              {hasNewsletter && (
-                <div className="mt-8 hidden md:block">
-                  <p
-                    className="uppercase tracking-[0.15em] mb-3"
-                    style={{ fontSize: "10px", fontWeight: 500, color: footer.accentColor }}
-                  >
-                    {footer.newsletterHeading || "Stay Updated"}
-                  </p>
-                  {footer.newsletterDescription && (
-                    <p className="mb-3" style={{ fontSize: "12px", fontWeight: 300, opacity: 0.5 }}>
-                      {footer.newsletterDescription}
-                    </p>
-                  )}
-                  <form onSubmit={handleSubmit} className="flex gap-2">
-                    <input
-                      type="email"
-                      required
-                      placeholder="Email address"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="flex-1 px-3 py-2 text-xs focus:outline-none transition-colors"
-                      style={{
-                        backgroundColor: "rgba(255,255,255,0.05)",
-                        border: "0.5px solid rgba(255,255,255,0.15)",
-                        color: footer.textColor,
-                        fontFamily: "inherit",
-                      }}
-                    />
-                    <button
-                      type="submit"
-                      disabled={status === "loading"}
-                      className="px-5 py-2 text-[10px] font-medium uppercase tracking-[0.1em] transition-colors disabled:opacity-50"
-                      style={{
-                        backgroundColor: footer.accentColor,
-                        color: "#1A2640",
-                        fontFamily: "inherit",
-                      }}
-                    >
-                      {status === "loading" ? "..." : "Subscribe"}
-                    </button>
-                  </form>
-                  {status === "success" && (
-                    <p className="text-green-400 text-xs mt-2">{message}</p>
-                  )}
-                  {status === "error" && (
-                    <p className="text-red-400 text-xs mt-2">{message}</p>
-                  )}
-                </div>
-              )}
             </div>
           )}
 
@@ -194,43 +152,64 @@ export function MarketingFooter({ investmentLinks }: MarketingFooterProps) {
           ))}
         </div>
 
-        {/* Mobile newsletter (visible on small screens only) */}
+        {/* Newsletter — full-width row below nav grid */}
         {hasNewsletter && (
-          <div className="mt-10 md:hidden">
-            <p
-              className="uppercase tracking-[0.15em] mb-3"
-              style={{ fontSize: "10px", fontWeight: 500, color: footer.accentColor }}
-            >
-              {footer.newsletterHeading || "Stay Updated"}
-            </p>
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <input
-                type="email"
-                required
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 px-3 py-2 text-xs focus:outline-none"
-                style={{
-                  backgroundColor: "rgba(255,255,255,0.05)",
-                  border: "0.5px solid rgba(255,255,255,0.15)",
-                  color: footer.textColor,
-                  fontFamily: "inherit",
-                }}
-              />
-              <button
-                type="submit"
-                disabled={status === "loading"}
-                className="px-5 py-2 text-[10px] font-medium uppercase tracking-[0.1em] disabled:opacity-50"
-                style={{
-                  backgroundColor: footer.accentColor,
-                  color: "#1A2640",
-                  fontFamily: "inherit",
-                }}
-              >
-                {status === "loading" ? "..." : "Subscribe"}
-              </button>
-            </form>
+          <div className="mt-16">
+            <div
+              className="mb-8 h-px"
+              style={{
+                background: `linear-gradient(90deg, ${footer.accentColor}00, ${footer.accentColor}66, ${footer.accentColor}00)`,
+              }}
+            />
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
+              <div className="shrink-0">
+                <p
+                  className="uppercase tracking-[0.15em]"
+                  style={{ fontSize: "10px", fontWeight: 500, color: footer.accentColor }}
+                >
+                  {footer.newsletterHeading || "Stay Updated"}
+                </p>
+                {footer.newsletterDescription && (
+                  <p className="mt-1" style={{ fontSize: "12px", fontWeight: 300, opacity: 0.5 }}>
+                    {footer.newsletterDescription}
+                  </p>
+                )}
+              </div>
+              <form onSubmit={handleSubmit} className="flex gap-2 flex-1 max-w-lg">
+                <input
+                  type="email"
+                  required
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1 px-3 py-2 text-xs focus:outline-none transition-colors"
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.05)",
+                    border: "0.5px solid rgba(255,255,255,0.15)",
+                    color: footer.textColor,
+                    fontFamily: "inherit",
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={status === "loading"}
+                  className="px-5 py-2 text-[10px] font-medium uppercase tracking-[0.1em] transition-colors disabled:opacity-50"
+                  style={{
+                    backgroundColor: footer.accentColor,
+                    color: "#1A2640",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  {status === "loading" ? "..." : "Subscribe"}
+                </button>
+              </form>
+              {status === "success" && (
+                <p className="text-green-400 text-xs">{message}</p>
+              )}
+              {status === "error" && (
+                <p className="text-red-400 text-xs">{message}</p>
+              )}
+            </div>
           </div>
         )}
 

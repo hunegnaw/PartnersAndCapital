@@ -28,6 +28,7 @@ export default async function MarketingLayout({
   }));
 
   const investmentLinks = assetClasses.map((ac) => ({
+    id: ac.id,
     label: ac.name,
   }));
 
