@@ -18,10 +18,14 @@ export interface FooterLink {
 }
 
 export interface FooterInvestmentLink {
-  assetClassId: string;
-  assetClassName: string;
+  investmentId: string;
+  investmentName: string;
   url: string;
   visible: boolean;
+  /** @deprecated use investmentId */
+  assetClassId?: string;
+  /** @deprecated use investmentName */
+  assetClassName?: string;
 }
 
 export interface FooterNavColumn {

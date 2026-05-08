@@ -51,7 +51,8 @@ export function MarketingFooter({ investmentLinks }: MarketingFooterProps) {
   const investmentLinksWithUrls = (investmentLinks || [])
     .map((il) => {
       const override = (footer.investmentLinks || []).find(
-        (fl: FooterInvestmentLink) => fl.assetClassId === il.id
+        (fl: FooterInvestmentLink) =>
+          fl.investmentId === il.id || fl.assetClassId === il.id
       );
       return {
         label: il.label,

@@ -7,20 +7,20 @@ export async function GET() {
     const user = await requireAdmin();
     if (user instanceof NextResponse) return user;
 
-    const [pages, assetClasses] = await Promise.all([
+    const [pages, investments] = await Promise.all([
       prisma.page.findMany({
         where: { status: "PUBLISHED", deletedAt: null },
         select: { id: true, title: true, slug: true, isHomepage: true },
         orderBy: { title: "asc" },
       }),
-      prisma.assetClass.findMany({
+      prisma.investment.findMany({
         where: { deletedAt: null },
         select: { id: true, name: true },
-        orderBy: { sortOrder: "asc" },
+        orderBy: { name: "asc" },
       }),
     ]);
 
-    return NextResponse.json({ pages, assetClasses });
+    return NextResponse.json({ pages, investments });
   } catch (error) {
     console.error("Error fetching footer data:", error);
     return NextResponse.json(

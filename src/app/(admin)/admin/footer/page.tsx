@@ -67,7 +67,7 @@ interface CmsPage {
   isHomepage: boolean;
 }
 
-interface AssetClassRecord {
+interface InvestmentRecord {
   id: string;
   name: string;
 }
@@ -79,7 +79,7 @@ const MODULE_LABELS: {
 }[] = [
   { key: "logo", label: "Logo", description: "Display a logo image in the footer" },
   { key: "navigation", label: "Navigation Columns", description: "Show custom navigation columns" },
-  { key: "investments", label: "Investments", description: "Dynamic column listing asset classes" },
+  { key: "investments", label: "Investments", description: "Dynamic column listing investments" },
   { key: "newsletter", label: "Newsletter", description: "Newsletter signup form" },
   { key: "contact", label: "Contact Info", description: "Email, phone, and address" },
   { key: "tagline", label: "Tagline", description: "Organization tagline text" },
@@ -248,7 +248,7 @@ export default function AdminFooterPage() {
   const [footer, setFooter] = useState<FooterConfig>(DEFAULT_FOOTER);
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const [cmsPages, setCmsPages] = useState<CmsPage[]>([]);
-  const [assetClasses, setAssetClasses] = useState<AssetClassRecord[]>([]);
+  const [investments, setInvestments] = useState<InvestmentRecord[]>([]);
 
   const dndId = useId();
 
@@ -265,7 +265,7 @@ export default function AdminFooterPage() {
       .then(([settingsData, footerData]) => {
         setFooter(mergeFooter(settingsData.footer));
         setCmsPages(footerData.pages || []);
-        setAssetClasses(footerData.assetClasses || []);
+        setInvestments(footerData.investments || []);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "Failed to load settings");
@@ -398,22 +398,22 @@ export default function AdminFooterPage() {
   }
 
   /* ------ Investment link helpers ------ */
-  function getInvestmentLink(assetClassId: string): { url: string; visible: boolean } {
+  function getInvestmentLink(investmentId: string): { url: string; visible: boolean } {
     const found = (footer.investmentLinks || []).find(
-      (il: FooterInvestmentLink) => il.assetClassId === assetClassId
+      (il: FooterInvestmentLink) => il.investmentId === investmentId
     );
     return { url: found?.url || "", visible: found?.visible ?? true };
   }
 
   function updateInvestmentLink(
-    assetClassId: string,
-    assetClassName: string,
+    investmentId: string,
+    investmentName: string,
     field: "url" | "visible",
     value: string | boolean
   ) {
     const existing = footer.investmentLinks || [];
     const idx = existing.findIndex(
-      (il: FooterInvestmentLink) => il.assetClassId === assetClassId
+      (il: FooterInvestmentLink) => il.investmentId === investmentId
     );
     let updated: FooterInvestmentLink[];
     if (idx >= 0) {
@@ -422,7 +422,7 @@ export default function AdminFooterPage() {
     } else {
       updated = [
         ...existing,
-        { assetClassId, assetClassName, url: "", visible: true, [field]: value },
+        { investmentId, investmentName, url: "", visible: true, [field]: value },
       ];
     }
     updateField("investmentLinks", updated);
@@ -792,30 +792,30 @@ export default function AdminFooterPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              Assign URLs to each asset class. These are used in the Investments column of the footer. Leave blank to render as plain text.
+              Assign URLs to each investment. These are used in the Investments column of the footer. Leave blank to render as plain text.
             </p>
-            {assetClasses.length === 0 && (
+            {investments.length === 0 && (
               <p className="text-sm text-muted-foreground">
-                No asset classes found. Create asset classes in the Investments section first.
+                No investments found. Create investments first.
               </p>
             )}
-            {assetClasses.map((ac) => {
-              const il = getInvestmentLink(ac.id);
+            {investments.map((inv) => {
+              const il = getInvestmentLink(inv.id);
               return (
-                <div key={ac.id} className="flex items-center gap-3">
+                <div key={inv.id} className="flex items-center gap-3">
                   <Switch
                     checked={il.visible}
                     onCheckedChange={(checked) =>
-                      updateInvestmentLink(ac.id, ac.name, "visible", checked)
+                      updateInvestmentLink(inv.id, inv.name, "visible", checked)
                     }
                   />
-                  <span className="text-sm font-medium w-48 shrink-0 truncate">{ac.name}</span>
+                  <span className="text-sm font-medium w-48 shrink-0 truncate">{inv.name}</span>
                   <Input
                     value={il.url}
                     onChange={(e) =>
-                      updateInvestmentLink(ac.id, ac.name, "url", e.target.value)
+                      updateInvestmentLink(inv.id, inv.name, "url", e.target.value)
                     }
-                    placeholder="URL (e.g. /investments/real-estate)"
+                    placeholder="URL (e.g. /investments/fund-name)"
                     className="flex-1"
                   />
                 </div>

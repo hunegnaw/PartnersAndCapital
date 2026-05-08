@@ -33,23 +33,23 @@ export default async function Home() {
   }
 
   // Fetch nav links for header/footer
-  const [navPages, assetClasses] = await Promise.all([
+  const [navPages, investments] = await Promise.all([
     prisma.page.findMany({
       where: { showInNav: true, status: "PUBLISHED", deletedAt: null },
       select: { slug: true, title: true, navLabel: true, navOrder: true, isHomepage: true },
       orderBy: [{ navOrder: "asc" }, { title: "asc" }],
     }),
-    prisma.assetClass.findMany({
+    prisma.investment.findMany({
       where: { deletedAt: null },
       select: { id: true, name: true },
-      orderBy: { sortOrder: "asc" },
+      orderBy: { name: "asc" },
     }),
   ]);
   const navLinks = navPages.map((p) => ({
     href: p.isHomepage ? "/" : `/${p.slug}`,
     label: p.navLabel || p.title,
   }));
-  const investmentLinks = assetClasses.map((ac) => ({ id: ac.id, label: ac.name }));
+  const investmentLinks = investments.map((inv) => ({ id: inv.id, label: inv.name }));
 
   const blocks = homepage.blocks.map((b) => ({
     id: b.id,

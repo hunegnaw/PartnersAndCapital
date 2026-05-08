@@ -9,16 +9,16 @@ export default async function MarketingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [navPages, assetClasses] = await Promise.all([
+  const [navPages, investments] = await Promise.all([
     prisma.page.findMany({
       where: { showInNav: true, status: "PUBLISHED", deletedAt: null },
       select: { slug: true, title: true, navLabel: true, navOrder: true, isHomepage: true, isBlogPage: true },
       orderBy: [{ navOrder: "asc" }, { title: "asc" }],
     }),
-    prisma.assetClass.findMany({
+    prisma.investment.findMany({
       where: { deletedAt: null },
       select: { id: true, name: true },
-      orderBy: { sortOrder: "asc" },
+      orderBy: { name: "asc" },
     }),
   ]);
 
@@ -27,9 +27,9 @@ export default async function MarketingLayout({
     label: p.navLabel || p.title,
   }));
 
-  const investmentLinks = assetClasses.map((ac) => ({
-    id: ac.id,
-    label: ac.name,
+  const investmentLinks = investments.map((inv) => ({
+    id: inv.id,
+    label: inv.name,
   }));
 
   return (
