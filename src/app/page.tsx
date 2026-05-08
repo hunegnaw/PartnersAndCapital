@@ -86,7 +86,7 @@ export default async function Home() {
   }));
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col marketing-typography">
       <style dangerouslySetInnerHTML={{ __html: typoCss }} />
       <MarketingHeader transparent navLinks={navLinks} />
       <main className="flex-1">
