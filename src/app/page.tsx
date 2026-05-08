@@ -5,6 +5,8 @@ import Link from "next/link";
 import { BlockRenderer } from "@/components/blocks/block-renderer";
 import { MarketingHeader } from "@/components/marketing/header";
 import { MarketingFooter } from "@/components/marketing/footer";
+import { getOrganization } from "@/lib/organization";
+import { mergeTypography, type TypographySettings } from "@/lib/typography";
 
 export default async function Home() {
   const session = await auth();
@@ -33,7 +35,7 @@ export default async function Home() {
   }
 
   // Fetch nav links for header/footer
-  const [navPages, investments] = await Promise.all([
+  const [navPages, investments, org] = await Promise.all([
     prisma.page.findMany({
       where: { showInNav: true, status: "PUBLISHED", deletedAt: null },
       select: { slug: true, title: true, navLabel: true, navOrder: true, isHomepage: true },
@@ -44,7 +46,32 @@ export default async function Home() {
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
+    getOrganization(),
   ]);
+
+  const typography = mergeTypography(
+    (org?.typography as Partial<TypographySettings>) ?? null
+  );
+  const typoCssVars = Object.entries({
+    "hero-title": typography.heroTitle,
+    "section-heading": typography.sectionHeading,
+    "section-tag": typography.sectionTag,
+    subtitle: typography.subtitle,
+    body: typography.body,
+    h1: typography.h1,
+    h2: typography.h2,
+    h3: typography.h3,
+    h4: typography.h4,
+    h5: typography.h5,
+    h6: typography.h6,
+  }).flatMap(([prefix, s]) => [
+    `--font-${prefix}-family:'${s.fontFamily}',sans-serif`,
+    `--font-${prefix}-weight:${s.fontWeight}`,
+    `--font-${prefix}-style:${s.fontStyle}`,
+    `--font-${prefix}-color:${s.color}`,
+    `--font-${prefix}-size:${s.fontSize}`,
+  ]).join(";");
+  const typoCss = `:root{${typoCssVars}}`;
   const navLinks = navPages.map((p) => ({
     href: p.isHomepage ? "/" : `/${p.slug}`,
     label: p.navLabel || p.title,
@@ -60,6 +87,7 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <style dangerouslySetInnerHTML={{ __html: typoCss }} />
       <MarketingHeader transparent navLinks={navLinks} />
       <main className="flex-1">
         <BlockRenderer blocks={blocks} />
