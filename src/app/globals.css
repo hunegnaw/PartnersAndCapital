@@ -203,6 +203,15 @@ body {
 
 .marketing-typography .prose {
   font-family: var(--font-body-family, inherit) !important;
+  --tw-prose-headings: inherit;
+}
+
+/* Reset prose heading overrides so typography settings win */
+.marketing-typography .prose :is(h1, h2, h3, h4, h5, h6) {
+  font-size: unset !important;
+  font-weight: unset !important;
+  font-style: unset !important;
+  font-family: unset !important;
 }
 
 .marketing-typography .prose h1 {
