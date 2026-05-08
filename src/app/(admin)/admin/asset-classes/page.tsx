@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -100,8 +100,6 @@ export default function AssetClassesPage() {
   // Delete
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  const didFetch = useRef(false);
-
   const fetchData = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/asset-classes");
@@ -115,10 +113,9 @@ export default function AssetClassesPage() {
     }
   }, []);
 
-  if (!didFetch.current) {
-    didFetch.current = true;
-    fetchData();
-  }
+  useEffect(() => {
+    Promise.resolve().then(() => fetchData());
+  }, [fetchData]);
 
   function openCreate() {
     setEditing(null);
