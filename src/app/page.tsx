@@ -77,6 +77,7 @@ export default async function Home() {
               : "/dashboard"
           }
           className="fixed bottom-6 right-6 z-50 bg-[#1A2640] text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium hover:bg-[#2C3E5C] transition-colors"
+          style={{ fontFamily: "var(--font-body-family, Inter), sans-serif" }}
         >
           Go to Portal
         </Link>
