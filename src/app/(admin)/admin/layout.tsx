@@ -25,10 +25,11 @@ export default async function AdminLayout({
   }
 
   // Fetch sidebar counts
-  const [clientCount, investmentCount, documentCount, advisorCount, ticketCount, pageCount, blogPostCount, mediaCount] =
+  const [clientCount, investmentCount, assetClassCount, documentCount, advisorCount, ticketCount, pageCount, blogPostCount, mediaCount] =
     await Promise.all([
       prisma.user.count({ where: { role: "CLIENT", deletedAt: null } }),
       prisma.investment.count({ where: { deletedAt: null } }),
+      prisma.assetClass.count({ where: { deletedAt: null } }),
       prisma.document.count({ where: { deletedAt: null } }),
       prisma.advisor.count(),
       prisma.supportTicket.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } }),
@@ -40,6 +41,7 @@ export default async function AdminLayout({
   const manageNav = [
     { href: "/admin", label: "Clients", count: clientCount },
     { href: "/admin/investments", label: "Investments", count: investmentCount },
+    { href: "/admin/asset-classes", label: "Asset Classes", count: assetClassCount },
     { href: "/admin/documents", label: "Documents", count: documentCount },
     { href: "/admin/advisors", label: "Advisors", count: advisorCount },
     { href: "/admin/activity", label: "Activity Feed" },
