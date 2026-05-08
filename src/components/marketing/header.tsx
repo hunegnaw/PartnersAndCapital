@@ -51,7 +51,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
         solid ? "bg-[#1A2640]" : "bg-transparent"
       }`}
     >
-      <nav className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <nav className="w-full px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link
           href={logoHref}
@@ -92,6 +92,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
               borderStyle: "solid",
               borderColor: btnColor,
               color: btnColor,
+              fontFamily: "var(--font-body-family, Inter), sans-serif",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = solid ? btnColor : "#B07D3A";
@@ -145,6 +146,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
               borderStyle: "solid",
               borderColor: org.secondaryColor,
               color: org.secondaryColor,
+              fontFamily: "var(--font-body-family, Inter), sans-serif",
             }}
             onClick={() => setMobileOpen(false)}
           >
