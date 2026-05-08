@@ -46,7 +46,7 @@ export function MarketingFooter({ investmentLinks }: MarketingFooterProps) {
   const hasInvestments = footer.modules.investments && investmentLinks && investmentLinks.length > 0;
   const navColumns: FooterNavColumn[] = footer.navColumns || [];
 
-  // Build list of middle columns: custom nav columns + investments
+  // Build list of nav columns: custom columns + investments
   const middleCols = [
     ...(footer.modules.navigation ? navColumns.map((col) => ({ title: col.title, links: col.links })) : []),
     ...(hasInvestments
@@ -56,156 +56,199 @@ export function MarketingFooter({ investmentLinks }: MarketingFooterProps) {
 
   const hasBranding = footer.modules.logo || footer.modules.tagline || footer.modules.contact;
   const hasNewsletter = footer.modules.newsletter;
-  const colCount = (hasBranding ? 1 : 0) + middleCols.length + (hasNewsletter ? 1 : 0);
-  const gridCols =
-    colCount >= 5
-      ? "md:grid-cols-5"
-      : colCount === 4
-        ? "md:grid-cols-4"
-        : colCount === 3
-          ? "md:grid-cols-3"
-          : colCount === 2
-            ? "md:grid-cols-2"
-            : "md:grid-cols-1";
 
   return (
-    <footer style={{ backgroundColor: footer.backgroundColor, color: footer.textColor }}>
-      <div className="max-w-6xl mx-auto px-6 py-16">
-        {/* Top section — dynamic grid */}
-        {colCount > 0 && (
-          <div className={`grid grid-cols-1 ${gridCols} gap-12`}>
-            {/* Col: Branding / Logo / Contact */}
-            {hasBranding && (
-              <div>
-                {footer.modules.logo && footer.logoUrl && (
-                  <div className="mb-4">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={footer.logoUrl}
-                      alt={org.name}
-                      className="object-contain"
-                      style={{ width: "150px" }}
-                    />
-                  </div>
-                )}
-                {!footer.modules.logo && (
-                  <p className="font-bold text-sm tracking-widest uppercase mb-3">
-                    {org.name}
-                  </p>
-                )}
-                {footer.modules.tagline && (
-                  <p className="text-sm mb-4" style={{ opacity: 0.6 }}>
-                    {footer.tagline}
-                  </p>
-                )}
-                {footer.modules.contact && (
-                  <div className="text-sm leading-relaxed space-y-1" style={{ opacity: 0.4 }}>
-                    {org.address && (
-                      <p className="whitespace-pre-line">{org.address}</p>
-                    )}
-                    {org.email && <p>{org.email}</p>}
-                    {org.phone && <p>{org.phone}</p>}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Middle columns: nav columns + investments */}
-            {middleCols.map((col, idx) => (
-              <div key={idx}>
-                <p
-                  className="font-semibold text-sm tracking-wide uppercase mb-4"
-                  style={{ color: footer.accentColor }}
-                >
-                  {col.title}
-                </p>
-                <ul className="space-y-2">
-                  {col.links.map((link, i) => (
-                    <li key={i}>
-                      {link.url ? (
-                        <Link
-                          href={link.url}
-                          className="text-sm transition-colors"
-                          style={{ opacity: 0.6 }}
-                          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-                          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}
-                        >
-                          {link.label}
-                        </Link>
-                      ) : (
-                        <span className="text-sm" style={{ opacity: 0.6 }}>
-                          {link.label}
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-
-            {/* Col: Newsletter */}
-            {hasNewsletter && (
-              <div>
-                <p
-                  className="font-semibold text-sm tracking-wide uppercase mb-4"
-                  style={{ color: footer.accentColor }}
-                >
-                  {footer.newsletterHeading || "Stay Updated"}
-                </p>
-                {footer.newsletterDescription && (
-                  <p className="text-sm mb-4" style={{ opacity: 0.6 }}>
-                    {footer.newsletterDescription}
-                  </p>
-                )}
-                <form onSubmit={handleSubmit} className="flex gap-2">
-                  <input
-                    type="email"
-                    required
-                    placeholder="Email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="flex-1 rounded px-3 py-2 text-sm focus:outline-none transition-colors"
-                    style={{
-                      backgroundColor: "rgba(255,255,255,0.1)",
-                      border: "1px solid rgba(255,255,255,0.2)",
-                      color: footer.textColor,
-                    }}
+    <footer
+      style={{
+        backgroundColor: footer.backgroundColor,
+        color: footer.textColor,
+        fontFamily: "var(--font-body-family, Inter), sans-serif",
+      }}
+    >
+      <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16 py-20">
+        {/* Main grid: branding left, nav columns right */}
+        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr_1fr] gap-12 md:gap-8 lg:gap-16">
+          {/* Branding column */}
+          {hasBranding && (
+            <div>
+              {footer.modules.logo && footer.logoUrl && (
+                <div className="mb-5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={footer.logoUrl}
+                    alt={org.name}
+                    className="object-contain"
+                    style={{ width: "150px" }}
                   />
-                  <button
-                    type="submit"
-                    disabled={status === "loading"}
-                    className="px-4 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50"
-                    style={{
-                      backgroundColor: footer.accentColor,
-                      color: footer.textColor,
-                    }}
+                </div>
+              )}
+              {!footer.modules.logo && (
+                <p
+                  className="mb-5 uppercase tracking-[0.15em]"
+                  style={{ fontSize: "12px", fontWeight: 600 }}
+                >
+                  {org.name}
+                </p>
+              )}
+              {footer.modules.tagline && (
+                <p
+                  className="leading-relaxed"
+                  style={{ fontSize: "13px", fontWeight: 300, opacity: 0.5 }}
+                >
+                  {footer.tagline}
+                </p>
+              )}
+              {footer.modules.contact && (
+                <div
+                  className="mt-6 leading-relaxed space-y-1"
+                  style={{ fontSize: "12px", fontWeight: 300, opacity: 0.35 }}
+                >
+                  {org.address && <p className="whitespace-pre-line">{org.address}</p>}
+                  {org.email && <p>{org.email}</p>}
+                  {org.phone && <p>{org.phone}</p>}
+                </div>
+              )}
+
+              {/* Newsletter inline (below branding on larger screens) */}
+              {hasNewsletter && (
+                <div className="mt-8 hidden md:block">
+                  <p
+                    className="uppercase tracking-[0.15em] mb-3"
+                    style={{ fontSize: "10px", fontWeight: 500, color: footer.accentColor }}
                   >
-                    {status === "loading" ? "..." : "Subscribe"}
-                  </button>
-                </form>
-                {status === "success" && (
-                  <p className="text-green-400 text-xs mt-2">{message}</p>
-                )}
-                {status === "error" && (
-                  <p className="text-red-400 text-xs mt-2">{message}</p>
-                )}
-              </div>
-            )}
+                    {footer.newsletterHeading || "Stay Updated"}
+                  </p>
+                  {footer.newsletterDescription && (
+                    <p className="mb-3" style={{ fontSize: "12px", fontWeight: 300, opacity: 0.5 }}>
+                      {footer.newsletterDescription}
+                    </p>
+                  )}
+                  <form onSubmit={handleSubmit} className="flex gap-2">
+                    <input
+                      type="email"
+                      required
+                      placeholder="Email address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="flex-1 px-3 py-2 text-xs focus:outline-none transition-colors"
+                      style={{
+                        backgroundColor: "rgba(255,255,255,0.05)",
+                        border: "0.5px solid rgba(255,255,255,0.15)",
+                        color: footer.textColor,
+                        fontFamily: "inherit",
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      disabled={status === "loading"}
+                      className="px-5 py-2 text-[10px] font-medium uppercase tracking-[0.1em] transition-colors disabled:opacity-50"
+                      style={{
+                        backgroundColor: footer.accentColor,
+                        color: "#1A2640",
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      {status === "loading" ? "..." : "Subscribe"}
+                    </button>
+                  </form>
+                  {status === "success" && (
+                    <p className="text-green-400 text-xs mt-2">{message}</p>
+                  )}
+                  {status === "error" && (
+                    <p className="text-red-400 text-xs mt-2">{message}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Navigation columns */}
+          {middleCols.map((col, idx) => (
+            <div key={idx}>
+              <p
+                className="uppercase tracking-[0.15em] mb-5"
+                style={{ fontSize: "10px", fontWeight: 500, color: footer.accentColor }}
+              >
+                {col.title}
+              </p>
+              <ul className="space-y-3">
+                {col.links.map((link, i) => (
+                  <li key={i}>
+                    {link.url ? (
+                      <Link
+                        href={link.url}
+                        className="transition-opacity hover:opacity-100"
+                        style={{ fontSize: "12px", fontWeight: 300, opacity: 0.55 }}
+                      >
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <span style={{ fontSize: "12px", fontWeight: 300, opacity: 0.55 }}>
+                        {link.label}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Mobile newsletter (visible on small screens only) */}
+        {hasNewsletter && (
+          <div className="mt-10 md:hidden">
+            <p
+              className="uppercase tracking-[0.15em] mb-3"
+              style={{ fontSize: "10px", fontWeight: 500, color: footer.accentColor }}
+            >
+              {footer.newsletterHeading || "Stay Updated"}
+            </p>
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <input
+                type="email"
+                required
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="flex-1 px-3 py-2 text-xs focus:outline-none"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.05)",
+                  border: "0.5px solid rgba(255,255,255,0.15)",
+                  color: footer.textColor,
+                  fontFamily: "inherit",
+                }}
+              />
+              <button
+                type="submit"
+                disabled={status === "loading"}
+                className="px-5 py-2 text-[10px] font-medium uppercase tracking-[0.1em] disabled:opacity-50"
+                style={{
+                  backgroundColor: footer.accentColor,
+                  color: "#1A2640",
+                  fontFamily: "inherit",
+                }}
+              >
+                {status === "loading" ? "..." : "Subscribe"}
+              </button>
+            </form>
           </div>
         )}
 
         {/* Bottom bar */}
         {(footer.modules.copyright || footer.modules.disclaimer || (footer.modules.legalLinks && footer.links?.length > 0)) && (
           <>
-            <hr className="mt-12 mb-6" style={{ borderColor: "rgba(255,255,255,0.1)" }} />
+            <div
+              className="mt-16 mb-8 h-px"
+              style={{
+                background: `linear-gradient(90deg, ${footer.accentColor}00, ${footer.accentColor}66, ${footer.accentColor}00)`,
+              }}
+            />
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               {footer.modules.copyright && (
-                <div className="text-xs" style={{ opacity: 0.4 }}>
-                  <p>
-                    &copy; {footer.copyrightStartYear}-{currentYear} {footer.copyrightEntity}. All rights reserved.
-                  </p>
-                </div>
+                <p style={{ fontSize: "11px", fontWeight: 300, opacity: 0.4 }}>
+                  &copy; {footer.copyrightStartYear}&ndash;{currentYear} {footer.copyrightEntity}. All rights reserved.
+                </p>
               )}
 
               {footer.modules.legalLinks && footer.links?.length > 0 && (
@@ -215,10 +258,8 @@ export function MarketingFooter({ investmentLinks }: MarketingFooterProps) {
                       <Link
                         key={i}
                         href={link.url}
-                        className="text-xs transition-colors"
-                        style={{ opacity: 0.4 }}
-                        onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-                        onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.4")}
+                        className="transition-opacity hover:opacity-70"
+                        style={{ fontSize: "11px", fontWeight: 300, opacity: 0.4 }}
                       >
                         {link.label}
                       </Link>
@@ -229,7 +270,10 @@ export function MarketingFooter({ investmentLinks }: MarketingFooterProps) {
             </div>
 
             {footer.modules.disclaimer && org.disclaimer && (
-              <p className="text-[11px] leading-relaxed mt-6" style={{ opacity: 0.3 }}>
+              <p
+                className="mt-6 leading-[1.7]"
+                style={{ fontSize: "10px", fontWeight: 300, opacity: 0.25 }}
+              >
                 {org.disclaimer}
               </p>
             )}
