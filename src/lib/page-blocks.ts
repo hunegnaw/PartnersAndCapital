@@ -288,6 +288,26 @@ export const BLOCK_TYPES = {
       ctaButtonTextColor: "#1A2640",
     },
   },
+  faq: {
+    label: "FAQ",
+    icon: "HelpCircle",
+    description: "Frequently asked questions accordion",
+    defaultProps: {
+      tagline: "",
+      taglineFont: "",
+      taglineColor: "",
+      heading: "",
+      headingFont: "",
+      headingColor: "",
+      items: [] as { question: string; answer: string }[],
+      questionFont: "",
+      questionColor: "#1A2640",
+      answerFont: "",
+      answerColor: "#888780",
+      backgroundColor: "#F5F3EE",
+      maxWidth: "xl",
+    },
+  },
 } as const;
 
 export type BlockType = keyof typeof BLOCK_TYPES;

@@ -1381,6 +1381,87 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       );
     }
 
+    case "faq": {
+      const items = (props.items as { question: string; answer: string }[]) || [];
+      return (
+        <div className="space-y-4">
+          <InputField label="Tagline" field="tagline" {...fp} />
+          <FontField label="Tagline Font" field="taglineFont" {...fp} />
+          <ColorField label="Tagline Color" field="taglineColor" {...fp} />
+          <div>
+            <InputField label="Heading" field="heading" {...fp} />
+            <p className="mt-1 text-xs text-gray-400">Supports HTML. Use &lt;em&gt; for italic gold text, &lt;br&gt; for line breaks.</p>
+          </div>
+          <ColorField label="Heading Color" field="headingColor" {...fp} />
+          <FontField label="Heading Font" field="headingFont" {...fp} />
+          <ColorField label="Question Color" field="questionColor" {...fp} />
+          <FontField label="Question Font" field="questionFont" {...fp} />
+          <ColorField label="Answer Color" field="answerColor" {...fp} />
+          <FontField label="Answer Font" field="answerFont" {...fp} />
+          <ColorField label="Background Color" field="backgroundColor" {...fp} />
+          <SelectField
+            label="Max Width"
+            field="maxWidth"
+            options={[
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+              { value: "xl", label: "Extra Large" },
+              { value: "full", label: "Full Width" },
+            ]}
+            {...fp}
+          />
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-2">
+              FAQ Items
+            </label>
+            {items.map((item, i) => (
+              <div key={i} className="flex items-start gap-2 mb-2 p-2 border rounded">
+                <div className="flex-1 space-y-1">
+                  <input
+                    type="text"
+                    value={item.question}
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[i] = { ...updated[i], question: e.target.value };
+                      updateProp("items", updated);
+                    }}
+                    placeholder="Question"
+                    className="w-full px-2 py-1 text-xs border rounded"
+                  />
+                  <textarea
+                    value={item.answer}
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[i] = { ...updated[i], answer: e.target.value };
+                      updateProp("items", updated);
+                    }}
+                    placeholder="Answer"
+                    rows={3}
+                    className="w-full px-2 py-1 text-xs border rounded"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => updateProp("items", items.filter((_, j) => j !== i))}
+                  className="p-1 text-red-500 hover:bg-red-50 rounded mt-1 shrink-0"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => updateProp("items", [...items, { question: "", answer: "" }])}
+              className="flex items-center gap-1 text-xs text-[#B07D3A] hover:underline"
+            >
+              <Plus size={12} /> Add Item
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     default:
       return <p className="text-sm text-gray-500">No editor for this block type.</p>;
   }

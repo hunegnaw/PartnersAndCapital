@@ -15,6 +15,7 @@ import { AssetCardsBlock } from "./asset-cards-block";
 import { PhilosophyBlock } from "./philosophy-block";
 import { ProcessStepsBlock } from "./process-steps-block";
 import { CtaSplitBlock } from "./cta-split-block";
+import { FaqBlock } from "./faq-block";
 
 export const BLOCK_MAP: Record<
   string,
@@ -37,6 +38,7 @@ export const BLOCK_MAP: Record<
   philosophy: PhilosophyBlock,
   process_steps: ProcessStepsBlock,
   cta_split: CtaSplitBlock,
+  faq: FaqBlock,
 };
 
 interface Block {
