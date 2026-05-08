@@ -31,10 +31,10 @@ cd "$PROJECT_ROOT"
 
 ENVIRONMENT=${1:-staging}
 
-log() { echo -e "${BLUE}[$TIMESTAMP]${NC} $1"; }
-error() { echo -e "${RED}[$TIMESTAMP] ERROR:${NC} $1" >&2; }
-success() { echo -e "${GREEN}[$TIMESTAMP] SUCCESS:${NC} $1"; }
-warn() { echo -e "${YELLOW}[$TIMESTAMP] WARNING:${NC} $1"; }
+log() { echo -e "${BLUE}[$(date +"%Y-%m-%d %H:%M:%S")]${NC} $1"; }
+error() { echo -e "${RED}[$(date +"%Y-%m-%d %H:%M:%S")] ERROR:${NC} $1" >&2; }
+success() { echo -e "${GREEN}[$(date +"%Y-%m-%d %H:%M:%S")] SUCCESS:${NC} $1"; }
+warn() { echo -e "${YELLOW}[$(date +"%Y-%m-%d %H:%M:%S")] WARNING:${NC} $1"; }
 
 get_elapsed_time() {
     local end_time=$(date +%s)
@@ -358,6 +358,8 @@ ENDSSH
 run_health_check() {
     log "Running health checks..."
     HEALTH_HOST="${HEALTH_CHECK_HOST:-$SERVER_HOST}"
+    log "Waiting for Next.js to start..."
+    sleep 10
     for i in $(seq 1 8); do
         sleep 5
         HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$HEALTH_HOST/api/health" 2>/dev/null || echo "000")
