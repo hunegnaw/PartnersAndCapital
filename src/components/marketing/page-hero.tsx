@@ -22,12 +22,7 @@ export function PageHero({
   const hasImage = !!imageUrl;
   const backgroundColor = "#1A2640";
   const overlayOpacity = hasImage ? 0.6 : 0;
-
-  // When a dedicated hero heading is set, use it as the visible h1.
-  // Otherwise fall back to the page title. The page title alone
-  // renders the simple centered layout.
   const hasRichContent = !!(tagline || heading || subtitle || description);
-  const visibleHeading = heading || title;
 
   return (
     <section
@@ -38,7 +33,6 @@ export function PageHero({
         backgroundColor,
       }}
     >
-      {/* Dark overlay for image backgrounds */}
       {hasImage && (
         <div
           className="absolute inset-0 bg-black"
@@ -46,7 +40,6 @@ export function PageHero({
         />
       )}
 
-      {/* Grid pattern overlay */}
       {showGrid && (
         <div
           className="absolute inset-0 pointer-events-none"
@@ -58,7 +51,6 @@ export function PageHero({
         />
       )}
 
-      {/* Radial gradient overlay */}
       {showGrid && (
         <div
           className="absolute inset-0 pointer-events-none"
@@ -70,10 +62,8 @@ export function PageHero({
       )}
 
       {hasRichContent ? (
-        /* Rich hero layout — left-aligned, px-6 matches header nav */
         <div className="relative z-10 w-full px-6 py-24">
           <div className="max-w-3xl flex flex-col items-start text-left">
-            {/* Tagline */}
             {tagline && (
               <div className="mb-6 flex items-center gap-3">
                 <span
@@ -96,24 +86,27 @@ export function PageHero({
               </div>
             )}
 
-            {/* Heading — CSS custom properties feed through the
-                .marketing-typography h1 !important rules */}
-            <h1
-              className="heading-dark tracking-tight"
-              style={{
-                ["--font-h1-family" as string]: "'Cormorant Garamond', serif",
-                ["--font-h1-weight" as string]: "300",
-                ["--font-h1-style" as string]: "normal",
-                ["--font-h1-size" as string]: "64px",
-                lineHeight: 1.1,
-                color: "#ffffff",
-              }}
-              dangerouslySetInnerHTML={{ __html: visibleHeading }}
-            />
+            {/* Heading — rendered as a div (not h1) to avoid
+                .marketing-typography h1 !important overrides */}
+            {heading && (
+              <div
+                className="heading-dark tracking-tight"
+                role="heading"
+                aria-level={1}
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontWeight: 300,
+                  fontStyle: "normal",
+                  fontSize: "64px",
+                  lineHeight: 1.1,
+                  color: "#ffffff",
+                }}
+                dangerouslySetInnerHTML={{ __html: heading }}
+              />
+            )}
 
-            {/* Subtitle — italic serif in gold, same large size as heading */}
             {subtitle && (
-              <p
+              <div
                 className="subtitle-font"
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
@@ -127,9 +120,8 @@ export function PageHero({
               />
             )}
 
-            {/* Description */}
             {description && (
-              <p
+              <div
                 className="subtitle-font mt-8"
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
@@ -145,15 +137,16 @@ export function PageHero({
           </div>
         </div>
       ) : (
-        /* Simple hero layout — centered title only */
         <div className="relative z-10 w-full flex items-center justify-center">
-          <h1
+          <div
             className="heading-dark text-center px-6 tracking-tight"
+            role="heading"
+            aria-level={1}
             style={{
-              ["--font-h1-family" as string]: "'Cormorant Garamond', serif",
-              ["--font-h1-weight" as string]: "300",
-              ["--font-h1-style" as string]: "normal",
-              ["--font-h1-size" as string]: "clamp(40px, 6vw, 72px)",
+              fontFamily: "'Cormorant Garamond', serif",
+              fontWeight: 300,
+              fontStyle: "normal",
+              fontSize: "clamp(40px, 6vw, 72px)",
               lineHeight: 1.05,
               color: "#ffffff",
             }}
@@ -162,7 +155,6 @@ export function PageHero({
         </div>
       )}
 
-      {/* Bottom divider */}
       {showDivider && (
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
