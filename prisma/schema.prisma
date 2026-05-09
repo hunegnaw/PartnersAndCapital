@@ -862,6 +862,7 @@ model Page {
   featuredImageUrl String?
   // Hero content
   heroTagline      String?
+  heroHeading      String?  @db.Text
   heroSubtitle     String?  @db.Text
   heroDescription  String?  @db.Text
   heroShowGrid     Boolean  @default(false)

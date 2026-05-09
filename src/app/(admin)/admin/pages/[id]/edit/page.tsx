@@ -56,6 +56,7 @@ export default function AdminEditPagePage() {
   const [ogImageUrl, setOgImageUrl] = useState("")
   const [featuredImageUrl, setFeaturedImageUrl] = useState("")
   const [heroTagline, setHeroTagline] = useState("")
+  const [heroHeading, setHeroHeading] = useState("")
   const [heroSubtitle, setHeroSubtitle] = useState("")
   const [heroDescription, setHeroDescription] = useState("")
   const [heroShowGrid, setHeroShowGrid] = useState(false)
@@ -86,6 +87,7 @@ export default function AdminEditPagePage() {
       setOgImageUrl(page.ogImageUrl || "")
       setFeaturedImageUrl(page.featuredImageUrl || "")
       setHeroTagline(page.heroTagline || "")
+      setHeroHeading(page.heroHeading || "")
       setHeroSubtitle(page.heroSubtitle || "")
       setHeroDescription(page.heroDescription || "")
       setHeroShowGrid(page.heroShowGrid || false)
@@ -154,6 +156,7 @@ export default function AdminEditPagePage() {
           isBlogPage,
           featuredImageUrl: featuredImageUrl.trim() || null,
           heroTagline: heroTagline.trim() || null,
+          heroHeading: heroHeading.trim() || null,
           heroSubtitle: heroSubtitle.trim() || null,
           heroDescription: heroDescription.trim() || null,
           heroShowGrid,
@@ -429,6 +432,18 @@ export default function AdminEditPagePage() {
                   />
                   <p className="text-[11px] text-muted-foreground">
                     Uppercase label above the heading with a gold dash.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="heroHeading">Heading</Label>
+                  <Input
+                    id="heroHeading"
+                    value={heroHeading}
+                    onChange={(e) => setHeroHeading(e.target.value)}
+                    placeholder="e.g. Everything you want to know."
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Large white serif heading. If empty, the page title is used. Supports HTML.
                   </p>
                 </div>
                 <div className="space-y-2">

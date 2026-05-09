@@ -2,6 +2,7 @@ interface PageHeroProps {
   title: string;
   imageUrl?: string | null;
   tagline?: string | null;
+  heading?: string | null;
   subtitle?: string | null;
   description?: string | null;
   showGrid?: boolean;
@@ -12,6 +13,7 @@ export function PageHero({
   title,
   imageUrl,
   tagline,
+  heading,
   subtitle,
   description,
   showGrid = false,
@@ -20,6 +22,12 @@ export function PageHero({
   const hasImage = !!imageUrl;
   const backgroundColor = "#1A2640";
   const overlayOpacity = hasImage ? 0.6 : 0;
+
+  // When a dedicated hero heading is set, use it as the visible h1.
+  // Otherwise fall back to the page title. The page title alone
+  // renders the simple centered layout.
+  const hasRichContent = !!(tagline || heading || subtitle || description);
+  const visibleHeading = heading || title;
 
   return (
     <section
@@ -61,80 +69,98 @@ export function PageHero({
         />
       )}
 
-      {/* Content — px-6 matches the header nav padding for flush left alignment */}
-      <div className="relative z-10 w-full px-6 py-24">
-        <div className="max-w-3xl flex flex-col items-start text-left">
-          {/* Tagline */}
-          {tagline && (
-            <div className="mb-6 flex items-center gap-3">
-              <span
-                className="inline-block h-px w-6"
-                style={{ backgroundColor: "#B07D3A" }}
-              />
-              <span
-                className="uppercase tracking-[0.18em]"
-                style={{
-                  fontFamily:
-                    "var(--font-section-tag-family, Inter), sans-serif",
-                  fontSize: "var(--font-section-tag-size, 10px)",
-                  fontWeight:
-                    "var(--font-section-tag-weight, 400)" as unknown as number,
-                  color: "var(--font-section-tag-color, #B07D3A)",
-                }}
-              >
-                {tagline}
-              </span>
-            </div>
-          )}
+      {hasRichContent ? (
+        /* Rich hero layout — left-aligned, px-6 matches header nav */
+        <div className="relative z-10 w-full px-6 py-24">
+          <div className="max-w-3xl flex flex-col items-start text-left">
+            {/* Tagline */}
+            {tagline && (
+              <div className="mb-6 flex items-center gap-3">
+                <span
+                  className="inline-block h-px w-6"
+                  style={{ backgroundColor: "#B07D3A" }}
+                />
+                <span
+                  className="uppercase tracking-[0.18em]"
+                  style={{
+                    fontFamily:
+                      "var(--font-section-tag-family, Inter), sans-serif",
+                    fontSize: "var(--font-section-tag-size, 10px)",
+                    fontWeight:
+                      "var(--font-section-tag-weight, 400)" as unknown as number,
+                    color: "var(--font-section-tag-color, #B07D3A)",
+                  }}
+                >
+                  {tagline}
+                </span>
+              </div>
+            )}
 
-          {/* Heading — supports <em> for gold italic accent via heading-dark class */}
+            {/* Heading — CSS custom properties feed through the
+                .marketing-typography h1 !important rules */}
+            <h1
+              className="heading-dark tracking-tight"
+              style={{
+                ["--font-h1-family" as string]: "'Cormorant Garamond', serif",
+                ["--font-h1-weight" as string]: "300",
+                ["--font-h1-style" as string]: "normal",
+                ["--font-h1-size" as string]: "64px",
+                lineHeight: 1.1,
+                color: "#ffffff",
+              }}
+              dangerouslySetInnerHTML={{ __html: visibleHeading }}
+            />
+
+            {/* Subtitle — italic serif in gold, same large size as heading */}
+            {subtitle && (
+              <p
+                className="subtitle-font"
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontWeight: 300,
+                  fontStyle: "italic",
+                  fontSize: "64px",
+                  lineHeight: 1.1,
+                  color: "#E8D5B0",
+                }}
+                dangerouslySetInnerHTML={{ __html: subtitle }}
+              />
+            )}
+
+            {/* Description */}
+            {description && (
+              <p
+                className="subtitle-font mt-8"
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontWeight: 300,
+                  fontStyle: "italic",
+                  fontSize: "18px",
+                  lineHeight: 1.6,
+                  color: "rgba(232,213,176,0.65)",
+                }}
+                dangerouslySetInnerHTML={{ __html: description }}
+              />
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Simple hero layout — centered title only */
+        <div className="relative z-10 w-full flex items-center justify-center">
           <h1
-            className="heading-dark leading-[1.05] tracking-tight"
+            className="heading-dark text-center px-6 tracking-tight"
             style={{
-              fontFamily:
-                "var(--font-hero-title-family, 'Cormorant Garamond'), serif",
-              fontWeight:
-                "var(--font-hero-title-weight, 300)" as unknown as number,
-              fontStyle: "var(--font-hero-title-style, normal)",
-              color: "var(--font-hero-title-color, #ffffff)",
-              fontSize: "clamp(40px, 6vw, 72px)",
+              ["--font-h1-family" as string]: "'Cormorant Garamond', serif",
+              ["--font-h1-weight" as string]: "300",
+              ["--font-h1-style" as string]: "normal",
+              ["--font-h1-size" as string]: "clamp(40px, 6vw, 72px)",
+              lineHeight: 1.05,
+              color: "#ffffff",
             }}
             dangerouslySetInnerHTML={{ __html: title }}
           />
-
-          {/* Subtitle — italic serif in gold, same large size as heading */}
-          {subtitle && (
-            <p
-              className="subtitle-font mt-1"
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontWeight: 300,
-                fontStyle: "italic",
-                fontSize: "clamp(40px, 6vw, 72px)",
-                lineHeight: 1.05,
-                color: "#E8D5B0",
-              }}
-              dangerouslySetInnerHTML={{ __html: subtitle }}
-            />
-          )}
-
-          {/* Description */}
-          {description && (
-            <p
-              className="subtitle-font mt-8"
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontWeight: 300,
-                fontStyle: "italic",
-                fontSize: "clamp(16px, 2vw, 22px)",
-                lineHeight: 1.6,
-                color: "rgba(232,213,176,0.65)",
-              }}
-              dangerouslySetInnerHTML={{ __html: description }}
-            />
-          )}
         </div>
-      </div>
+      )}
 
       {/* Bottom divider */}
       {showDivider && (

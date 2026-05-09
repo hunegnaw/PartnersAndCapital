@@ -51,6 +51,7 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
         heroTitle={page.title}
         heroImageUrl={page.featuredImageUrl}
         heroTagline={page.heroTagline}
+        heroHeading={page.heroHeading}
         heroSubtitle={page.heroSubtitle}
         heroDescription={page.heroDescription}
         heroShowGrid={page.heroShowGrid}
@@ -73,6 +74,7 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
           title={page.title}
           imageUrl={page.featuredImageUrl}
           tagline={page.heroTagline}
+          heading={page.heroHeading}
           subtitle={page.heroSubtitle}
           description={page.heroDescription}
           showGrid={page.heroShowGrid}
