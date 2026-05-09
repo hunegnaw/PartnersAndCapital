@@ -37,7 +37,7 @@ export function CtaSplitBlock({ props }: CtaSplitBlockProps) {
 
   return (
     <section style={{ backgroundColor }} className="py-24 md:py-28">
-      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-7xl"} px-6 md:px-12 lg:px-16`}>
+      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-7xl"} px-16`}>
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 lg:items-center">
           {/* Left — CTA content */}
           <div>

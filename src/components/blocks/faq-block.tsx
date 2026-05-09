@@ -112,7 +112,7 @@ export function FaqBlock({ props }: FaqBlockProps) {
   return (
     <section className="py-24 md:py-28" style={{ backgroundColor }}>
       <div
-        className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-7xl"} px-6 md:px-12 lg:px-16`}
+        className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-7xl"} px-16`}
       >
         {/* Header */}
         {heading && (

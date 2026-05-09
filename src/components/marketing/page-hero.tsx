@@ -62,7 +62,7 @@ export function PageHero({
       )}
 
       {hasRichContent ? (
-        <div className="relative z-10 w-full px-6 py-24">
+        <div className="relative z-10 w-full px-16 py-24">
           <div className="max-w-3xl flex flex-col items-start text-left">
             {tagline && (
               <div className="mb-6 flex items-center gap-3">
@@ -139,7 +139,7 @@ export function PageHero({
       ) : (
         <div className="relative z-10 w-full flex items-center justify-center">
           <div
-            className="heading-dark text-center px-6 tracking-tight"
+            className="heading-dark text-center px-16 tracking-tight"
             role="heading"
             aria-level={1}
             style={{

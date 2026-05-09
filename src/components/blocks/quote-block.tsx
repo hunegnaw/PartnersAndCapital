@@ -21,7 +21,7 @@ export function QuoteBlock({ props }: QuoteBlockProps) {
 
   return (
     <section className="py-20" style={{ backgroundColor }}>
-      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-6 md:px-12`}>
+      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-16`}>
         <blockquote
           className="border-l pl-6"
           style={{ borderColor: "rgba(176,125,58,0.3)" }}

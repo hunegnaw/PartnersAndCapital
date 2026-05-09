@@ -67,7 +67,7 @@ export function ContactFormBlock({ props }: ContactFormBlockProps) {
 
   return (
     <section className="py-24" style={{ backgroundColor }}>
-      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-6 md:px-12`}>
+      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-16`}>
         {heading && (
           <h2
             className="leading-[1.15]"

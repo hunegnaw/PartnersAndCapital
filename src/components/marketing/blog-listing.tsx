@@ -70,7 +70,7 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
         showDivider={heroShowDivider}
       />
 
-      <div className="max-w-6xl mx-auto px-6 py-12">
+      <div className="max-w-6xl mx-auto px-16 py-12">
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3 mb-8">
           <Link

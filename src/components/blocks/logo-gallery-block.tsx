@@ -34,7 +34,7 @@ export function LogoGalleryBlock({ props }: LogoGalleryBlockProps) {
 
   return (
     <section className="py-20" style={{ backgroundColor }}>
-      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-6xl"} px-6 md:px-12 lg:px-16`}>
+      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-6xl"} px-16`}>
         {heading && (
           <h2
             className="heading-light mb-14 text-center leading-[1.15]"

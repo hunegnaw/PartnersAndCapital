@@ -34,7 +34,7 @@ export function EmbedBlock({ props }: EmbedBlockProps) {
 
   return (
     <section className="py-12">
-      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-6`}>
+      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-16`}>
         <div
           className="relative w-full overflow-hidden rounded-lg"
           style={{ aspectRatio }}

@@ -23,7 +23,7 @@ export function CtaBannerBlock({ props }: CtaBannerBlockProps) {
 
   return (
     <section className="py-24" style={{ backgroundColor }}>
-      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-6 text-center`}>
+      <div className={`mx-auto ${MAX_WIDTH[maxWidth] ?? "max-w-4xl"} px-16 text-center`}>
         {heading && (
           <h2
             className="heading-dark leading-[1.15]"

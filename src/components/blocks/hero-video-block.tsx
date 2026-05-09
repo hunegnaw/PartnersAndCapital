@@ -103,7 +103,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
       />
 
       {/* Content — left-aligned */}
-      <div className="relative z-10 w-full px-6 pb-16 pt-40 md:px-12 lg:px-16">
+      <div className="relative z-10 w-full px-16 pb-16 pt-40">
         <div className="max-w-[900px]">
           {/* Tagline */}
           {tagline && (

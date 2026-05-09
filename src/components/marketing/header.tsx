@@ -47,7 +47,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
         solid ? "bg-[#1A2640]" : "bg-transparent"
       }`}
     >
-      <nav className="w-full px-6 py-4 flex items-center justify-between">
+      <nav className="w-full px-16 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link
           href={logoHref}
@@ -123,7 +123,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
 
       {/* Mobile dropdown */}
       {mobileOpen && (
-        <div className="md:hidden bg-[#1A2640] border-t border-white/10 px-6 pb-6 pt-2 space-y-4" style={{ fontFamily: "var(--font-body-family, Inter), sans-serif" }}>
+        <div className="md:hidden bg-[#1A2640] border-t border-white/10 px-16 pb-6 pt-2 space-y-4" style={{ fontFamily: "var(--font-body-family, Inter), sans-serif" }}>
           {navLinks.map((link) => (
             <Link
               key={link.href}

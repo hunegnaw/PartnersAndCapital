@@ -81,7 +81,7 @@ export function MarketingFooter({ investmentLinks }: MarketingFooterProps) {
         fontFamily: "var(--font-body-family, Inter), sans-serif",
       }}
     >
-      <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16 py-20">
+      <div className="mx-auto px-16 py-20">
         {/* Main grid: branding left, nav columns right */}
         <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr_1fr] gap-12 md:gap-8 lg:gap-16">
           {/* Branding column */}

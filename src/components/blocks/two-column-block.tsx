@@ -54,7 +54,7 @@ export function TwoColumnBlock({ props }: TwoColumnBlockProps) {
 
   return (
     <section className="py-16">
-      <div className={`mx-auto grid ${MAX_WIDTH[maxWidth] ?? "max-w-6xl"} grid-cols-1 gap-12 px-6 md:grid-cols-12`}>
+      <div className={`mx-auto grid ${MAX_WIDTH[maxWidth] ?? "max-w-6xl"} grid-cols-1 gap-12 px-16 md:grid-cols-12`}>
         <div className={`${widths.left}`}>
           {renderColumn(leftBlocks, leftContent)}
         </div>

@@ -79,7 +79,7 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
 
       {/* Content */}
       <div
-        className={`relative z-10 mx-auto ${contentMaxWidth} px-6 flex flex-col ${alignClass}`}
+        className={`relative z-10 mx-auto ${contentMaxWidth} px-16 flex flex-col ${alignClass}`}
         style={{
           justifyContent: textAlign === "left" ? "flex-end" : "center",
         }}
