@@ -640,6 +640,19 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       return (
         <div className="space-y-4">
           <ImageField label="Background Image" field="imageUrl" {...ifp} />
+          <SelectField
+            label="Text Alignment"
+            field="textAlign"
+            options={[
+              { value: "left", label: "Left" },
+              { value: "center", label: "Center" },
+              { value: "right", label: "Right" },
+            ]}
+            {...fp}
+          />
+          <InputField label="Tagline" field="tagline" placeholder="e.g. Private Markets · Alternative Investments" {...fp} />
+          <FontField label="Tagline Font" field="taglineFont" hint={fontHint(t.sectionTag)} {...fp} />
+          <ColorField label="Tagline Color" field="taglineColor" {...fp} />
           <InputField label="Heading" field="heading" {...fp} />
           <FontField label="Heading Font" field="headingFont" hint={fontHint(t.h1)} {...fp} />
           <ColorField label="Heading Color" field="headingColor" {...fp} />
@@ -654,6 +667,8 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <RangeField label="Overlay Opacity" field="overlayOpacity" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
           <ColorField label="Text Color" field="textColor" {...fp} />
+          <CheckboxField label="Show Grid Pattern" field="showGrid" {...fp} />
+          <CheckboxField label="Show Bottom Divider" field="showDivider" {...fp} />
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
               Height
@@ -1400,20 +1415,21 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
     }
 
     case "faq": {
-      const items = (props.items as { question: string; answer: string }[]) || [];
+      const faqSections = (props.sections as { id: string; title: string; items: { question: string; answer: string }[] }[]) || [];
       return (
         <div className="space-y-4">
-          <InputField label="Tagline" field="tagline" {...fp} />
-          <FontField label="Tagline Font" field="taglineFont" hint={fontHint(t.sectionTag)} {...fp} />
-          <ColorField label="Tagline Color" field="taglineColor" {...fp} />
           <div>
             <InputField label="Heading" field="heading" {...fp} />
             <p className="mt-1 text-xs text-gray-400">Supports HTML. Use &lt;em&gt; for italic gold text, &lt;br&gt; for line breaks.</p>
           </div>
           <ColorField label="Heading Color" field="headingColor" {...fp} />
           <FontField label="Heading Font" field="headingFont" hint={fontHint(t.h2)} {...fp} />
+          <CheckboxField label="Show Sidebar" field="showSidebar" {...fp} />
+          <InputField label="Sidebar Title" field="sidebarTitle" placeholder="Jump to section" {...fp} />
+          <FontField label="Section Title Font" field="sectionTitleFont" hint={fontHint(t.h3)} {...fp} />
+          <ColorField label="Section Title Color" field="sectionTitleColor" {...fp} />
           <ColorField label="Question Color" field="questionColor" {...fp} />
-          <FontField label="Question Font" field="questionFont" hint={fontHint(t.body)} {...fp} />
+          <FontField label="Question Font" field="questionFont" hint={fontHint(t.sectionHeading)} {...fp} />
           <ColorField label="Answer Color" field="answerColor" {...fp} />
           <FontField label="Answer Font" field="answerFont" hint={fontHint(t.body)} {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
@@ -1431,49 +1447,109 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           />
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
-              FAQ Items
+              Sections
             </label>
-            {items.map((item, i) => (
-              <div key={i} className="flex items-start gap-2 mb-2 p-2 border rounded">
-                <div className="flex-1 space-y-1">
+            {faqSections.map((section, si) => (
+              <div key={section.id} className="mb-4 border rounded-lg overflow-hidden">
+                <div className="bg-gray-50 px-3 py-2 flex items-center gap-2">
                   <input
                     type="text"
-                    value={item.question}
+                    value={section.title}
                     onChange={(e) => {
-                      const updated = [...items];
-                      updated[i] = { ...updated[i], question: e.target.value };
-                      updateProp("items", updated);
+                      const updated = [...faqSections];
+                      updated[si] = { ...updated[si], title: e.target.value };
+                      updateProp("sections", updated);
                     }}
-                    placeholder="Question"
-                    className="w-full px-2 py-1 text-xs border rounded"
+                    placeholder="Section title"
+                    className="flex-1 px-2 py-1 text-sm font-medium border rounded"
                   />
-                  <textarea
-                    value={item.answer}
-                    onChange={(e) => {
-                      const updated = [...items];
-                      updated[i] = { ...updated[i], answer: e.target.value };
-                      updateProp("items", updated);
-                    }}
-                    placeholder="Answer"
-                    rows={3}
-                    className="w-full px-2 py-1 text-xs border rounded"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => updateProp("sections", faqSections.filter((_, j) => j !== si))}
+                    className="p-1 text-red-500 hover:bg-red-50 rounded shrink-0"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => updateProp("items", items.filter((_, j) => j !== i))}
-                  className="p-1 text-red-500 hover:bg-red-50 rounded mt-1 shrink-0"
-                >
-                  <Trash2 size={14} />
-                </button>
+                <div className="px-3 py-2 space-y-2">
+                  {section.items.map((item, qi) => (
+                    <div key={qi} className="flex items-start gap-2 p-2 border rounded bg-white">
+                      <div className="flex-1 space-y-1">
+                        <input
+                          type="text"
+                          value={item.question}
+                          onChange={(e) => {
+                            const updated = [...faqSections];
+                            const items = [...updated[si].items];
+                            items[qi] = { ...items[qi], question: e.target.value };
+                            updated[si] = { ...updated[si], items };
+                            updateProp("sections", updated);
+                          }}
+                          placeholder="Question"
+                          className="w-full px-2 py-1 text-xs border rounded"
+                        />
+                        <textarea
+                          value={item.answer}
+                          onChange={(e) => {
+                            const updated = [...faqSections];
+                            const items = [...updated[si].items];
+                            items[qi] = { ...items[qi], answer: e.target.value };
+                            updated[si] = { ...updated[si], items };
+                            updateProp("sections", updated);
+                          }}
+                          placeholder="Answer (supports HTML: <p>, <ul><li>, <a>, <div class=&quot;faq-note&quot;>)"
+                          rows={4}
+                          className="w-full px-2 py-1 text-xs border rounded font-mono"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...faqSections];
+                          updated[si] = {
+                            ...updated[si],
+                            items: updated[si].items.filter((_, j) => j !== qi),
+                          };
+                          updateProp("sections", updated);
+                        }}
+                        className="p-1 text-red-500 hover:bg-red-50 rounded mt-1 shrink-0"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = [...faqSections];
+                      updated[si] = {
+                        ...updated[si],
+                        items: [...updated[si].items, { question: "", answer: "" }],
+                      };
+                      updateProp("sections", updated);
+                    }}
+                    className="flex items-center gap-1 text-xs text-[#B07D3A] hover:underline"
+                  >
+                    <Plus size={12} /> Add Question
+                  </button>
+                </div>
               </div>
             ))}
             <button
               type="button"
-              onClick={() => updateProp("items", [...items, { question: "", answer: "" }])}
+              onClick={() =>
+                updateProp("sections", [
+                  ...faqSections,
+                  {
+                    id: `section-${Date.now()}`,
+                    title: "",
+                    items: [{ question: "", answer: "" }],
+                  },
+                ])
+              }
               className="flex items-center gap-1 text-xs text-[#B07D3A] hover:underline"
             >
-              <Plus size={12} /> Add Item
+              <Plus size={12} /> Add Section
             </button>
           </div>
         </div>

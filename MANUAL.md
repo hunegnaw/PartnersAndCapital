@@ -250,7 +250,7 @@ The page builder allows admins to create and edit CMS pages using drag-and-drop 
 | Type | Description |
 |------|-------------|
 | Hero (Video) | Full-viewport video background with left-aligned content, staggered fadeUp animations, tagline, `*italic*` gold heading support, dual CTAs, dynamic stats from database, gold divider, and scroll hint |
-| Hero (Image) | Image background with overlay text and CTA |
+| Hero (Image) | Image background with overlay text, CTA, optional tagline, text alignment (left/center/right), decorative grid pattern overlay, and bottom gold gradient divider |
 | Text Section | Rich HTML content with configurable width, padding, colors |
 | Logo Gallery | Grid of logos/images with optional grayscale effect and drag-and-drop reordering |
 | Stats | Number cards row (values + labels) on dark background |
@@ -266,13 +266,14 @@ The page builder allows admins to create and edit CMS pages using drag-and-drop 
 | Philosophy | Navy section with large italic serif quote (supports `*italic*` gold text) and pillars sidebar with gold left border |
 | Process Steps | Roman-numeral numbered steps with a sticky navy sidebar card showing stats and quote; optional dynamic stats from database |
 | CTA Split | Two-column CTA layout with heading, description, dual buttons on left and bullet list with gold dots on right |
+| FAQ | Sectioned FAQ accordion with roman-numeral section headers, sticky sidebar navigation with scroll tracking, serif question text, HTML-rich answers with styled lists and callout notes, and single-open accordion behavior. Supports legacy flat `items` format for backward compatibility |
 
 ### Admin Page Editor
 
 **Page List** (`/admin/pages`): Table showing drag handle, title, slug, status (Draft/Published/Archived), homepage indicator, nav indicator, nav order, blog indicator, block count, last updated, and view (opens in new tab)/edit/delete actions. Pages are sorted by nav order ascending. Drag and drop rows to reorder pages -- the new order is saved automatically and reflected in the public site navigation.
 
 **Create/Edit Page** (`/admin/pages/new`, `/admin/pages/[id]/edit`): Two-column layout with:
-- **Main area:** Title, slug, and block editor with drag-and-drop reordering (@dnd-kit). Add blocks via a picker dialog showing all 17 block types. Each block expands/collapses to show its editor form.
+- **Main area:** Title, slug, and block editor with drag-and-drop reordering (@dnd-kit). Add blocks via a picker dialog showing all 18 block types. Each block expands/collapses to show its editor form.
 - **Sidebar:** Status dropdown, homepage checkbox, blog page checkbox, navigation settings, hero image (via media picker), SEO fields, save button.
 - **Two Column nested blocks:** When editing a Two Column block, each column has its own "Add Block" button and mini block editor. Sub-blocks are stored as arrays (`leftBlocks`/`rightBlocks`) in the block's JSON props. Existing Two Column blocks using `leftContent`/`rightContent` HTML continue to render correctly.
 
@@ -1244,3 +1245,5 @@ Both entries record the admin's user ID and the target client ID.
 - Login page stats bar pulls live data from `/api/stats` (capital deployed, client count, investment count)
 - Block editor FontField hints now show the actual admin typography defaults (font family, weight, size) instead of hardcoded values
 - Heading CSS rules use `!important` with CSS custom properties: admin defaults always apply, block-editor overrides feed through `resolveBlockFontVars()` which sets `--font-h2-size` etc. on the element
+- FAQ block redesign: sectioned layout with roman-numeral headers, sticky sidebar navigation with IntersectionObserver scroll tracking, serif question text, HTML-rich answers (`dangerouslySetInnerHTML`) with styled lists (gold dash markers) and callout notes (gold left border + cream bg), single-open accordion behavior across all sections. Backward compatible with legacy flat `items` format
+- Hero image block enhancements: text alignment (left/center/right), optional tagline with decorative dash, grid pattern overlay, radial gradient overlay, bottom gold gradient divider line

@@ -13,15 +13,31 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
   const overlayOpacity = (props.overlayOpacity as number) ?? 0.5;
   const backgroundColor = (props.backgroundColor as string) ?? "#1A2640";
   const height = (props.height as string) ?? "70vh";
+  const textAlign = (props.textAlign as string) ?? "center";
+  const tagline = (props.tagline as string) ?? "";
+  const showGrid = !!props.showGrid;
+  const showDivider = !!props.showDivider;
 
   const headingFont = resolveBlockFontVars((props.headingFont as string) || "", "h1");
   const subheadingFont = resolveBlockFont((props.subheadingFont as string) || "");
   const ctaButtonFont = resolveBlockFont((props.ctaButtonFont as string) || "");
+  const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
 
   const headingColor = (props.headingColor as string) || "";
   const subheadingColor = (props.subheadingColor as string) || "";
   const ctaButtonColor = (props.ctaButtonColor as string) || "#B07D3A";
   const ctaButtonTextColor = (props.ctaButtonTextColor as string) || "#1A2640";
+  const taglineColor = (props.taglineColor as string) || "";
+
+  const alignClass =
+    textAlign === "left"
+      ? "text-left items-start"
+      : textAlign === "right"
+        ? "text-right items-end"
+        : "text-center items-center";
+
+  const contentMaxWidth =
+    textAlign === "center" ? "max-w-4xl" : "max-w-3xl";
 
   return (
     <section
@@ -38,8 +54,62 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
         style={{ opacity: overlayOpacity }}
       />
 
+      {/* Grid pattern overlay */}
+      {showGrid && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+      )}
+
+      {/* Radial gradient overlay */}
+      {showGrid && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse at 80% 20%, rgba(176,125,58,0.08) 0%, transparent 60%)",
+          }}
+        />
+      )}
+
       {/* Content */}
-      <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
+      <div
+        className={`relative z-10 mx-auto ${contentMaxWidth} px-6 flex flex-col ${alignClass}`}
+        style={{
+          justifyContent: textAlign === "left" ? "flex-end" : "center",
+        }}
+      >
+        {tagline && (
+          <div className="mb-4 flex items-center gap-3">
+            <span
+              className="inline-block h-px w-6"
+              style={{
+                backgroundColor:
+                  taglineColor || "var(--font-section-tag-color, #B07D3A)",
+              }}
+            />
+            <span
+              className="uppercase tracking-[0.18em]"
+              style={{
+                fontFamily:
+                  "var(--font-section-tag-family, Inter), sans-serif",
+                fontSize: "var(--font-section-tag-size, 10px)",
+                fontWeight:
+                  "var(--font-section-tag-weight, 400)" as unknown as number,
+                color:
+                  taglineColor || "var(--font-section-tag-color, #B07D3A)",
+                ...(taglineFont ?? {}),
+              }}
+            >
+              {tagline}
+            </span>
+          </div>
+        )}
         {heading && (
           <h1
             className="heading-dark leading-[1.05] tracking-tight text-white"
@@ -80,6 +150,17 @@ export function HeroImageBlock({ props }: HeroImageBlockProps) {
           </a>
         )}
       </div>
+
+      {/* Bottom divider */}
+      {showDivider && (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent 0%, #B07D3A 50%, transparent 100%)",
+          }}
+        />
+      )}
     </section>
   );
 }
