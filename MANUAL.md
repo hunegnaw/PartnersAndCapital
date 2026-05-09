@@ -1242,3 +1242,5 @@ Both entries record the admin's user ID and the target client ID.
 - Missing FontField controls added for CTA buttons (hero blocks), sidebar tagline/label (process steps), secondary CTA (cta-split)
 - Auth pages (login, forgot-password, reset-password, advisor-accept) use the standard marketing header, footer, and typography
 - Login page stats bar pulls live data from `/api/stats` (capital deployed, client count, investment count)
+- Block editor FontField hints now show the actual admin typography defaults (font family, weight, size) instead of hardcoded values
+- Heading CSS rules use `!important` with CSS custom properties: admin defaults always apply, block-editor overrides feed through `resolveBlockFontVars()` which sets `--font-h2-size` etc. on the element
