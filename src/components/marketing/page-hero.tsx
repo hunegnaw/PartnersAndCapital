@@ -26,7 +26,7 @@ export function PageHero({
 
   return (
     <section
-      className="relative flex items-center bg-cover bg-center"
+      className="relative flex items-center bg-cover bg-center bg-fixed"
       style={{
         minHeight: "600px",
         backgroundImage: hasImage ? `url(${imageUrl})` : undefined,
