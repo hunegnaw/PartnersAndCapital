@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     if (user instanceof NextResponse) return user;
 
     const body = await request.json();
-    const { title, slug, status, isHomepage, metaTitle, metaDescription, ogImageUrl, showInNav, navLabel, navOrder, isBlogPage, featuredImageUrl } = body;
+    const { title, slug, status, isHomepage, metaTitle, metaDescription, ogImageUrl, showInNav, navLabel, navOrder, isBlogPage, featuredImageUrl, heroTagline, heroSubtitle, heroDescription, heroShowGrid, heroShowDivider } = body;
 
     if (!title || !slug) {
       return NextResponse.json(
@@ -101,6 +101,11 @@ export async function POST(request: Request) {
         navOrder: typeof navOrder === "number" ? navOrder : 0,
         isBlogPage: isBlogPage || false,
         featuredImageUrl: featuredImageUrl || null,
+        heroTagline: heroTagline || null,
+        heroSubtitle: heroSubtitle || null,
+        heroDescription: heroDescription || null,
+        heroShowGrid: heroShowGrid || false,
+        heroShowDivider: heroShowDivider || false,
         metaTitle: metaTitle || null,
         metaDescription: metaDescription || null,
         ogImageUrl: ogImageUrl || null,

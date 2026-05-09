@@ -55,6 +55,11 @@ export default function AdminEditPagePage() {
   const [metaDescription, setMetaDescription] = useState("")
   const [ogImageUrl, setOgImageUrl] = useState("")
   const [featuredImageUrl, setFeaturedImageUrl] = useState("")
+  const [heroTagline, setHeroTagline] = useState("")
+  const [heroSubtitle, setHeroSubtitle] = useState("")
+  const [heroDescription, setHeroDescription] = useState("")
+  const [heroShowGrid, setHeroShowGrid] = useState(false)
+  const [heroShowDivider, setHeroShowDivider] = useState(false)
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
   const [mediaPickerTarget, setMediaPickerTarget] = useState<"hero" | "og">("hero")
   const [blocks, setBlocks] = useState<PageBlockData[]>([])
@@ -80,6 +85,11 @@ export default function AdminEditPagePage() {
       setMetaDescription(page.metaDescription || "")
       setOgImageUrl(page.ogImageUrl || "")
       setFeaturedImageUrl(page.featuredImageUrl || "")
+      setHeroTagline(page.heroTagline || "")
+      setHeroSubtitle(page.heroSubtitle || "")
+      setHeroDescription(page.heroDescription || "")
+      setHeroShowGrid(page.heroShowGrid || false)
+      setHeroShowDivider(page.heroShowDivider || false)
 
       // Map blocks from API response
       if (page.blocks && Array.isArray(page.blocks)) {
@@ -143,6 +153,11 @@ export default function AdminEditPagePage() {
           navOrder,
           isBlogPage,
           featuredImageUrl: featuredImageUrl.trim() || null,
+          heroTagline: heroTagline.trim() || null,
+          heroSubtitle: heroSubtitle.trim() || null,
+          heroDescription: heroDescription.trim() || null,
+          heroShowGrid,
+          heroShowDivider,
           metaTitle: metaTitle.trim() || null,
           metaDescription: metaDescription.trim() || null,
           ogImageUrl: ogImageUrl.trim() || null,
@@ -393,6 +408,75 @@ export default function AdminEditPagePage() {
                     <span className="text-sm">Choose image</span>
                   </button>
                 )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Hero Content</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-xs text-muted-foreground">
+                  Tagline, subtitle, and description shown in the page hero section (non-homepage pages only).
+                </p>
+                <div className="space-y-2">
+                  <Label htmlFor="heroTagline">Tagline</Label>
+                  <Input
+                    id="heroTagline"
+                    value={heroTagline}
+                    onChange={(e) => setHeroTagline(e.target.value)}
+                    placeholder="e.g. FREQUENTLY ASKED QUESTIONS"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Uppercase label above the heading with a gold dash.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="heroSubtitle">Subtitle</Label>
+                  <Input
+                    id="heroSubtitle"
+                    value={heroSubtitle}
+                    onChange={(e) => setHeroSubtitle(e.target.value)}
+                    placeholder="e.g. No fluff."
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Gold italic text at the same size as the heading. Supports HTML.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="heroDescription">Description</Label>
+                  <Textarea
+                    id="heroDescription"
+                    value={heroDescription}
+                    onChange={(e) => setHeroDescription(e.target.value)}
+                    placeholder="e.g. Straight answers about who we are..."
+                    rows={3}
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Smaller italic text below the heading. Supports HTML.
+                  </p>
+                </div>
+                <hr className="border-border" />
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="heroShowGrid"
+                    checked={heroShowGrid}
+                    onCheckedChange={(checked) => setHeroShowGrid(checked === true)}
+                  />
+                  <Label htmlFor="heroShowGrid" className="cursor-pointer">
+                    Show grid pattern
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="heroShowDivider"
+                    checked={heroShowDivider}
+                    onCheckedChange={(checked) => setHeroShowDivider(checked === true)}
+                  />
+                  <Label htmlFor="heroShowDivider" className="cursor-pointer">
+                    Show bottom divider
+                  </Label>
+                </div>
               </CardContent>
             </Card>
 

@@ -50,6 +50,11 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
         basePath={`/${slug}`}
         heroTitle={page.title}
         heroImageUrl={page.featuredImageUrl}
+        heroTagline={page.heroTagline}
+        heroSubtitle={page.heroSubtitle}
+        heroDescription={page.heroDescription}
+        heroShowGrid={page.heroShowGrid}
+        heroShowDivider={page.heroShowDivider}
       />
     );
   }
@@ -64,7 +69,15 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
   return (
     <>
       {!page.isHomepage && (
-        <PageHero title={page.title} imageUrl={page.featuredImageUrl} />
+        <PageHero
+          title={page.title}
+          imageUrl={page.featuredImageUrl}
+          tagline={page.heroTagline}
+          subtitle={page.heroSubtitle}
+          description={page.heroDescription}
+          showGrid={page.heroShowGrid}
+          showDivider={page.heroShowDivider}
+        />
       )}
       <BlockRenderer blocks={blocks} />
     </>

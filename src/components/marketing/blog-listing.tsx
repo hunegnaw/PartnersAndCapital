@@ -7,9 +7,14 @@ interface BlogListingProps {
   basePath?: string;
   heroTitle?: string;
   heroImageUrl?: string | null;
+  heroTagline?: string | null;
+  heroSubtitle?: string | null;
+  heroDescription?: string | null;
+  heroShowGrid?: boolean;
+  heroShowDivider?: boolean;
 }
 
-export async function BlogListing({ searchParams, basePath = "/blog", heroTitle, heroImageUrl }: BlogListingProps) {
+export async function BlogListing({ searchParams, basePath = "/blog", heroTitle, heroImageUrl, heroTagline, heroSubtitle, heroDescription, heroShowGrid, heroShowDivider }: BlogListingProps) {
   const params = searchParams || {};
   const page = parseInt(params.page || "1");
   const pageSize = 9;
@@ -56,6 +61,11 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
       <PageHero
         title={heroTitle || "Partner Thoughts"}
         imageUrl={heroImageUrl}
+        tagline={heroTagline}
+        subtitle={heroSubtitle}
+        description={heroDescription}
+        showGrid={heroShowGrid}
+        showDivider={heroShowDivider}
       />
 
       <div className="max-w-6xl mx-auto px-6 py-12">

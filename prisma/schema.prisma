@@ -860,6 +860,12 @@ model Page {
   navOrder   Int        @default(0)
   isBlogPage Boolean    @default(false)
   featuredImageUrl String?
+  // Hero content
+  heroTagline      String?
+  heroSubtitle     String?  @db.Text
+  heroDescription  String?  @db.Text
+  heroShowGrid     Boolean  @default(false)
+  heroShowDivider  Boolean  @default(false)
   // SEO
   metaTitle       String?
   metaDescription String? @db.Text

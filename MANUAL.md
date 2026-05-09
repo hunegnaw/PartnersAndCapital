@@ -319,21 +319,38 @@ One CMS page can be designated as the "blog page," similar to how one page can b
 
 This allows admins to place the blog at any URL (e.g., `/insights`, `/partner-thoughts`, `/news`) rather than being hardcoded to `/blog`. The existing `/blog` route continues to work as a fallback.
 
-### Page Hero Images
+### Page Hero
 
-Every non-homepage page displays a hero banner at the top of the page:
+Every non-homepage page displays a hero banner at the top of the page. The hero supports rich content fields configured per-page in the admin sidebar.
 
-- **With image:** 600px tall, full-bleed background image with a dark overlay and the page title centered in white.
-- **Without image:** 600px tall solid navy (`#1A2640`) background with the page title centered in white.
+#### Layout
+
+- **Background:** Navy (`#1A2640`) solid background, or a full-bleed background image with dark overlay.
+- **Content:** Left-aligned within a max-width container (max-w-7xl).
 - **Homepage:** No hero is rendered; the page content blocks render directly.
 
-To set a hero image:
+#### Hero Content Fields
+
+Configured in the admin sidebar under the "Hero Content" card:
+
+| Field | Description |
+|-------|-------------|
+| **Tagline** | Uppercase label above the heading with a gold dash (e.g., "FREQUENTLY ASKED QUESTIONS"). Uses section tag typography settings. |
+| **Title** | The page title rendered as an h1. Supports HTML — use `<em>` tags for gold italic accent text (e.g., `Everything you want to know.<em> No fluff.</em>`). Uses hero title typography settings. |
+| **Subtitle** | Gold italic text at the same large size as the heading (e.g., "No fluff."). Supports HTML. Uses subtitle typography settings. |
+| **Description** | Smaller italic serif text below the heading (e.g., "Straight answers about who we are..."). Supports HTML. Muted gold color (`rgba(232,213,176,0.65)`). |
+| **Show Grid Pattern** | Checkbox to overlay a subtle grid pattern on the background. |
+| **Show Bottom Divider** | Checkbox to show a gold gradient divider line at the bottom of the hero. |
+
+#### Hero Image
+
+To set a hero background image:
 1. Edit a page in the admin panel.
 2. In the sidebar, find the "Hero Image" card.
 3. Click "Choose image" to open the media picker and select an image.
 4. The image preview appears with an X button to clear it.
 
-Blog posts also use the same shared `PageHero` component, replacing the previous inline hero section.
+Blog posts also use the same shared `PageHero` component with title and image only.
 
 ### Page API Routes
 
@@ -1247,3 +1264,4 @@ Both entries record the admin's user ID and the target client ID.
 - Heading CSS rules use `!important` with CSS custom properties: admin defaults always apply, block-editor overrides feed through `resolveBlockFontVars()` which sets `--font-h2-size` etc. on the element
 - FAQ block redesign: sectioned layout with roman-numeral headers, sticky sidebar navigation with IntersectionObserver scroll tracking, serif question text, HTML-rich answers (`dangerouslySetInnerHTML`) with styled lists (gold dash markers) and callout notes (gold left border + cream bg), single-open accordion behavior across all sections. Backward compatible with legacy flat `items` format
 - Hero image block enhancements: text alignment (left/center/right), optional tagline with decorative dash, grid pattern overlay, radial gradient overlay, bottom gold gradient divider line
+- PageHero enhancement: rich hero content fields per page (tagline, subtitle, description, grid pattern, bottom divider) editable from admin sidebar. Left-aligned layout matching brand mockup with serif typography, gold italic accents, and HTML support. Blog listing pages pass hero fields through to the shared PageHero component
