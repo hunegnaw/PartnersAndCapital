@@ -5,6 +5,7 @@ import { NotificationBell } from "@/components/portal/notification-bell";
 import { getImpersonationContext } from "@/lib/impersonation";
 import { ImpersonationBanner } from "@/components/impersonation-banner";
 import { prisma } from "@/lib/prisma";
+import { getOrganization } from "@/lib/organization";
 
 const investorNav = [
   { href: "/dashboard", label: "Dashboard" },
@@ -54,6 +55,8 @@ export default async function PortalLayout({
     });
   }
 
+  const org = await getOrganization();
+
   const displayName = impersonation
     ? impersonatedClient?.name || "Client"
     : session.user.name;
@@ -78,8 +81,13 @@ export default async function PortalLayout({
       {/* Top nav bar */}
       <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-6">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 transition-colors hover:border-white/70">
-            Partners + Capital
+          <Link href="/dashboard" className={org?.logoUrl ? "block" : "font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 transition-colors hover:border-white/70"}>
+            {org?.logoUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={org.logoUrl} alt={org.name} className="h-7 w-auto object-contain" />
+            ) : (
+              org?.name || "Partners + Capital"
+            )}
           </Link>
           <span className="bg-[#B07D3A] text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full tracking-wider uppercase">
             Client Portal

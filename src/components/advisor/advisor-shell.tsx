@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { useOrganization } from "@/components/providers/organization-provider";
 
 const portfolioNav = [
   { href: "/advisor/dashboard", label: "Dashboard" },
@@ -16,14 +17,20 @@ interface AdvisorShellProps {
 
 export function AdvisorShell({ userName, initials, children }: AdvisorShellProps) {
   const pathname = usePathname();
+  const org = useOrganization();
 
   return (
     <div className="flex min-h-screen flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Header */}
       <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-6">
         <div className="flex items-center gap-3">
-          <Link href="/advisor/dashboard" className="font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 transition-colors hover:border-white/70">
-            Partners + Capital
+          <Link href="/advisor/dashboard" className={org.logoUrl ? "block" : "font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 transition-colors hover:border-white/70"}>
+            {org.logoUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={org.logoUrl} alt={org.name} className="h-7 w-auto object-contain" />
+            ) : (
+              org.name || "Partners + Capital"
+            )}
           </Link>
           <span className="bg-[#B07D3A] text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full tracking-wider uppercase">
             Advisor Portal

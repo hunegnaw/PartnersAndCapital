@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { SavedColorsProvider } from "@/components/providers/saved-colors-provider";
+import { getOrganization } from "@/lib/organization";
 
 export default async function AdminLayout({
   children,
@@ -37,6 +38,8 @@ export default async function AdminLayout({
       prisma.blogPost.count({ where: { deletedAt: null } }),
       prisma.media.count({ where: { deletedAt: null } }),
     ]);
+
+  const org = await getOrganization();
 
   const manageNav = [
     { href: "/admin", label: "Clients", count: clientCount },
@@ -77,8 +80,13 @@ export default async function AdminLayout({
       {/* Header */}
       <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-6">
         <div className="flex items-center gap-3">
-          <Link href="/admin" className="font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 transition-colors hover:border-white/70">
-            Partners + Capital
+          <Link href="/admin" className={org?.logoUrl ? "block" : "font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 transition-colors hover:border-white/70"}>
+            {org?.logoUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={org.logoUrl} alt={org.name} className="h-7 w-auto object-contain" />
+            ) : (
+              org?.name || "Partners + Capital"
+            )}
           </Link>
           <span className="bg-[#B07D3A] text-white text-[10px] font-semibold px-2.5 py-0.5 tracking-wider uppercase">
             Admin Portal
