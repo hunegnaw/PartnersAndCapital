@@ -68,7 +68,7 @@ export default async function PortalLayout({
     : "U";
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
       {impersonation && impersonatedClient && (
         <ImpersonationBanner
           clientName={impersonatedClient.name || "Client"}

@@ -18,7 +18,7 @@ export function AdvisorShell({ userName, initials, children }: AdvisorShellProps
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Header */}
       <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-6">
         <div className="flex items-center gap-3">
