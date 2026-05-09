@@ -61,8 +61,8 @@ export function PageHero({
         />
       )}
 
-      {/* Content */}
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-6 md:px-12 lg:px-16 py-24">
+      {/* Content — px-6 matches the header nav padding for flush left alignment */}
+      <div className="relative z-10 w-full px-6 py-24">
         <div className="max-w-3xl flex flex-col items-start text-left">
           {/* Tagline */}
           {tagline && (
@@ -102,16 +102,14 @@ export function PageHero({
             dangerouslySetInnerHTML={{ __html: title }}
           />
 
-          {/* Subtitle — italic serif in gold, same large size feel */}
+          {/* Subtitle — italic serif in gold, same large size as heading */}
           {subtitle && (
             <p
-              className="mt-1"
+              className="subtitle-font mt-1"
               style={{
-                fontFamily:
-                  "var(--font-subtitle-family, 'Cormorant Garamond'), serif",
-                fontWeight:
-                  "var(--font-subtitle-weight, 300)" as unknown as number,
-                fontStyle: "var(--font-subtitle-style, italic)",
+                fontFamily: "'Cormorant Garamond', serif",
+                fontWeight: 300,
+                fontStyle: "italic",
                 fontSize: "clamp(40px, 6vw, 72px)",
                 lineHeight: 1.05,
                 color: "#E8D5B0",
@@ -123,13 +121,11 @@ export function PageHero({
           {/* Description */}
           {description && (
             <p
-              className="mt-8"
+              className="subtitle-font mt-8"
               style={{
-                fontFamily:
-                  "var(--font-subtitle-family, 'Cormorant Garamond'), serif",
-                fontWeight:
-                  "var(--font-subtitle-weight, 300)" as unknown as number,
-                fontStyle: "var(--font-subtitle-style, italic)",
+                fontFamily: "'Cormorant Garamond', serif",
+                fontWeight: 300,
+                fontStyle: "italic",
                 fontSize: "clamp(16px, 2vw, 22px)",
                 lineHeight: 1.6,
                 color: "rgba(232,213,176,0.65)",
