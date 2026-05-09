@@ -72,9 +72,10 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
 
       <div className="max-w-6xl mx-auto px-16 py-12">
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3 mb-8">
+        <div id="blog-filters" className="flex flex-wrap items-center gap-3 mb-8" style={{ scrollMarginTop: "80px" }}>
           <Link
-            href={basePath}
+            href={`${basePath}#blog-filters`}
+            scroll={false}
             className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
               !categorySlug
                 ? "bg-[#1A2640] text-white"
@@ -86,7 +87,8 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
           {categories.map((cat) => (
             <Link
               key={cat.id}
-              href={`${basePath}?category=${cat.slug}`}
+              href={`${basePath}?category=${cat.slug}#blog-filters`}
+              scroll={false}
               className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
                 categorySlug === cat.slug
                   ? "bg-[#1A2640] text-white"
