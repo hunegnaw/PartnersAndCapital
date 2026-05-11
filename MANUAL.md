@@ -138,6 +138,8 @@ The admin landing page at `/admin` is the Client Management view. It provides:
 - **Export CSV:** Download a CSV of the filtered client list
 - **Tabs:** All Clients, Pending Setup, Active, Archived
 - **Client table:** Displays name, email, company, total invested, current value, last login, status, and action buttons (View/Edit/Archive)
+- **Account Status:** Each client has an explicit `accountStatus` field (Active, Pending, or Suspended) that admins can set via the Edit Client dialog. This replaces the old derived "Pending" status which was based on investment count. New clients default to Active.
+- **Add Investment:** The client detail page (`/admin/clients/[id]`) includes an "Add Investment" button in the Investments tab. This opens a dialog to select an existing investment, enter the amount, and optionally set the investment date.
 
 ### Admin Routes
 

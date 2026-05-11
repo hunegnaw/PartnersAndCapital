@@ -35,6 +35,7 @@ interface Client {
   phone: string | null
   company: string | null
   role: string
+  accountStatus: string
   createdAt: string
   updatedAt: string
   lastLoginAt: string | null
@@ -236,8 +237,16 @@ export default function AdminClientsPage() {
                       {client._count.clientInvestments}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={client.deletedAt ? "destructive" : "secondary"}>
-                        {client.deletedAt ? "Archived" : "Active"}
+                      <Badge variant={
+                        client.deletedAt ? "destructive"
+                        : client.accountStatus === "SUSPENDED" ? "destructive"
+                        : client.accountStatus === "PENDING" ? "secondary"
+                        : "default"
+                      }>
+                        {client.deletedAt ? "Archived"
+                        : client.accountStatus === "SUSPENDED" ? "Suspended"
+                        : client.accountStatus === "PENDING" ? "Pending"
+                        : "Active"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">

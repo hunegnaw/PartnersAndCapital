@@ -46,12 +46,12 @@ export async function GET() {
       prisma.auditLog.count({
         where: { createdAt: { gte: thirtyDaysAgo } },
       }),
-      // Clients without any investments (pending setup)
+      // Clients with PENDING account status
       prisma.user.count({
         where: {
           role: "CLIENT",
           deletedAt: null,
-          clientInvestments: { none: {} },
+          accountStatus: "PENDING",
         },
       }),
       prisma.auditLog.findFirst({

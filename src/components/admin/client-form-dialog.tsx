@@ -12,6 +12,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Loader2 } from "lucide-react"
 
 interface ClientFormData {
@@ -20,6 +27,7 @@ interface ClientFormData {
   email: string
   phone?: string
   company?: string
+  accountStatus?: string
 }
 
 interface ClientFormDialogProps {
@@ -41,6 +49,7 @@ export function ClientFormDialog({
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
   const [company, setCompany] = useState("")
+  const [accountStatus, setAccountStatus] = useState("ACTIVE")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -52,6 +61,7 @@ export function ClientFormDialog({
         setEmail(client?.email ?? "")
         setPhone(client?.phone ?? "")
         setCompany(client?.company ?? "")
+        setAccountStatus(client?.accountStatus ?? "ACTIVE")
         setPassword("")
         setError(null)
       })
@@ -64,7 +74,7 @@ export function ClientFormDialog({
     setLoading(true)
 
     try {
-      const body: Record<string, string> = { name, email }
+      const body: Record<string, string> = { name, email, accountStatus }
       if (phone) body.phone = phone
       if (company) body.company = company
       if (!isEdit) body.password = password
@@ -155,6 +165,20 @@ export function ClientFormDialog({
                 onChange={(e) => setCompany(e.target.value)}
                 placeholder="Acme Corp"
               />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="client-status">Account Status</Label>
+              <Select value={accountStatus} onValueChange={(v) => setAccountStatus(v ?? "ACTIVE")}>
+                <SelectTrigger id="client-status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {!isEdit && (

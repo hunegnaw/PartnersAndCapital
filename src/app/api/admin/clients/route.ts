@@ -20,7 +20,9 @@ export async function GET(request: Request) {
       role: "CLIENT",
       ...(status === "archived"
         ? { deletedAt: { not: null } }
-        : { deletedAt: null }),
+        : status === "pending"
+          ? { deletedAt: null, accountStatus: "PENDING" }
+          : { deletedAt: null }),
       ...(search
         ? {
             OR: [
@@ -41,6 +43,7 @@ export async function GET(request: Request) {
           phone: true,
           company: true,
           role: true,
+          accountStatus: true,
           createdAt: true,
           updatedAt: true,
           lastLoginAt: true,
@@ -75,7 +78,7 @@ export async function POST(request: Request) {
     if (user instanceof NextResponse) return user;
 
     const body = await request.json();
-    const { email, name, phone, company, password } = body;
+    const { email, name, phone, company, password, accountStatus } = body;
 
     if (!email || !name || !password) {
       return NextResponse.json(
@@ -103,6 +106,7 @@ export async function POST(request: Request) {
         company: company || null,
         password: hashedPassword,
         role: "CLIENT",
+        accountStatus: accountStatus || "ACTIVE",
         emailVerified: new Date(),
       },
       select: {
@@ -112,6 +116,7 @@ export async function POST(request: Request) {
         phone: true,
         company: true,
         role: true,
+        accountStatus: true,
         createdAt: true,
         updatedAt: true,
       },

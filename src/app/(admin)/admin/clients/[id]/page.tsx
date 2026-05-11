@@ -18,6 +18,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { ClientFormDialog } from "@/components/admin/client-form-dialog"
 import { cn, formatCurrency, formatDate, formatDateOnly } from "@/lib/utils"
 import {
@@ -32,6 +49,8 @@ import {
   FileText,
   UserCog,
   Eye,
+  Plus,
+  Loader2,
 } from "lucide-react"
 
 interface ClientInvestment {
@@ -64,6 +83,7 @@ interface ClientDetail {
   phone: string | null
   company: string | null
   role: string
+  accountStatus: string
   createdAt: string
   updatedAt: string
   lastLoginAt: string | null
@@ -72,6 +92,13 @@ interface ClientDetail {
     documents: number
   }
   advisorsInvited: Advisor[]
+}
+
+interface AvailableInvestment {
+  id: string
+  name: string
+  status: string
+  assetClass: { id: string; name: string }
 }
 
 export default function AdminClientDetailPage({
@@ -86,6 +113,13 @@ export default function AdminClientDetailPage({
   const [error, setError] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [impersonating, setImpersonating] = useState(false)
+  const [addInvestmentOpen, setAddInvestmentOpen] = useState(false)
+  const [investments, setInvestments] = useState<AvailableInvestment[]>([])
+  const [selectedInvestmentId, setSelectedInvestmentId] = useState("")
+  const [investAmount, setInvestAmount] = useState("")
+  const [investDate, setInvestDate] = useState("")
+  const [addingInvestment, setAddingInvestment] = useState(false)
+  const [investmentError, setInvestmentError] = useState<string | null>(null)
 
   const fetchClient = useCallback(async () => {
     setLoading(true)
@@ -108,6 +142,49 @@ export default function AdminClientDetailPage({
   useEffect(() => {
     Promise.resolve().then(() => fetchClient())
   }, [fetchClient])
+
+  async function openAddInvestment() {
+    setInvestmentError(null)
+    setSelectedInvestmentId("")
+    setInvestAmount("")
+    setInvestDate("")
+    try {
+      const res = await fetch("/api/admin/investments?pageSize=100")
+      if (res.ok) {
+        const data = await res.json()
+        setInvestments(data.investments)
+      }
+    } catch { /* ignore */ }
+    setAddInvestmentOpen(true)
+  }
+
+  async function handleAddInvestment(e: React.FormEvent) {
+    e.preventDefault()
+    if (!selectedInvestmentId || !investAmount) return
+    setAddingInvestment(true)
+    setInvestmentError(null)
+    try {
+      const res = await fetch(`/api/admin/investments/${selectedInvestmentId}/clients`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: id,
+          amountInvested: parseFloat(investAmount),
+          ...(investDate ? { investmentDate: investDate } : {}),
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || "Failed to add investment")
+      }
+      setAddInvestmentOpen(false)
+      fetchClient()
+    } catch (err) {
+      setInvestmentError(err instanceof Error ? err.message : "Failed to add investment")
+    } finally {
+      setAddingInvestment(false)
+    }
+  }
 
   if (error) {
     return (
@@ -290,6 +367,13 @@ export default function AdminClientDetailPage({
 
         <TabsContent value="investments" className="mt-4">
           <Card>
+            <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
+              <CardTitle className="text-sm font-medium">Investments</CardTitle>
+              <Button size="sm" onClick={openAddInvestment}>
+                <Plus className="h-4 w-4 mr-1" />
+                Add Investment
+              </Button>
+            </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
@@ -406,9 +490,74 @@ export default function AdminClientDetailPage({
       <ClientFormDialog
         open={editOpen}
         onOpenChange={setEditOpen}
-        client={{ ...client, phone: client.phone ?? undefined, company: client.company ?? undefined }}
+        client={{ ...client, phone: client.phone ?? undefined, company: client.company ?? undefined, accountStatus: client.accountStatus }}
         onSuccess={fetchClient}
       />
+
+      {/* Add Investment Dialog */}
+      <Dialog open={addInvestmentOpen} onOpenChange={setAddInvestmentOpen}>
+        <DialogContent className="sm:max-w-md">
+          <form onSubmit={handleAddInvestment}>
+            <DialogHeader>
+              <DialogTitle>Add Investment</DialogTitle>
+              <DialogDescription>
+                Link an existing investment to {client.name}.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              {investmentError && (
+                <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {investmentError}
+                </div>
+              )}
+              <div className="grid gap-2">
+                <Label>Investment *</Label>
+                <Select value={selectedInvestmentId} onValueChange={(v) => setSelectedInvestmentId(v ?? "")}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an investment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {investments.map((inv) => (
+                      <SelectItem key={inv.id} value={inv.id}>
+                        {inv.name} ({inv.assetClass.name})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Amount Invested *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={investAmount}
+                  onChange={(e) => setInvestAmount(e.target.value)}
+                  placeholder="100000"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Investment Date</Label>
+                <Input
+                  type="date"
+                  value={investDate}
+                  onChange={(e) => setInvestDate(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setAddInvestmentOpen(false)} disabled={addingInvestment}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={addingInvestment || !selectedInvestmentId || !investAmount}>
+                {addingInvestment && <Loader2 className="animate-spin" />}
+                Add Investment
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

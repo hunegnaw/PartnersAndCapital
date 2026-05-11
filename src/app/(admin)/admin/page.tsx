@@ -49,6 +49,7 @@ interface Client {
   phone: string | null;
   company: string | null;
   role: string;
+  accountStatus: string;
   createdAt: string;
   updatedAt: string;
   lastLoginAt: string | null;
@@ -436,16 +437,20 @@ export default function AdminDashboard() {
                           "text-[10px] font-medium border",
                           client.deletedAt
                             ? "border-[#a32d2d]/20 text-[#a32d2d] bg-[#feecec]"
-                            : client._count.clientInvestments > 0
-                              ? "border-[#3b6d11]/20 text-[#3b6d11] bg-[#eaf3de]"
-                              : "border-[#7A5520]/20 text-[#7A5520] bg-[#FDF5E8]"
+                            : client.accountStatus === "SUSPENDED"
+                              ? "border-[#a32d2d]/20 text-[#a32d2d] bg-[#feecec]"
+                              : client.accountStatus === "PENDING"
+                                ? "border-[#7A5520]/20 text-[#7A5520] bg-[#FDF5E8]"
+                                : "border-[#3b6d11]/20 text-[#3b6d11] bg-[#eaf3de]"
                         )}
                       >
                         {client.deletedAt
                           ? "Archived"
-                          : client._count.clientInvestments > 0
-                            ? "Active"
-                            : "Pending"}
+                          : client.accountStatus === "SUSPENDED"
+                            ? "Suspended"
+                            : client.accountStatus === "PENDING"
+                              ? "Pending"
+                              : "Active"}
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-right">

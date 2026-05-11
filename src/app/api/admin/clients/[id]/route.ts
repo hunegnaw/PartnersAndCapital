@@ -22,6 +22,7 @@ export async function GET(
         phone: true,
         company: true,
         role: true,
+        accountStatus: true,
         createdAt: true,
         updatedAt: true,
         lastLoginAt: true,
@@ -75,7 +76,7 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, email, phone, company } = body;
+    const { name, email, phone, company, accountStatus } = body;
 
     const existing = await prisma.user.findFirst({
       where: { id, role: "CLIENT", deletedAt: null },
@@ -106,6 +107,7 @@ export async function PATCH(
         ...(email !== undefined && { email }),
         ...(phone !== undefined && { phone }),
         ...(company !== undefined && { company }),
+        ...(accountStatus !== undefined && { accountStatus }),
       },
       select: {
         id: true,
@@ -114,6 +116,7 @@ export async function PATCH(
         phone: true,
         company: true,
         role: true,
+        accountStatus: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -124,7 +127,7 @@ export async function PATCH(
       action: "UPDATE_CLIENT",
       targetType: "User",
       targetId: id,
-      details: { name, email, phone, company },
+      details: { name, email, phone, company, accountStatus },
       request,
     });
 
