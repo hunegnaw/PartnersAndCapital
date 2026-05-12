@@ -507,7 +507,7 @@ export default function AdminClientDetailPage({
                   {client.documents.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                        No documents uploaded. Click "Upload Document" to add one.
+                        No documents uploaded. Click &ldquo;Upload Document&rdquo; to add one.
                       </TableCell>
                     </TableRow>
                   ) : (
