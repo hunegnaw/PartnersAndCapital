@@ -71,9 +71,11 @@ export function ManageDocumentTypesDialog({
 
   useEffect(() => {
     if (open) {
-      fetchTypes()
-      setError(null)
-      setNewLabel("")
+      Promise.resolve().then(() => {
+        fetchTypes()
+        setError(null)
+        setNewLabel("")
+      })
     }
   }, [open, fetchTypes])
 

@@ -72,6 +72,7 @@ export async function GET(request: Request) {
     const clientsWithTotals = clients.map((c) => {
       const totalInvested = c.clientInvestments.reduce((sum, ci) => sum + Number(ci.amountInvested), 0);
       const totalValue = c.clientInvestments.reduce((sum, ci) => sum + Number(ci.currentValue), 0);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { clientInvestments: _, ...rest } = c;
       return { ...rest, totalInvested, totalValue };
     });

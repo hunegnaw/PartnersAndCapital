@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { LogIn, Menu, X } from "lucide-react";
 import { useOrganization } from "@/components/providers/organization-provider";
 
@@ -19,7 +18,6 @@ interface MarketingHeaderProps {
 export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: MarketingHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { data: session } = useSession();
   const org = useOrganization();
 
   useEffect(() => {
