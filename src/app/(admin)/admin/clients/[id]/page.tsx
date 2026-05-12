@@ -289,14 +289,18 @@ export default function AdminClientDetailPage({
               <Mail className="h-4 w-4 mt-0.5 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Email</p>
-                <p className="text-sm font-medium">{client.email}</p>
+                <a href={`mailto:${client.email}`} className="text-sm font-medium text-blue-600 hover:underline">{client.email}</a>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Phone className="h-4 w-4 mt-0.5 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="text-sm font-medium">{client.phone || "--"}</p>
+                {client.phone ? (
+                  <a href={`tel:${client.phone}`} className="text-sm font-medium text-blue-600 hover:underline">{client.phone}</a>
+                ) : (
+                  <p className="text-sm font-medium">--</p>
+                )}
               </div>
             </div>
             <div className="flex items-start gap-3">
