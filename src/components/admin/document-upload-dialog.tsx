@@ -85,7 +85,7 @@ export function DocumentUploadDialog({
         setDocumentType("OTHER")
         setYear("")
         setDescription("")
-        setClientId("")
+        setClientId(clients?.length === 1 ? clients[0].id : "")
         setInvestmentId("")
         setAdvisorVisible(false)
         setError(null)
@@ -95,7 +95,7 @@ export function DocumentUploadDialog({
         }
       })
     }
-  }, [open])
+  }, [open, clients])
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0] ?? null
@@ -152,7 +152,7 @@ export function DocumentUploadDialog({
       formData.append("type", documentType)
       if (year) formData.append("year", year)
       if (description) formData.append("description", description)
-      if (clientId) formData.append("clientId", clientId)
+      if (clientId) formData.append("userId", clientId)
       if (investmentId) formData.append("investmentId", investmentId)
       formData.append("advisorVisible", String(advisorVisible))
 
@@ -333,13 +333,13 @@ export function DocumentUploadDialog({
 
             {clients && clients.length > 0 && (
               <div className="grid gap-2">
-                <Label>Client (optional)</Label>
+                <Label>Client {clients.length === 1 ? "*" : "(optional)"}</Label>
                 <Select value={clientId} onValueChange={(v) => setClientId(v ?? "")}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a client" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    {clients.length > 1 && <SelectItem value="">None</SelectItem>}
                     {clients.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name}
