@@ -177,16 +177,15 @@ export function ManageDocumentTypesDialog({
                   key={type.id}
                   className="flex items-center justify-between gap-3 rounded-md px-3 py-2 hover:bg-muted/50"
                 >
-                  <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
                     <span className="text-sm font-medium truncate">{type.label}</span>
-                    <span className="text-xs text-muted-foreground font-mono">{type.value}</span>
                     {type.isDefault && (
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">
                         Default
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <Badge variant="outline" className="text-xs tabular-nums">
                       {type.documentCount}
                     </Badge>
