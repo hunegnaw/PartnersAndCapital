@@ -48,6 +48,10 @@ export async function GET(request: Request) {
           updatedAt: true,
           lastLoginAt: true,
           deletedAt: true,
+          clientInvestments: {
+            where: { deletedAt: null },
+            select: { amountInvested: true, currentValue: true },
+          },
           _count: {
             select: {
               clientInvestments: true,
@@ -62,7 +66,14 @@ export async function GET(request: Request) {
       prisma.user.count({ where }),
     ]);
 
-    return NextResponse.json({ clients, total, page, pageSize });
+    const clientsWithTotals = clients.map((c) => {
+      const totalInvested = c.clientInvestments.reduce((sum, ci) => sum + Number(ci.amountInvested), 0);
+      const totalValue = c.clientInvestments.reduce((sum, ci) => sum + Number(ci.currentValue), 0);
+      const { clientInvestments: _, ...rest } = c;
+      return { ...rest, totalInvested, totalValue };
+    });
+
+    return NextResponse.json({ clients: clientsWithTotals, total, page, pageSize });
   } catch (error) {
     console.error("Error listing clients:", error);
     return NextResponse.json(

@@ -54,6 +54,8 @@ interface Client {
   updatedAt: string;
   lastLoginAt: string | null;
   deletedAt: string | null;
+  totalInvested: number;
+  totalValue: number;
   _count: {
     clientInvestments: number;
     documents: number;
@@ -421,10 +423,10 @@ export default function AdminDashboard() {
                       </div>
                     </td>
                     <td className="text-right px-4 py-3 hidden md:table-cell tabular-nums text-[#5f5e5a]">
-                      {client._count.clientInvestments > 0 ? "—" : "—"}
+                      {client.totalInvested > 0 ? formatCurrency(client.totalInvested) : "—"}
                     </td>
                     <td className="text-right px-4 py-3 hidden md:table-cell tabular-nums text-[#5f5e5a]">
-                      —
+                      {client.totalValue > 0 ? formatCurrency(client.totalValue) : "—"}
                     </td>
                     <td className="px-4 py-3 hidden lg:table-cell text-[#888780]">
                       {client.lastLoginAt
