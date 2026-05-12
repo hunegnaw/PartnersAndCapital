@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { getEffectiveUserId } from "@/lib/impersonation";
 
 export async function GET(request: Request) {
@@ -44,7 +44,7 @@ export async function GET(request: Request) {
       deletedAt: null,
       ...ownershipFilter,
       ...(search ? { name: { contains: search } } : {}),
-      ...(type && type !== "all" ? { type: type as Prisma.EnumDocumentTypeFilter["equals"] } : {}),
+      ...(type && type !== "all" ? { type } : {}),
       ...(year && year !== "all" ? { year: parseInt(year) } : {}),
       ...(investmentFilter && investmentFilter !== "all"
         ? { investment: { name: investmentFilter } }
@@ -148,6 +148,15 @@ export async function GET(request: Request) {
       },
     });
 
+    // Fetch document type labels for display
+    const allTypes = await prisma.documentType.findMany({
+      select: { value: true, label: true },
+    });
+    const typeLabels: Record<string, string> = {};
+    for (const t of allTypes) {
+      typeLabels[t.value] = t.label;
+    }
+
     return NextResponse.json({
       documents,
       total,
@@ -155,6 +164,7 @@ export async function GET(request: Request) {
       pageSize,
       categoryCounts,
       investmentCounts,
+      typeLabels,
       advisorAccess: advisorWithAccess
         ? {
             name: advisorWithAccess.name,

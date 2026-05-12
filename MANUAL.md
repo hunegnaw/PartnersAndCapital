@@ -21,7 +21,8 @@ This manual covers setup, administration, and usage of the Partners + Capital in
 13. [Production Seeding](#production-seeding)
 14. [Troubleshooting](#troubleshooting)
 15. [Admin "View as Client"](#admin-view-as-client-impersonation)
-16. [Feature Roadmap](#feature-roadmap)
+16. [Custom Document Types](#custom-document-types)
+17. [Feature Roadmap](#feature-roadmap)
 
 ---
 
@@ -1224,6 +1225,59 @@ Both entries record the admin's user ID and the target client ID.
 
 ---
 
+## Custom Document Types
+
+### Overview
+
+Document types (K-1, Tax 1099, Quarterly Report, etc.) are fully customizable by admins. The system ships with 10 default types but admins can add and remove types from the admin Documents page.
+
+### Managing Document Types
+
+1. Navigate to `/admin/documents`.
+2. Click the **"Manage Types"** button (outline variant, next to "Upload Document").
+3. The dialog shows all document types with:
+   - Label and value code
+   - "Default" badge on the 10 original types (informational only -- not a delete guard)
+   - Document count badge showing how many documents use each type
+   - Delete button (trash icon) for each type
+4. **Add a type:** Enter a label in the input at the bottom and click "Add" (or press Enter). The value code is auto-generated from the label (e.g., "My Type" becomes "MY_TYPE").
+5. **Delete a type:**
+   - If 0 documents use the type: a confirmation modal asks "Delete {label}?" -- click Delete to confirm.
+   - If documents use the type: a warning modal lists the affected documents with client and investment names. The message reads "Change their document type first, then return to delete."
+   - Any type (including defaults) can be deleted as long as no documents reference it.
+
+### Where Custom Types Appear
+
+- **Admin Documents page:** Filter dropdown and badge labels
+- **Document Upload dialog:** Type selector
+- **Portal Documents page:** Type badges on document cards (custom types show their label, unknown types fall back to the value with underscores replaced by spaces)
+
+### API Routes
+
+| Route | Methods | Auth |
+|-------|---------|------|
+| `/api/admin/document-types` | GET, POST | Admin |
+| `/api/admin/document-types/[id]` | DELETE | Admin |
+
+**GET** returns all types ordered by sortOrder with a `documentCount` per type. **POST** creates a new type from `{ label }`. **DELETE** returns 409 with affected documents if the type is in use, or deletes if unused.
+
+### Default Document Types
+
+| Value | Label |
+|-------|-------|
+| K1 | K-1 |
+| TAX_1099 | Tax 1099 |
+| QUARTERLY_REPORT | Quarterly Report |
+| ANNUAL_REPORT | Annual Report |
+| SUBSCRIPTION_AGREEMENT | Subscription Agreement |
+| CAPITAL_CALL_NOTICE | Capital Call Notice |
+| DISTRIBUTION_NOTICE | Distribution Notice |
+| PPM | PPM |
+| INVESTOR_LETTER | Investor Letter |
+| OTHER | Other |
+
+---
+
 ## Feature Roadmap
 
 | Phase | Name                         | Status      |
@@ -1302,3 +1356,4 @@ Both entries record the admin's user ID and the target client ID.
 - FAQ block redesign: sectioned layout with roman-numeral headers, sticky sidebar navigation with IntersectionObserver scroll tracking, serif question text, HTML-rich answers (`dangerouslySetInnerHTML`) with styled lists (gold dash markers) and callout notes (gold left border + cream bg), single-open accordion behavior across all sections. Backward compatible with legacy flat `items` format
 - Hero image block enhancements: text alignment (left/center/right), optional tagline with decorative dash, grid pattern overlay, radial gradient overlay, bottom gold gradient divider line
 - PageHero enhancement: rich hero content fields per page (tagline, subtitle, description, grid pattern, bottom divider) editable from admin sidebar. Left-aligned layout matching brand mockup with serif typography, gold italic accents, and HTML support. Blog listing pages pass hero fields through to the shared PageHero component
+- Custom document types: admin-managed document types with add/delete from the Documents page, database-backed types replacing hardcoded enum, warning modal for types with existing documents, dynamic type selectors in upload dialog and filter dropdowns

@@ -362,34 +362,30 @@ model Distribution {
 // DOCUMENT VAULT
 // ============================================================
 
-enum DocumentType {
-  K1
-  TAX_1099
-  QUARTERLY_REPORT
-  ANNUAL_REPORT
-  SUBSCRIPTION_AGREEMENT
-  CAPITAL_CALL_NOTICE
-  DISTRIBUTION_NOTICE
-  PPM
-  INVESTOR_LETTER
-  OTHER
+model DocumentType {
+  id        String   @id @default(cuid())
+  value     String   @unique
+  label     String
+  isDefault Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
 }
 
 model Document {
-  id             String       @id @default(cuid())
+  id             String   @id @default(cuid())
   name           String
   fileName       String
   filePath       String
   fileSize       Int
   mimeType       String
-  type           DocumentType @default(OTHER)
+  type           String   @default("OTHER")
   year           Int?
-  description    String?      @db.Text
+  description    String?  @db.Text
   userId         String?
   investmentId   String?
-  advisorVisible Boolean      @default(false)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  advisorVisible Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   deletedAt      DateTime?
 
   user       User?       @relation(fields: [userId], references: [id])

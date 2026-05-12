@@ -34,32 +34,26 @@ interface InvestmentOption {
   name: string
 }
 
+interface DocumentTypeOption {
+  value: string
+  label: string
+}
+
 interface DocumentUploadDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   clients?: ClientOption[]
   investments?: InvestmentOption[]
+  documentTypes?: DocumentTypeOption[]
   onSuccess: () => void
 }
-
-const DOCUMENT_TYPES = [
-  { value: "K1", label: "K-1" },
-  { value: "TAX_1099", label: "Tax 1099" },
-  { value: "QUARTERLY_REPORT", label: "Quarterly Report" },
-  { value: "ANNUAL_REPORT", label: "Annual Report" },
-  { value: "SUBSCRIPTION_AGREEMENT", label: "Subscription Agreement" },
-  { value: "CAPITAL_CALL_NOTICE", label: "Capital Call Notice" },
-  { value: "DISTRIBUTION_NOTICE", label: "Distribution Notice" },
-  { value: "PPM", label: "PPM" },
-  { value: "INVESTOR_LETTER", label: "Investor Letter" },
-  { value: "OTHER", label: "Other" },
-]
 
 export function DocumentUploadDialog({
   open,
   onOpenChange,
   clients,
   investments,
+  documentTypes,
   onSuccess,
 }: DocumentUploadDialogProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -78,10 +72,12 @@ export function DocumentUploadDialog({
   const [isDragging, setIsDragging] = useState(false)
   const [fetchedClients, setFetchedClients] = useState<ClientOption[]>([])
   const [fetchedInvestments, setFetchedInvestments] = useState<InvestmentOption[]>([])
+  const [fetchedDocumentTypes, setFetchedDocumentTypes] = useState<DocumentTypeOption[]>([])
 
   // Resolve which lists to display: props take priority, otherwise fetch
   const clientList = clients && clients.length > 0 ? clients : fetchedClients
   const investmentList = investments && investments.length > 0 ? investments : fetchedInvestments
+  const typeList = documentTypes && documentTypes.length > 0 ? documentTypes : fetchedDocumentTypes
 
   useEffect(() => {
     if (open) {
@@ -128,8 +124,25 @@ export function DocumentUploadDialog({
           })
           .catch(() => {})
       }
+
+      // Fetch document types if not provided as props
+      if (!documentTypes || documentTypes.length === 0) {
+        fetch("/api/admin/document-types")
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (data?.documentTypes) {
+              setFetchedDocumentTypes(
+                data.documentTypes.map((dt: { value: string; label: string }) => ({
+                  value: dt.value,
+                  label: dt.label,
+                }))
+              )
+            }
+          })
+          .catch(() => {})
+      }
     }
-  }, [open, clients, investments])
+  }, [open, clients, investments, documentTypes])
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0] ?? null
@@ -339,7 +352,7 @@ export function DocumentUploadDialog({
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {DOCUMENT_TYPES.map((dt) => (
+                    {typeList.map((dt) => (
                       <SelectItem key={dt.value} value={dt.value}>
                         {dt.label}
                       </SelectItem>

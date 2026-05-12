@@ -3,7 +3,6 @@ import { requireAdmin, requireSuperAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { deleteUploadedFile } from "@/lib/upload";
-import { DocumentType } from "@prisma/client";
 
 export async function GET(
   request: Request,
@@ -72,7 +71,7 @@ export async function PATCH(
       where: { id },
       data: {
         ...(name !== undefined && { name }),
-        ...(type !== undefined && { type: type as DocumentType }),
+        ...(type !== undefined && { type }),
         ...(year !== undefined && { year: year !== null ? parseInt(year) : null }),
         ...(description !== undefined && { description }),
         ...(advisorVisible !== undefined && { advisorVisible }),

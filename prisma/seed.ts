@@ -116,6 +116,29 @@ async function main() {
     console.log(`Asset class: ${created.name}`);
   }
 
+  // Seed default document types
+  const defaultDocumentTypes = [
+    { value: "K1", label: "K-1", sortOrder: 1 },
+    { value: "TAX_1099", label: "Tax 1099", sortOrder: 2 },
+    { value: "QUARTERLY_REPORT", label: "Quarterly Report", sortOrder: 3 },
+    { value: "ANNUAL_REPORT", label: "Annual Report", sortOrder: 4 },
+    { value: "SUBSCRIPTION_AGREEMENT", label: "Subscription Agreement", sortOrder: 5 },
+    { value: "CAPITAL_CALL_NOTICE", label: "Capital Call Notice", sortOrder: 6 },
+    { value: "DISTRIBUTION_NOTICE", label: "Distribution Notice", sortOrder: 7 },
+    { value: "PPM", label: "PPM", sortOrder: 8 },
+    { value: "INVESTOR_LETTER", label: "Investor Letter", sortOrder: 9 },
+    { value: "OTHER", label: "Other", sortOrder: 10 },
+  ];
+
+  for (const dt of defaultDocumentTypes) {
+    await prisma.documentType.upsert({
+      where: { value: dt.value },
+      update: {},
+      create: { ...dt, isDefault: true },
+    });
+    console.log(`Document type: ${dt.label}`);
+  }
+
   // ============================================================
   // DEVELOPMENT ONLY: Demo clients, investments, documents, etc.
   // ============================================================
@@ -332,14 +355,14 @@ async function main() {
 
   // Documents
   const documentData = [
-    { name: "2024 K-1 Tax Document - Permian Basin Fund I", type: "K1" as const, year: 2024, investmentId: investmentRecords[0].id, userId: clientUsers[0].id },
-    { name: "2024 K-1 Tax Document - Garden Park", type: "K1" as const, year: 2024, investmentId: investmentRecords[1].id, userId: clientUsers[0].id },
-    { name: "Q4 2024 Quarterly Report - Permian Basin Fund I", type: "QUARTERLY_REPORT" as const, year: 2024, investmentId: investmentRecords[0].id, userId: clientUsers[0].id },
-    { name: "Q4 2024 Quarterly Report - Private Credit Fund II", type: "QUARTERLY_REPORT" as const, year: 2024, investmentId: investmentRecords[2].id, userId: clientUsers[0].id },
-    { name: "Subscription Agreement - Garden Park", type: "SUBSCRIPTION_AGREEMENT" as const, year: 2024, investmentId: investmentRecords[1].id, userId: clientUsers[0].id },
-    { name: "Subscription Agreement - Thoroughbred Fund", type: "SUBSCRIPTION_AGREEMENT" as const, year: 2023, investmentId: investmentRecords[3].id, userId: clientUsers[1].id },
-    { name: "2024 Annual Report - All Funds", type: "ANNUAL_REPORT" as const, year: 2024, investmentId: null, userId: clientUsers[0].id },
-    { name: "Private Placement Memorandum - Private Credit Fund II", type: "PPM" as const, year: 2024, investmentId: investmentRecords[2].id, userId: clientUsers[0].id },
+    { name: "2024 K-1 Tax Document - Permian Basin Fund I", type: "K1", year: 2024, investmentId: investmentRecords[0].id, userId: clientUsers[0].id },
+    { name: "2024 K-1 Tax Document - Garden Park", type: "K1", year: 2024, investmentId: investmentRecords[1].id, userId: clientUsers[0].id },
+    { name: "Q4 2024 Quarterly Report - Permian Basin Fund I", type: "QUARTERLY_REPORT", year: 2024, investmentId: investmentRecords[0].id, userId: clientUsers[0].id },
+    { name: "Q4 2024 Quarterly Report - Private Credit Fund II", type: "QUARTERLY_REPORT", year: 2024, investmentId: investmentRecords[2].id, userId: clientUsers[0].id },
+    { name: "Subscription Agreement - Garden Park", type: "SUBSCRIPTION_AGREEMENT", year: 2024, investmentId: investmentRecords[1].id, userId: clientUsers[0].id },
+    { name: "Subscription Agreement - Thoroughbred Fund", type: "SUBSCRIPTION_AGREEMENT", year: 2023, investmentId: investmentRecords[3].id, userId: clientUsers[1].id },
+    { name: "2024 Annual Report - All Funds", type: "ANNUAL_REPORT", year: 2024, investmentId: null, userId: clientUsers[0].id },
+    { name: "Private Placement Memorandum - Private Credit Fund II", type: "PPM", year: 2024, investmentId: investmentRecords[2].id, userId: clientUsers[0].id },
   ];
 
   for (const doc of documentData) {

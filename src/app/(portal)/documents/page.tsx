@@ -40,6 +40,7 @@ interface DocumentsResponse {
   documents: Document[];
   categoryCounts: Record<string, number>;
   investmentCounts: { name: string; count: number }[];
+  typeLabels?: Record<string, string>;
   total: number;
   page: number;
   pageSize: number;
@@ -78,7 +79,8 @@ const CATEGORY_GROUPS: Record<string, { label: string; types: string[] }> = {
   },
 };
 
-function typeLabel(type: string) {
+function typeLabel(type: string, apiLabels?: Record<string, string>) {
+  if (apiLabels && apiLabels[type]) return apiLabels[type];
   return DOCUMENT_TYPE_LABELS[type] || type.replace(/_/g, " ");
 }
 
@@ -491,7 +493,7 @@ export default function DocumentsPage() {
                               variant="outline"
                               className="border-[#dfdedd] text-[#5f5e5a] text-[10px]"
                             >
-                              {typeLabel(doc.type)}
+                              {typeLabel(doc.type, data?.typeLabels)}
                             </Badge>
                             {isNew(doc.createdAt) && (
                               <Badge className="bg-[#B07D3A] text-white text-[10px] hover:bg-[#7A5520]">

@@ -6,7 +6,7 @@ import { saveUploadedFile } from "@/lib/upload";
 import { createNotification } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
 import { documentUploadedEmail } from "@/lib/email-templates";
-import { Prisma, DocumentType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
             ],
           }
         : {}),
-      ...(type ? { type: type as DocumentType } : {}),
+      ...(type ? { type } : {}),
       ...(year ? { year: parseInt(year) } : {}),
       ...(userId ? { userId } : {}),
       ...(investmentId ? { investmentId } : {}),
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
         filePath: uploadResult.filePath,
         fileSize: uploadResult.fileSize,
         mimeType: uploadResult.mimeType,
-        type: type as DocumentType,
+        type,
         year: year ? parseInt(year) : null,
         description: description || null,
         userId: userId || null,

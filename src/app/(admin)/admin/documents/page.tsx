@@ -25,6 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { DocumentUploadDialog } from "@/components/admin/document-upload-dialog"
+import { ManageDocumentTypesDialog } from "@/components/admin/manage-document-types-dialog"
 import { formatDate } from "@/lib/utils"
 import {
   Search,
@@ -34,6 +35,7 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
+  Settings2,
 } from "lucide-react"
 
 interface DocumentRecord {
@@ -49,19 +51,10 @@ interface DocumentRecord {
   investment: { id: string; name: string } | null
 }
 
-const DOCUMENT_TYPES = [
-  { value: "", label: "All Types" },
-  { value: "K1", label: "K-1" },
-  { value: "TAX_1099", label: "Tax 1099" },
-  { value: "QUARTERLY_REPORT", label: "Quarterly Report" },
-  { value: "ANNUAL_REPORT", label: "Annual Report" },
-  { value: "SUBSCRIPTION_AGREEMENT", label: "Subscription Agreement" },
-  { value: "CAPITAL_CALL_NOTICE", label: "Capital Call Notice" },
-  { value: "DISTRIBUTION_NOTICE", label: "Distribution Notice" },
-  { value: "PPM", label: "PPM" },
-  { value: "INVESTOR_LETTER", label: "Investor Letter" },
-  { value: "OTHER", label: "Other" },
-]
+interface DocumentTypeOption {
+  value: string
+  label: string
+}
 
 export default function AdminDocumentsPage() {
   const searchParams = useSearchParams()
@@ -82,8 +75,12 @@ export default function AdminDocumentsPage() {
   const [error, setError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
 
+  // Document types
+  const [documentTypes, setDocumentTypes] = useState<DocumentTypeOption[]>([])
+
   // Dialog state
   const [uploadOpen, setUploadOpen] = useState(false)
+  const [manageTypesOpen, setManageTypesOpen] = useState(false)
 
   const fetchDocuments = useCallback(async () => {
     setLoading(true)
@@ -110,6 +107,23 @@ export default function AdminDocumentsPage() {
     }
   }, [page, pageSize, search, typeFilter, yearFilter, initialUserId])
 
+  const fetchDocumentTypes = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/document-types")
+      if (res.ok) {
+        const data = await res.json()
+        setDocumentTypes(
+          data.documentTypes.map((dt: { value: string; label: string }) => ({
+            value: dt.value,
+            label: dt.label,
+          }))
+        )
+      }
+    } catch {
+      // Non-critical
+    }
+  }, [])
+
   const fetchOptions = useCallback(async () => {
     try {
       const [clientsRes, investmentsRes] = await Promise.all([
@@ -135,8 +149,9 @@ export default function AdminDocumentsPage() {
     Promise.resolve().then(() => {
       fetchDocuments()
       fetchOptions()
+      fetchDocumentTypes()
     })
-  }, [fetchDocuments, fetchOptions])
+  }, [fetchDocuments, fetchOptions, fetchDocumentTypes])
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -175,10 +190,16 @@ export default function AdminDocumentsPage() {
             Manage uploaded documents, K-1s, reports, and more.
           </p>
         </div>
-        <Button onClick={() => setUploadOpen(true)}>
-          <Upload className="h-4 w-4" />
-          Upload Document
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setManageTypesOpen(true)}>
+            <Settings2 className="h-4 w-4" />
+            Manage Types
+          </Button>
+          <Button onClick={() => setUploadOpen(true)}>
+            <Upload className="h-4 w-4" />
+            Upload Document
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -213,8 +234,9 @@ export default function AdminDocumentsPage() {
             <SelectValue placeholder="Type" />
           </SelectTrigger>
           <SelectContent>
-            {DOCUMENT_TYPES.map((dt) => (
-              <SelectItem key={dt.value || "all"} value={dt.value || "all"}>
+            <SelectItem value="all">All Types</SelectItem>
+            {documentTypes.map((dt) => (
+              <SelectItem key={dt.value} value={dt.value}>
                 {dt.label}
               </SelectItem>
             ))}
@@ -288,7 +310,10 @@ export default function AdminDocumentsPage() {
                   <TableRow key={doc.id}>
                     <TableCell className="font-medium">{doc.name}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{doc.type}</Badge>
+                      <Badge variant="secondary">
+                        {documentTypes.find((dt) => dt.value === doc.type)?.label ||
+                          doc.type.replace(/_/g, " ")}
+                      </Badge>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {doc.user ? doc.user.name : "--"}
@@ -364,7 +389,14 @@ export default function AdminDocumentsPage() {
         onOpenChange={setUploadOpen}
         clients={clients}
         investments={investments}
+        documentTypes={documentTypes}
         onSuccess={fetchDocuments}
+      />
+
+      <ManageDocumentTypesDialog
+        open={manageTypesOpen}
+        onOpenChange={setManageTypesOpen}
+        onTypesChanged={fetchDocumentTypes}
       />
     </div>
   )
