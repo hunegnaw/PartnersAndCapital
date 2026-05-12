@@ -32,6 +32,10 @@ export async function GET(
             investment: {
               include: { assetClass: true },
             },
+            distributions: {
+              where: { deletedAt: null },
+              select: { id: true, amount: true, date: true },
+            },
           },
         },
         _count: {

@@ -64,6 +64,11 @@ interface ClientInvestment {
     status: string
     assetClass: { id: string; name: string }
   }
+  distributions: {
+    id: string
+    amount: number
+    date: string
+  }[]
 }
 
 interface Advisor {
@@ -225,6 +230,12 @@ export default function AdminClientDetailPage({
     (sum, ci) => sum + Number(ci.currentValue),
     0
   )
+  const allDistributions = client.clientInvestments.flatMap((ci) => ci.distributions)
+  const totalDistributed = allDistributions.reduce(
+    (sum, d) => sum + Number(d.amount),
+    0
+  )
+  const distributionCount = allDistributions.length
 
   return (
     <div className="p-8 space-y-6">
@@ -331,7 +342,7 @@ export default function AdminClientDetailPage({
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Total Invested</p>
@@ -342,6 +353,13 @@ export default function AdminClientDetailPage({
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Current Value</p>
             <p className="text-xl font-bold">{formatCurrency(totalValue)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Distributions</p>
+            <p className="text-xl font-bold">{formatCurrency(totalDistributed)}</p>
+            <p className="text-xs text-muted-foreground mt-1">{distributionCount} distribution{distributionCount !== 1 ? "s" : ""}</p>
           </CardContent>
         </Card>
         <Card>
