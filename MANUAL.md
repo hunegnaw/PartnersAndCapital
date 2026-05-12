@@ -141,6 +141,11 @@ The admin landing page at `/admin` is the Client Management view. It provides:
 - **Account Status:** Each client has an explicit `accountStatus` field (Active, Pending, or Suspended) that admins can set via the Edit Client dialog. This replaces the old derived "Pending" status which was based on investment count. New clients default to Active.
 - **Add Investment:** The client detail page (`/admin/clients/[id]`) includes an "Add Investment" button in the Investments tab. This opens a dialog to select an existing investment, enter the amount, and optionally set the investment date.
 - **Welcome Email on Client Creation:** When an admin creates a new client, a welcome email is automatically sent to the client's email address. The email contains a "Set Your Password" link that directs the client to the password reset page. The link expires in 1 hour. If the link expires, the client can use the "Forgot your password?" flow on the login page as a fallback. No manual password entry is required by the admin -- a secure temporary password is generated automatically.
+- **Client Detail Documents Tab:** The Documents tab on the client detail page (`/admin/clients/[id]`) displays a full document table with name, type, file size, upload date, and action buttons. Features include:
+  - **Upload Document** button that opens the upload dialog pre-filled with the client
+  - **Download** link for each document (uses the admin download route with security headers)
+  - **Delete** button visible only to SUPER_ADMIN users, with confirmation prompt
+  - Empty state prompts the admin to upload a document
 
 ### Admin Routes
 
@@ -1071,6 +1076,34 @@ When no footer settings have been saved, the footer renders identically to the o
 - The marketing footer reads from the organization context and renders sections conditionally based on module toggles.
 - Colors are applied via inline styles to support fully dynamic values.
 - The grid layout adapts automatically based on which top-section modules (branding, navigation, newsletter) are enabled.
+
+---
+
+## Document Security
+
+### Encryption
+
+All uploaded documents (K-1s, tax forms, investment agreements) are encrypted at rest using **AES-256-GCM**:
+
+- 256-bit key derived from the `ENCRYPTION_KEY` environment variable (64 hex characters)
+- Random 16-byte IV per file (prevents identical plaintext producing identical ciphertext)
+- GCM authenticated encryption (detects tampering via authentication tag)
+- Files stored as `.enc` with no original filename or extension on disk
+
+### Download Security Headers
+
+Document download responses (both admin and portal routes) include security headers to prevent browser caching of decrypted financial documents:
+
+| Header | Value | Purpose |
+|--------|-------|---------|
+| `Cache-Control` | `no-store, no-cache, must-revalidate` | Prevent browser/proxy caching |
+| `Pragma` | `no-cache` | HTTP/1.0 compatibility |
+| `X-Content-Type-Options` | `nosniff` | Prevent MIME type sniffing |
+| `Content-Disposition` | `attachment` | Force download, never inline render |
+
+### Document Deletion
+
+Only **SUPER_ADMIN** users can delete documents. The delete button is hidden from regular ADMIN users in both the client detail Documents tab and the admin Documents page. The API enforces this restriction server-side via `requireSuperAdmin()`.
 
 ---
 

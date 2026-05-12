@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useSession } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -64,6 +65,8 @@ const DOCUMENT_TYPES = [
 
 export default function AdminDocumentsPage() {
   const searchParams = useSearchParams()
+  const session = useSession()
+  const userRole = session.data?.user?.role
   const initialUserId = searchParams.get("userId") || ""
 
   const [documents, setDocuments] = useState<DocumentRecord[]>([])
@@ -300,21 +303,23 @@ export default function AdminDocumentsPage() {
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
                         <a
-                          href={`/api/portal/documents/${doc.id}/download`}
+                          href={`/api/admin/documents/${doc.id}/download`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className={buttonVariants({ variant: "ghost", size: "sm" })}
                         >
                           <Download className="h-4 w-4" />
                         </a>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(doc.id)}
-                          disabled={deleting === doc.id}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {userRole === "SUPER_ADMIN" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(doc.id)}
+                            disabled={deleting === doc.id}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

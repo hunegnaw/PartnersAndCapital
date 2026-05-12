@@ -1,22 +1,19 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/api-auth";
+import { requireAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { getDecryptedFile } from "@/lib/upload";
-import { getEffectiveUserId } from "@/lib/impersonation";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await requireAuth();
+    const user = await requireAdmin();
     if (user instanceof NextResponse) return user;
 
-    const { userId } = await getEffectiveUserId();
     const { id } = await params;
 
-    // Fetch the document
     const document = await prisma.document.findFirst({
       where: { id, deletedAt: null },
     });
@@ -25,31 +22,6 @@ export async function GET(
       return NextResponse.json(
         { error: "Document not found" },
         { status: 404 }
-      );
-    }
-
-    // Verify ownership: document belongs to user directly or via investment
-    let hasAccess = false;
-
-    if (document.userId === userId) {
-      hasAccess = true;
-    } else if (document.investmentId) {
-      const clientInvestment = await prisma.clientInvestment.findFirst({
-        where: {
-          userId,
-          investmentId: document.investmentId,
-          deletedAt: null,
-        },
-      });
-      if (clientInvestment) {
-        hasAccess = true;
-      }
-    }
-
-    if (!hasAccess) {
-      return NextResponse.json(
-        { error: "Access denied" },
-        { status: 403 }
       );
     }
 

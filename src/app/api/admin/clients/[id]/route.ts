@@ -38,6 +38,19 @@ export async function GET(
             },
           },
         },
+        documents: {
+          where: { deletedAt: null },
+          select: {
+            id: true,
+            name: true,
+            fileName: true,
+            type: true,
+            fileSize: true,
+            mimeType: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
         _count: {
           select: {
             documents: { where: { deletedAt: null } },

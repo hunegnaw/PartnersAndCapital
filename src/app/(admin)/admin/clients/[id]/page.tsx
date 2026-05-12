@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback, use } from "react"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ClientFormDialog } from "@/components/admin/client-form-dialog"
+import { DocumentUploadDialog } from "@/components/admin/document-upload-dialog"
 import { cn, formatCurrency, formatDate, formatDateOnly } from "@/lib/utils"
 import {
   ArrowLeft,
@@ -51,6 +52,9 @@ import {
   Eye,
   Plus,
   Loader2,
+  Download,
+  Trash2,
+  Upload,
 } from "lucide-react"
 
 interface ClientInvestment {
@@ -69,6 +73,16 @@ interface ClientInvestment {
     amount: number
     date: string
   }[]
+}
+
+interface Document {
+  id: string
+  name: string
+  fileName: string
+  type: string
+  fileSize: number
+  mimeType: string
+  createdAt: string
 }
 
 interface Advisor {
@@ -93,6 +107,7 @@ interface ClientDetail {
   updatedAt: string
   lastLoginAt: string | null
   clientInvestments: ClientInvestment[]
+  documents: Document[]
   _count: {
     documents: number
   }
@@ -113,10 +128,14 @@ export default function AdminClientDetailPage({
 }) {
   const { id } = use(params)
   const router = useRouter()
+  const session = useSession()
+  const userRole = session.data?.user?.role
   const [client, setClient] = useState<ClientDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
+  const [uploadDocOpen, setUploadDocOpen] = useState(false)
+  const [deletingDoc, setDeletingDoc] = useState<string | null>(null)
   const [impersonating, setImpersonating] = useState(false)
   const [addInvestmentOpen, setAddInvestmentOpen] = useState(false)
   const [investments, setInvestments] = useState<AvailableInvestment[]>([])
@@ -189,6 +208,27 @@ export default function AdminClientDetailPage({
     } finally {
       setAddingInvestment(false)
     }
+  }
+
+  async function handleDeleteDocument(docId: string) {
+    if (deletingDoc) return
+    if (!window.confirm("Are you sure you want to delete this document? This cannot be undone.")) return
+    setDeletingDoc(docId)
+    try {
+      const res = await fetch(`/api/admin/documents/${docId}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Failed to delete document")
+      fetchClient()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete document")
+    } finally {
+      setDeletingDoc(null)
+    }
+  }
+
+  function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`
   }
 
   if (error) {
@@ -445,16 +485,67 @@ export default function AdminClientDetailPage({
 
         <TabsContent value="documents" className="mt-4">
           <Card>
-            <CardContent className="py-12 text-center">
-              <FileText className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground">
-                {client._count.documents > 0
-                  ? `${client._count.documents} document${client._count.documents !== 1 ? "s" : ""} on file.`
-                  : "No documents uploaded for this client."}
-              </p>
-              <Link href={`/admin/documents?userId=${client.id}`} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-3")}>
-                View Documents
-              </Link>
+            <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
+              <CardTitle className="text-sm font-medium">Documents</CardTitle>
+              <Button size="sm" onClick={() => setUploadDocOpen(true)}>
+                <Upload className="h-4 w-4 mr-1" />
+                Upload Document
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {client.documents.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                        No documents uploaded. Click "Upload Document" to add one.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    client.documents.map((doc) => (
+                      <TableRow key={doc.id}>
+                        <TableCell className="font-medium">{doc.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{doc.type}</Badge>
+                        </TableCell>
+                        <TableCell>{formatFileSize(doc.fileSize)}</TableCell>
+                        <TableCell>{formatDate(doc.createdAt)}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <a
+                              href={`/api/admin/documents/${doc.id}/download`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+                            >
+                              <Download className="h-4 w-4" />
+                            </a>
+                            {userRole === "SUPER_ADMIN" && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteDocument(doc.id)}
+                                disabled={deletingDoc === doc.id}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>
@@ -513,6 +604,13 @@ export default function AdminClientDetailPage({
         open={editOpen}
         onOpenChange={setEditOpen}
         client={{ ...client, phone: client.phone ?? undefined, company: client.company ?? undefined, accountStatus: client.accountStatus }}
+        onSuccess={fetchClient}
+      />
+
+      <DocumentUploadDialog
+        open={uploadDocOpen}
+        onOpenChange={setUploadDocOpen}
+        clients={[{ id: client.id, name: client.name }]}
         onSuccess={fetchClient}
       />
 
