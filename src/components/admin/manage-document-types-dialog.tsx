@@ -150,7 +150,7 @@ export function ManageDocumentTypesDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto font-[var(--font-admin-body-family,Inter,sans-serif)]">
+        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Manage Document Types</DialogTitle>
             <DialogDescription>
@@ -239,7 +239,7 @@ export function ManageDocumentTypesDialog({
 
       {/* Confirm delete dialog (0 documents) */}
       <Dialog open={!!confirmType} onOpenChange={() => setConfirmType(null)}>
-        <DialogContent className="sm:max-w-sm font-[var(--font-admin-body-family,Inter,sans-serif)]">
+        <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Delete {confirmType?.label}?</DialogTitle>
             <DialogDescription>
@@ -266,7 +266,7 @@ export function ManageDocumentTypesDialog({
 
       {/* Warning dialog (has documents) */}
       <Dialog open={!!warningType} onOpenChange={() => setWarningType(null)}>
-        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto font-[var(--font-admin-body-family,Inter,sans-serif)]">
+        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Cannot delete {warningType?.label}</DialogTitle>
             <DialogDescription>
