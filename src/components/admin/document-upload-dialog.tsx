@@ -76,6 +76,12 @@ export function DocumentUploadDialog({
   const [error, setError] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [fetchedClients, setFetchedClients] = useState<ClientOption[]>([])
+  const [fetchedInvestments, setFetchedInvestments] = useState<InvestmentOption[]>([])
+
+  // Resolve which lists to display: props take priority, otherwise fetch
+  const clientList = clients && clients.length > 0 ? clients : fetchedClients
+  const investmentList = investments && investments.length > 0 ? investments : fetchedInvestments
 
   useEffect(() => {
     if (open) {
@@ -86,7 +92,7 @@ export function DocumentUploadDialog({
         setYear("")
         setDescription("")
         setClientId(clients?.length === 1 ? clients[0].id : "")
-        setInvestmentId("")
+        setInvestmentId(investments?.length === 1 ? investments[0].id : "")
         setAdvisorVisible(false)
         setError(null)
         setUploadProgress(null)
@@ -94,8 +100,36 @@ export function DocumentUploadDialog({
           fileInputRef.current.value = ""
         }
       })
+
+      // Fetch clients if not provided as props
+      if (!clients || clients.length === 0) {
+        fetch("/api/admin/clients?pageSize=200&status=active")
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (data?.clients) {
+              setFetchedClients(
+                data.clients.map((c: { id: string; name: string }) => ({ id: c.id, name: c.name }))
+              )
+            }
+          })
+          .catch(() => {})
+      }
+
+      // Fetch investments if not provided as props
+      if (!investments || investments.length === 0) {
+        fetch("/api/admin/investments?pageSize=200")
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (data?.investments) {
+              setFetchedInvestments(
+                data.investments.map((i: { id: string; name: string }) => ({ id: i.id, name: i.name }))
+              )
+            }
+          })
+          .catch(() => {})
+      }
     }
-  }, [open, clients])
+  }, [open, clients, investments])
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0] ?? null
@@ -139,6 +173,14 @@ export function DocumentUploadDialog({
     e.preventDefault()
     if (!file) {
       setError("Please select a file to upload")
+      return
+    }
+    if (!clientId) {
+      setError("Please select a client")
+      return
+    }
+    if (!investmentId) {
+      setError("Please select an investment")
       return
     }
     setError(null)
@@ -331,43 +373,37 @@ export function DocumentUploadDialog({
               />
             </div>
 
-            {clients && clients.length > 0 && (
-              <div className="grid gap-2">
-                <Label>Client {clients.length === 1 ? "*" : "(optional)"}</Label>
-                <Select value={clientId} onValueChange={(v) => setClientId(v ?? "")}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a client" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.length > 1 && <SelectItem value="">None</SelectItem>}
-                    {clients.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="grid gap-2">
+              <Label>Client *</Label>
+              <Select value={clientId} onValueChange={(v) => setClientId(v ?? "")}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a client" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clientList.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            {investments && investments.length > 0 && (
-              <div className="grid gap-2">
-                <Label>Investment (optional)</Label>
-                <Select value={investmentId} onValueChange={(v) => setInvestmentId(v ?? "")}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select an investment" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">None</SelectItem>
-                    {investments.map((inv) => (
-                      <SelectItem key={inv.id} value={inv.id}>
-                        {inv.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="grid gap-2">
+              <Label>Investment *</Label>
+              <Select value={investmentId} onValueChange={(v) => setInvestmentId(v ?? "")}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select an investment" />
+                </SelectTrigger>
+                <SelectContent>
+                  {investmentList.map((inv) => (
+                    <SelectItem key={inv.id} value={inv.id}>
+                      {inv.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="flex items-center gap-2">
               <Checkbox
@@ -392,7 +428,7 @@ export function DocumentUploadDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || !file}>
+            <Button type="submit" disabled={loading || !file || !clientId || !investmentId}>
               {loading && <Loader2 className="animate-spin" />}
               Upload Document
             </Button>
