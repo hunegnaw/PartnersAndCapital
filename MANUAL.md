@@ -140,6 +140,7 @@ The admin landing page at `/admin` is the Client Management view. It provides:
 - **Client table:** Displays name, email, company, total invested, current value, last login, status, and action buttons (View/Edit/Archive)
 - **Account Status:** Each client has an explicit `accountStatus` field (Active, Pending, or Suspended) that admins can set via the Edit Client dialog. This replaces the old derived "Pending" status which was based on investment count. New clients default to Active.
 - **Add Investment:** The client detail page (`/admin/clients/[id]`) includes an "Add Investment" button in the Investments tab. This opens a dialog to select an existing investment, enter the amount, and optionally set the investment date.
+- **Welcome Email on Client Creation:** When an admin creates a new client, a welcome email is automatically sent to the client's email address. The email contains a "Set Your Password" link that directs the client to the password reset page. The link expires in 1 hour. If the link expires, the client can use the "Forgot your password?" flow on the login page as a fallback. No manual password entry is required by the admin -- a secure temporary password is generated automatically.
 
 ### Admin Routes
 
@@ -855,7 +856,7 @@ The application sends branded transactional emails using the Elastic Email servi
 | **Ticket Reply** | Admin or client replies to a support ticket | Ticket owner / All admins |
 | **Document Uploaded** | Admin uploads a document for a client | Client |
 | **Distribution Notice** | Admin records a distribution for a client | Client |
-| **Welcome Email** | New client account created | Client |
+| **Welcome Email** | Admin creates a new client account | Client (includes "Set Your Password" link, expires in 1 hour) |
 
 ### Configuration
 

@@ -50,7 +50,6 @@ export function ClientFormDialog({
   const [phone, setPhone] = useState("")
   const [company, setCompany] = useState("")
   const [accountStatus, setAccountStatus] = useState("ACTIVE")
-  const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -62,7 +61,6 @@ export function ClientFormDialog({
         setPhone(client?.phone ?? "")
         setCompany(client?.company ?? "")
         setAccountStatus(client?.accountStatus ?? "ACTIVE")
-        setPassword("")
         setError(null)
       })
     }
@@ -77,7 +75,6 @@ export function ClientFormDialog({
       const body: Record<string, string> = { name, email, accountStatus }
       if (phone) body.phone = phone
       if (company) body.company = company
-      if (!isEdit) body.password = password
 
       const url = isEdit
         ? `/api/admin/clients/${client.id}`
@@ -112,7 +109,7 @@ export function ClientFormDialog({
             <DialogDescription>
               {isEdit
                 ? "Update the client's information."
-                : "Create a new client account."}
+                : "Create a new client account. A welcome email will be sent with a link to set their password."}
             </DialogDescription>
           </DialogHeader>
 
@@ -181,20 +178,6 @@ export function ClientFormDialog({
               </Select>
             </div>
 
-            {!isEdit && (
-              <div className="grid gap-2">
-                <Label htmlFor="client-password">Password *</Label>
-                <Input
-                  id="client-password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter a secure password"
-                  required
-                  minLength={8}
-                />
-              </div>
-            )}
           </div>
 
           <DialogFooter>

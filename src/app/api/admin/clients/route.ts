@@ -3,7 +3,10 @@ import { requireAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { Prisma } from "@prisma/client";
+import { sendEmail } from "@/lib/email";
+import { welcomeEmail } from "@/lib/email-templates";
 
 export async function GET(request: Request) {
   try {
@@ -89,11 +92,11 @@ export async function POST(request: Request) {
     if (user instanceof NextResponse) return user;
 
     const body = await request.json();
-    const { email, name, phone, company, password, accountStatus } = body;
+    const { email, name, phone, company, accountStatus } = body;
 
-    if (!email || !name || !password) {
+    if (!email || !name) {
       return NextResponse.json(
-        { error: "Email, name, and password are required" },
+        { error: "Email and name are required" },
         { status: 400 }
       );
     }
@@ -107,7 +110,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    // Generate a random temporary password (client will set their own via welcome email)
+    const tempPassword = crypto.randomBytes(16).toString("hex");
+    const hashedPassword = await bcrypt.hash(tempPassword, 12);
 
     const client = await prisma.user.create({
       data: {
@@ -141,6 +146,24 @@ export async function POST(request: Request) {
       details: { email, name },
       request,
     });
+
+    // Generate password reset token and send welcome email
+    const token = crypto.randomBytes(32).toString("hex");
+    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await prisma.passwordResetToken.deleteMany({ where: { email } });
+    await prisma.passwordResetToken.create({
+      data: { email, token, expires },
+    });
+
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+
+    sendEmail({
+      to: email,
+      subject: "Welcome to Partners + Capital",
+      html: welcomeEmail({ userName: name, resetUrl }),
+    }).catch((err) => console.error("Failed to send welcome email:", err));
 
     return NextResponse.json(client, { status: 201 });
   } catch (error) {

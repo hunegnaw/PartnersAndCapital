@@ -178,18 +178,19 @@ export function distributionNoticeEmail({
 
 interface WelcomeEmailParams {
   userName: string;
-  loginUrl: string;
+  resetUrl: string;
 }
 
 export function welcomeEmail({
   userName,
-  loginUrl,
+  resetUrl,
 }: WelcomeEmailParams): string {
   const content = `
     <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">Welcome to Partners + Capital</h1>
     <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Hello ${userName},</p>
-    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Your investor portal account has been created. You can now access your portfolio, view documents, and track your investments all in one place.</p>
-    ${emailButton("Log In", loginUrl)}
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Your investor portal account has been created by your team at Partners + Capital. To get started, please set your password using the button below.</p>
+    ${emailButton("Set Your Password", resetUrl)}
+    <p style="margin: 0 0 8px 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">This link expires in 1 hour.</p>
     <p style="margin: 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">If you have any questions, reach out to your contact at Partners + Capital.</p>`;
 
   return emailWrapper(content);
