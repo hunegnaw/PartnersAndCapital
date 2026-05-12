@@ -73,6 +73,7 @@ interface InvestmentDocument {
   fileName: string
   fileSize: number
   createdAt: string
+  userId: string | null
 }
 
 interface Valuation {
@@ -134,6 +135,12 @@ export default function AdminInvestmentDetailPage({
 }) {
   const { id } = use(params)
   const router = useRouter()
+  const [scopedClientId] = useState(() => {
+    if (typeof window === "undefined") return null
+    const stored = sessionStorage.getItem("investmentClientScope")
+    if (stored) sessionStorage.removeItem("investmentClientScope")
+    return stored
+  })
   const [investment, setInvestment] = useState<InvestmentDetail | null>(null)
   const [allClients, setAllClients] = useState<{ id: string; name: string; email: string }[]>([])
   const [allAssetClasses, setAllAssetClasses] = useState<AssetClass[]>([])
@@ -274,14 +281,29 @@ export default function AdminInvestmentDetailPage({
 
   if (!investment) return null
 
-  const totalInvested = investment.clientInvestments.reduce(
-    (sum, ci) => sum + Number(ci.amountInvested),
-    0
-  )
-  const totalCurrentValue = investment.clientInvestments.reduce(
-    (sum, ci) => sum + Number(ci.currentValue),
-    0
-  )
+  // Client-scoped view: when navigating from a client detail page
+  const clientPosition = scopedClientId
+    ? investment.clientInvestments.find((ci) => ci.userId === scopedClientId)
+    : null
+  const isClientScoped = !!scopedClientId && !!clientPosition
+
+  const totalInvested = isClientScoped
+    ? Number(clientPosition.amountInvested)
+    : investment.clientInvestments.reduce(
+        (sum, ci) => sum + Number(ci.amountInvested),
+        0
+      )
+  const totalCurrentValue = isClientScoped
+    ? Number(clientPosition.currentValue)
+    : investment.clientInvestments.reduce(
+        (sum, ci) => sum + Number(ci.currentValue),
+        0
+      )
+
+  // Filter documents when client-scoped: show client-specific docs + investment-level (no userId) docs
+  const displayDocuments = isClientScoped
+    ? investment.documents.filter((doc) => doc.userId === scopedClientId || doc.userId === null)
+    : investment.documents
 
   // Chart data: valuations sorted by date ascending
   const chartData = [...valuations]
@@ -299,12 +321,15 @@ export default function AdminInvestmentDetailPage({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push("/admin/investments")}
+            onClick={() => router.push(isClientScoped ? `/admin/clients/${scopedClientId}` : "/admin/investments")}
             className="mb-2 -ml-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Investments
+            {isClientScoped ? `Back to ${clientPosition.user.name}` : "Back to Investments"}
           </Button>
+          {isClientScoped && (
+            <p className="text-sm text-muted-foreground mb-1">{clientPosition.user.name}&apos;s Position</p>
+          )}
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">{investment.name}</h1>
             <Badge variant={statusVariant(investment.status)}>{investment.status}</Badge>
@@ -318,10 +343,10 @@ export default function AdminInvestmentDetailPage({
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className={`grid gap-4 ${isClientScoped ? "md:grid-cols-3" : "md:grid-cols-4"}`}>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Total Invested</p>
+            <p className="text-sm text-muted-foreground">{isClientScoped ? "Invested" : "Total Invested"}</p>
             <p className="text-xl font-bold">{formatCurrency(totalInvested)}</p>
           </CardContent>
         </Card>
@@ -331,12 +356,14 @@ export default function AdminInvestmentDetailPage({
             <p className="text-xl font-bold">{formatCurrency(totalCurrentValue)}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Client Positions</p>
-            <p className="text-xl font-bold">{investment.clientInvestments.length}</p>
-          </CardContent>
-        </Card>
+        {!isClientScoped && (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground">Client Positions</p>
+              <p className="text-xl font-bold">{investment.clientInvestments.length}</p>
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Target Return</p>
@@ -356,10 +383,12 @@ export default function AdminInvestmentDetailPage({
             <BarChart3 className="h-4 w-4 mr-1.5" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="clients">
-            <Users className="h-4 w-4 mr-1.5" />
-            Client Positions ({investment.clientInvestments.length})
-          </TabsTrigger>
+          {!isClientScoped && (
+            <TabsTrigger value="clients">
+              <Users className="h-4 w-4 mr-1.5" />
+              Client Positions ({investment.clientInvestments.length})
+            </TabsTrigger>
+          )}
           <TabsTrigger value="valuations">
             <TrendingUp className="h-4 w-4 mr-1.5" />
             Valuations ({valuations.length})
@@ -370,7 +399,7 @@ export default function AdminInvestmentDetailPage({
           </TabsTrigger>
           <TabsTrigger value="documents">
             <FileText className="h-4 w-4 mr-1.5" />
-            Documents ({investment.documents.length})
+            Documents ({displayDocuments.length})
           </TabsTrigger>
         </TabsList>
 
@@ -678,14 +707,14 @@ export default function AdminInvestmentDetailPage({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {investment.documents.length === 0 ? (
+                  {displayDocuments.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                         No documents attached to this investment.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    investment.documents.map((doc) => (
+                    displayDocuments.map((doc) => (
                       <TableRow key={doc.id}>
                         <TableCell className="font-medium">{doc.name}</TableCell>
                         <TableCell>
@@ -695,7 +724,7 @@ export default function AdminInvestmentDetailPage({
                         <TableCell>{formatDate(doc.createdAt)}</TableCell>
                         <TableCell className="text-right">
                           <a
-                            href={`/api/portal/documents/${doc.id}/download`}
+                            href={`/api/admin/documents/${doc.id}/download`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className={buttonVariants({ variant: "ghost", size: "sm" })}

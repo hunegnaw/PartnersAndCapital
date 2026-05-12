@@ -460,7 +460,10 @@ export default function AdminClientDetailPage({
                       <TableRow
                         key={ci.id}
                         className="cursor-pointer"
-                        onClick={() => router.push(`/admin/investments/${ci.investment.id}`)}
+                        onClick={() => {
+                          sessionStorage.setItem("investmentClientScope", id)
+                          router.push(`/admin/investments/${ci.investment.id}`)
+                        }}
                       >
                         <TableCell className="font-medium">{ci.investment.name}</TableCell>
                         <TableCell>{ci.investment.assetClass.name}</TableCell>
