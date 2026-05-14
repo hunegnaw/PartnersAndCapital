@@ -24,7 +24,9 @@ This manual covers setup, administration, and usage of the Partners + Capital in
 16. [Custom Document Types](#custom-document-types)
 17. [Distribution Management](#distribution-management)
 18. [Soft Delete (Investments & Clients)](#soft-delete-investments--clients)
-19. [Feature Roadmap](#feature-roadmap)
+19. [Delete Client Positions](#delete-client-positions)
+20. [Access Requests](#access-requests)
+21. [Feature Roadmap](#feature-roadmap)
 
 ---
 
@@ -172,6 +174,7 @@ The admin landing page at `/admin` is the Client Management view. It provides:
 | `/admin/audit-log`     | View audit trail of all system actions                |
 | `/admin/api-keys`      | Create and manage API keys for external integrations |
 | `/admin/settings`      | Organization settings (branding with media picker, typography, colors, 2FA policy) |
+| `/admin/access-requests` | Review and manage access requests from prospective clients |
 | `/admin/clients/[id]`  | Client detail with "View as Client" impersonation    |
 
 ### Admin Roles
@@ -1381,6 +1384,67 @@ Use the existing **Archived** tab on the client list page to see deleted/archive
 
 ---
 
+## Delete Client Positions
+
+Super Admins can remove individual client positions from an investment's Client Positions tab.
+
+### Removing a Position
+
+1. Navigate to **Admin > Investments > [Investment Name]**.
+2. Open the **Client Positions** tab.
+3. Click the trash icon on the client's row (visible only to Super Admins).
+4. A confirmation dialog appears: "Are you sure you want to remove {client}'s position? Distribution and contribution records will be preserved. This action can be reversed."
+5. Click **Remove** to confirm. The position is soft-deleted and disappears from the table.
+
+### Permissions
+
+- Only **SUPER_ADMIN** users can delete client positions. The API enforces this via `requireSuperAdmin()`.
+- Regular admins will not see the trash icon and the API will reject unauthorized delete requests.
+
+---
+
+## Access Requests
+
+Prospective clients can request access to the investor portal directly from the login page, replacing the previous email link.
+
+### How It Works (Public)
+
+1. On the login page, click **"Not a client? Request access"** below the login form.
+2. A dialog opens with fields for Full Name (required), Email (required), and Phone (optional).
+3. Submit the form. A confirmation message appears on success.
+4. The request is saved to the database and an email notification is sent to theteam@partnersandcapital.com.
+5. Rate limited to 3 requests per hour per IP address.
+
+### Admin Management
+
+Navigate to **Manage > Access Requests** in the admin sidebar. The page shows:
+
+- **Table columns:** Name, Email, Phone, Status (PENDING/REVIEWED), Date, Actions
+- **Filter:** Filter by status (All/Pending/Reviewed)
+- **Mark Reviewed:** Click "Mark Reviewed" on any pending request to update its status
+- **Pagination:** Standard pagination for large lists
+- **Sidebar badge:** Shows the count of pending requests in the admin sidebar
+
+### Login Page Redesign
+
+The login page uses a split-panel layout:
+
+- **Left panel (navy):** "PARTNERS + CAPITAL" branding, "Your capital. A clear view." headline, live stats from `/api/stats` (deployed capital, avg net return, asset classes), and disclaimer text.
+- **Right panel (white):** Multi-step login flow with step indicator dots (email, password, 2FA verification), form fields, and the "Request access" button below a divider.
+
+### API Routes
+
+| Route | Methods | Auth | Rate Limit |
+|-------|---------|------|------------|
+| `/api/access-requests` | POST | Public | 3/hour per IP |
+| `/api/admin/access-requests` | GET, PATCH | Admin | -- |
+
+### Email Notification
+
+When an access request is submitted, a branded email is sent to theteam@partnersandcapital.com containing the requester's name, email, and phone number. The email follows the standard Partners + Capital email template.
+
+---
+
 ## Feature Roadmap
 
 | Phase | Name                         | Status      |
@@ -1462,3 +1526,6 @@ Use the existing **Archived** tab on the client list page to see deleted/archive
 - Custom document types: admin-managed document types with add/delete from the Documents page, database-backed types replacing hardcoded enum, warning modal for types with existing documents, dynamic type selectors in upload dialog and filter dropdowns
 - Distribution management: per-client distribution recording with amount/date/type/notes, bulk CSV import matching clients by email, pro-rata fund-level allocation with cent rounding, admin-only APR field per position, `cashDistributed` kept in sync via transactions, client notifications and emails on distribution recording
 - Capital Activity chart on portal investment detail: ComposedChart with monthly distribution bars (gold), cumulative deployed line (navy), and cumulative distributions line (green)
+- Delete client positions: Super Admin trash icon on Client Positions tab with soft delete and confirmation modal
+- Access request system: login page "Request access" modal with name/email/phone form, database storage, branded email notification to theteam@, admin management page with mark-as-reviewed workflow
+- Login page redesign: split-panel layout with navy branding panel (headline, live stats, disclaimer) and white form panel with multi-step flow (email, password, 2FA) and step indicator dots

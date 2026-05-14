@@ -924,6 +924,20 @@ model ContactSubmission {
   @@index([createdAt])
 }
 
+model AccessRequest {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  status    String   @default("PENDING")
+  ipAddress String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
 model NewsletterSubscriber {
   id             String    @id @default(cuid())
   email          String    @unique

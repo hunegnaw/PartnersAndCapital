@@ -176,6 +176,37 @@ export function distributionNoticeEmail({
   return emailWrapper(content);
 }
 
+interface AccessRequestEmailParams {
+  name: string;
+  email: string;
+  phone: string | null;
+}
+
+export function accessRequestEmail({
+  name,
+  email,
+  phone,
+}: AccessRequestEmailParams): string {
+  const content = `
+    <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">New Access Request</h1>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">A new access request has been submitted through the investor portal login page.</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px 0;">
+      <tr>
+        <td style="background-color: #f5f5f3; padding: 20px; border-radius: 6px;">
+          <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: 600; color: #1a1a18; text-transform: uppercase; letter-spacing: 0.05em;">Name</p>
+          <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a;">${name}</p>
+          <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: 600; color: #1a1a18; text-transform: uppercase; letter-spacing: 0.05em;">Email</p>
+          <p style="margin: 0 0 ${phone ? "16px" : "0"} 0; font-size: 15px; color: #5f5e5a;"><a href="mailto:${email}" style="color: #185fa5; text-decoration: none;">${email}</a></p>
+          ${phone ? `<p style="margin: 0 0 8px 0; font-size: 13px; font-weight: 600; color: #1a1a18; text-transform: uppercase; letter-spacing: 0.05em;">Phone</p>
+          <p style="margin: 0; font-size: 15px; color: #5f5e5a;">${phone}</p>` : ""}
+        </td>
+      </tr>
+    </table>
+    <p style="margin: 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">You can review this request in the admin panel under Access Requests.</p>`;
+
+  return emailWrapper(content);
+}
+
 interface WelcomeEmailParams {
   userName: string;
   resetUrl: string;

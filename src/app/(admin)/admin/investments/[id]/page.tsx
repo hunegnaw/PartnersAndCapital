@@ -195,6 +195,9 @@ export default function AdminInvestmentDetailPage({
   const [bulkDistributionOpen, setBulkDistributionOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [deletePositionOpen, setDeletePositionOpen] = useState(false)
+  const [deletingPosition, setDeletingPosition] = useState(false)
+  const [deletePositionTarget, setDeletePositionTarget] = useState<{ id: string; clientName: string } | null>(null)
 
   const fetchInvestment = useCallback(async () => {
     setLoading(true)
@@ -296,6 +299,25 @@ export default function AdminInvestmentDetailPage({
       setError(err instanceof Error ? err.message : "Failed to delete investment")
       setDeleting(false)
       setDeleteOpen(false)
+    }
+  }
+
+  const handleDeletePosition = async () => {
+    if (!deletePositionTarget) return
+    setDeletingPosition(true)
+    try {
+      const res = await fetch(
+        `/api/admin/investments/${id}/clients/${deletePositionTarget.id}`,
+        { method: "DELETE" }
+      )
+      if (!res.ok) throw new Error("Failed to remove position")
+      setDeletePositionOpen(false)
+      setDeletePositionTarget(null)
+      fetchInvestment()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to remove position")
+    } finally {
+      setDeletingPosition(false)
     }
   }
 
@@ -662,21 +684,39 @@ export default function AdminInvestmentDetailPage({
                         </TableCell>
                         <TableCell>{formatDateOnly(ci.investmentDate)}</TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setDistributionTarget({
-                                clientInvestmentId: ci.id,
-                                clientName: ci.user.name || ci.user.email,
-                              })
-                              setDistributionOpen(true)
-                            }}
-                          >
-                            <DollarSign className="h-3.5 w-3.5" />
-                            Distribution
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setDistributionTarget({
+                                  clientInvestmentId: ci.id,
+                                  clientName: ci.user.name || ci.user.email,
+                                })
+                                setDistributionOpen(true)
+                              }}
+                            >
+                              <DollarSign className="h-3.5 w-3.5" />
+                              Distribution
+                            </Button>
+                            {userRole === "SUPER_ADMIN" && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setDeletePositionTarget({
+                                    id: ci.id,
+                                    clientName: ci.user.name || ci.user.email,
+                                  })
+                                  setDeletePositionOpen(true)
+                                }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -1118,6 +1158,19 @@ export default function AdminInvestmentDetailPage({
         confirmLabel="Delete"
         onConfirm={handleDeleteInvestment}
         loading={deleting}
+      />
+
+      <ConfirmDialog
+        open={deletePositionOpen}
+        onOpenChange={(open) => {
+          setDeletePositionOpen(open)
+          if (!open) setDeletePositionTarget(null)
+        }}
+        title="Remove Position"
+        description={`Are you sure you want to remove ${deletePositionTarget?.clientName}'s position? Distribution and contribution records will be preserved. This action can be reversed.`}
+        confirmLabel="Remove"
+        onConfirm={handleDeletePosition}
+        loading={deletingPosition}
       />
     </div>
   )

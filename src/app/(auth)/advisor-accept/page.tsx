@@ -23,7 +23,7 @@ export default function AdvisorAcceptPage() {
   return (
     <Suspense
       fallback={
-        <div className="rounded-lg border border-[#dfdedd] bg-white p-8 shadow-sm">
+        <div className="max-w-md mx-auto rounded-lg border border-[#dfdedd] bg-white p-8 shadow-sm">
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-[#B07D3A]" />
             <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
@@ -139,7 +139,7 @@ function AdvisorAcceptInner() {
   // Loading state while validating token
   if (validating) {
     return (
-      <div className="rounded-lg border border-[#dfdedd] bg-white p-8 shadow-sm">
+      <div className="max-w-md mx-auto rounded-lg border border-[#dfdedd] bg-white p-8 shadow-sm">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-[#1A2640]">{org.name}</h1>
           <p className="mt-2 text-sm text-muted-foreground">Advisor Invitation</p>
@@ -155,7 +155,7 @@ function AdvisorAcceptInner() {
   // Token error state
   if (tokenError) {
     return (
-      <div className="rounded-lg border border-[#dfdedd] bg-white p-8 shadow-sm">
+      <div className="max-w-md mx-auto rounded-lg border border-[#dfdedd] bg-white p-8 shadow-sm">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-[#1A2640]">{org.name}</h1>
           <p className="mt-2 text-sm text-muted-foreground">Advisor Invitation</p>
@@ -179,7 +179,7 @@ function AdvisorAcceptInner() {
   // Success state
   if (success) {
     return (
-      <div className="rounded-lg border border-[#dfdedd] bg-white p-8 shadow-sm">
+      <div className="max-w-md mx-auto rounded-lg border border-[#dfdedd] bg-white p-8 shadow-sm">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-[#1A2640]">{org.name}</h1>
           <p className="mt-2 text-sm text-muted-foreground">Advisor Invitation</p>
@@ -210,7 +210,7 @@ function AdvisorAcceptInner() {
     .replace(/^\w/, (c) => c.toUpperCase());
 
   return (
-    <div className="rounded-lg border border-[#dfdedd] bg-white p-8 shadow-sm">
+    <div className="max-w-md mx-auto rounded-lg border border-[#dfdedd] bg-white p-8 shadow-sm">
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-bold text-[#1A2640]">{org.name}</h1>
         <p className="mt-2 text-sm text-muted-foreground">Advisor Invitation</p>

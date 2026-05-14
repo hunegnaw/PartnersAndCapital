@@ -72,7 +72,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       <MarketingHeader navLinks={navLinks} transparent={false} />
       <div className="min-h-screen flex flex-col marketing-typography">
         <main className="flex-1 flex items-center justify-center bg-[#F5F3EE] px-6 py-32">
-          <div className="w-full max-w-md">{children}</div>
+          <div className="w-full max-w-4xl">{children}</div>
         </main>
         <MarketingFooter investmentLinks={investmentLinks} />
       </div>
