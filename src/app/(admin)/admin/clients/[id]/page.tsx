@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/select"
 import { ClientFormDialog } from "@/components/admin/client-form-dialog"
 import { DocumentUploadDialog } from "@/components/admin/document-upload-dialog"
+import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { cn, formatCurrency, formatDate, formatDateOnly } from "@/lib/utils"
 import {
   ArrowLeft,
@@ -144,6 +145,8 @@ export default function AdminClientDetailPage({
   const [investDate, setInvestDate] = useState("")
   const [addingInvestment, setAddingInvestment] = useState(false)
   const [investmentError, setInvestmentError] = useState<string | null>(null)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deletingClient, setDeletingClient] = useState(false)
 
   const fetchClient = useCallback(async () => {
     setLoading(true)
@@ -225,6 +228,19 @@ export default function AdminClientDetailPage({
     }
   }
 
+  async function handleDeleteClient() {
+    setDeletingClient(true)
+    try {
+      const res = await fetch(`/api/admin/clients/${id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Failed to delete client")
+      router.push("/admin/clients")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete client")
+      setDeletingClient(false)
+      setDeleteOpen(false)
+    }
+  }
+
   function formatFileSize(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -295,6 +311,12 @@ export default function AdminClientDetailPage({
           <p className="text-muted-foreground mt-1">Client account details</p>
         </div>
         <div className="flex gap-2">
+          {userRole === "SUPER_ADMIN" && (
+            <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </Button>
+          )}
           <Button
             variant="outline"
             disabled={impersonating}
@@ -615,6 +637,16 @@ export default function AdminClientDetailPage({
         onOpenChange={setUploadDocOpen}
         clients={[{ id: client.id, name: client.name }]}
         onSuccess={fetchClient}
+      />
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Delete Client"
+        description={`Are you sure you want to delete ${client.name}? This will archive their account and hide them from active views. Their investment data will be preserved. This action can be reversed.`}
+        confirmLabel="Delete"
+        onConfirm={handleDeleteClient}
+        loading={deletingClient}
       />
 
       {/* Add Investment Dialog */}

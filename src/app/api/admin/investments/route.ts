@@ -13,11 +13,12 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
     const assetClassId = searchParams.get("assetClassId") || "";
+    const includeDeleted = searchParams.get("includeDeleted") === "true" && user.role === "SUPER_ADMIN";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") || "20")));
 
     const where: Prisma.InvestmentWhereInput = {
-      deletedAt: null,
+      ...(includeDeleted ? {} : { deletedAt: null }),
       ...(search
         ? {
             OR: [

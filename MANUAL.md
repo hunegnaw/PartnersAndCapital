@@ -23,7 +23,8 @@ This manual covers setup, administration, and usage of the Partners + Capital in
 15. [Admin "View as Client"](#admin-view-as-client-impersonation)
 16. [Custom Document Types](#custom-document-types)
 17. [Distribution Management](#distribution-management)
-18. [Feature Roadmap](#feature-roadmap)
+18. [Soft Delete (Investments & Clients)](#soft-delete-investments--clients)
+19. [Feature Roadmap](#feature-roadmap)
 
 ---
 
@@ -1339,6 +1340,44 @@ When a client views an investment with distribution and contribution history, a 
 - **Green line**: cumulative distributions over time
 
 The chart only renders when there are 2 or more months of data. Data comes from the existing contributions and distributions already returned by the portal API.
+
+---
+
+## Soft Delete (Investments & Clients)
+
+Investments and clients can be soft-deleted by **Super Admins only**. Soft delete hides records from normal views without destroying any data. The action can be reversed by a database administrator.
+
+### Deleting an Investment
+
+1. Navigate to **Admin > Investments** and click an investment to open its detail page.
+2. Click the red **Delete** button in the top-right header (visible only to Super Admins).
+3. A confirmation dialog will appear explaining that client positions and related data will be preserved.
+4. Click **Delete** to confirm. You will be redirected to the investments list.
+
+### Deleting a Client
+
+Clients can be deleted from two places:
+
+- **Client List Page**: Click the archive icon on any active client row (Super Admin only). A confirmation dialog will appear.
+- **Client Detail Page**: Click the red **Delete** button in the top-right header (Super Admin only). A confirmation dialog will appear. You will be redirected to the client list after confirming.
+
+In both cases, the client's investment data is preserved. Deleted clients appear under the **Archived** tab on the client list page.
+
+### Viewing Deleted Investments
+
+1. Navigate to **Admin > Investments**.
+2. Toggle **Show Deleted** (visible only to Super Admins) in the filter bar.
+3. Deleted investments appear with a red "Deleted" badge and dimmed row styling.
+4. Click a deleted investment to view its detail page (read-only context; all data is preserved).
+
+### Viewing Deleted Clients
+
+Use the existing **Archived** tab on the client list page to see deleted/archived clients.
+
+### Permissions
+
+- Only users with the **SUPER_ADMIN** role can delete investments or clients.
+- Regular admins will not see delete buttons and the API will reject unauthorized delete requests.
 
 ---
 

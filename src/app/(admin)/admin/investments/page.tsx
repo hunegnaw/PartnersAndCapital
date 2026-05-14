@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -23,6 +24,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import { InvestmentFormDialog } from "@/components/admin/investment-form-dialog"
 import { formatPercentage } from "@/lib/utils"
 import {
@@ -54,6 +57,7 @@ interface Investment {
   distributionCadence: string | null
   fundStatus: string | null
   createdAt: string
+  deletedAt: string | null
   assetClass: AssetClass
   _count: {
     clientInvestments: number
@@ -85,6 +89,8 @@ const statusVariant = (status: string) => {
 
 export default function AdminInvestmentsPage() {
   const router = useRouter()
+  const session = useSession()
+  const userRole = session.data?.user?.role
   const [investments, setInvestments] = useState<Investment[]>([])
   const [allAssetClasses, setAllAssetClasses] = useState<AssetClass[]>([])
   const [total, setTotal] = useState(0)
@@ -93,6 +99,7 @@ export default function AdminInvestmentsPage() {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [assetClassFilter, setAssetClassFilter] = useState("")
+  const [showDeleted, setShowDeleted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -111,6 +118,7 @@ export default function AdminInvestmentsPage() {
       if (search) params.set("search", search)
       if (statusFilter) params.set("status", statusFilter)
       if (assetClassFilter) params.set("assetClassId", assetClassFilter)
+      if (showDeleted) params.set("includeDeleted", "true")
 
       const res = await fetch(`/api/admin/investments?${params}`)
       if (!res.ok) throw new Error("Failed to fetch investments")
@@ -123,7 +131,7 @@ export default function AdminInvestmentsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, search, statusFilter, assetClassFilter])
+  }, [page, pageSize, search, statusFilter, assetClassFilter, showDeleted])
 
   const fetchAssetClasses = useCallback(async () => {
     try {
@@ -230,6 +238,22 @@ export default function AdminInvestmentsPage() {
             ))}
           </SelectContent>
         </Select>
+
+        {userRole === "SUPER_ADMIN" && (
+          <div className="flex items-center gap-2">
+            <Switch
+              id="show-deleted"
+              checked={showDeleted}
+              onCheckedChange={(checked) => {
+                setShowDeleted(checked)
+                setPage(1)
+              }}
+            />
+            <Label htmlFor="show-deleted" className="text-sm whitespace-nowrap">
+              Show Deleted
+            </Label>
+          </div>
+        )}
       </div>
 
       {/* Table */}
@@ -275,13 +299,17 @@ export default function AdminInvestmentsPage() {
                 investments.map((inv) => (
                   <TableRow
                     key={inv.id}
-                    className="cursor-pointer"
+                    className={`cursor-pointer ${inv.deletedAt ? "opacity-50" : ""}`}
                     onClick={() => router.push(`/admin/investments/${inv.id}`)}
                   >
                     <TableCell className="font-medium">{inv.name}</TableCell>
                     <TableCell>{inv.assetClass.name}</TableCell>
                     <TableCell>
-                      <Badge variant={statusVariant(inv.status)}>{inv.status}</Badge>
+                      {inv.deletedAt ? (
+                        <Badge variant="destructive">Deleted</Badge>
+                      ) : (
+                        <Badge variant={statusVariant(inv.status)}>{inv.status}</Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-center">
                       {inv._count.clientInvestments}

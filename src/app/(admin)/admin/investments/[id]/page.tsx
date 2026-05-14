@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, use } from "react"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -23,6 +24,7 @@ import { DocumentUploadDialog } from "@/components/admin/document-upload-dialog"
 import { ValuationFormDialog } from "@/components/admin/valuation-form-dialog"
 import { DistributionFormDialog } from "@/components/admin/distribution-form-dialog"
 import { DistributionImportDialog } from "@/components/admin/distribution-import-dialog"
+import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { formatCurrency, formatDate, formatDateOnly, formatPercentage } from "@/lib/utils"
 import {
   ResponsiveContainer,
@@ -163,6 +165,8 @@ export default function AdminInvestmentDetailPage({
 }) {
   const { id } = use(params)
   const router = useRouter()
+  const session = useSession()
+  const userRole = session.data?.user?.role
   const [scopedClientId] = useState(() => {
     if (typeof window === "undefined") return null
     const stored = sessionStorage.getItem("investmentClientScope")
@@ -189,6 +193,8 @@ export default function AdminInvestmentDetailPage({
   const [distributionOpen, setDistributionOpen] = useState(false)
   const [distributionTarget, setDistributionTarget] = useState<{ clientInvestmentId: string; clientName: string } | null>(null)
   const [bulkDistributionOpen, setBulkDistributionOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const fetchInvestment = useCallback(async () => {
     setLoading(true)
@@ -278,6 +284,19 @@ export default function AdminInvestmentDetailPage({
   const handleValuationSuccess = () => {
     fetchValuations()
     fetchInvestment()
+  }
+
+  const handleDeleteInvestment = async () => {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/admin/investments/${id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Failed to delete investment")
+      router.push("/admin/investments")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete investment")
+      setDeleting(false)
+      setDeleteOpen(false)
+    }
   }
 
   if (error) {
@@ -428,10 +447,18 @@ export default function AdminInvestmentDetailPage({
           </div>
           <p className="text-muted-foreground mt-1">{investment.assetClass.name}</p>
         </div>
-        <Button onClick={() => setEditOpen(true)}>
-          <Pencil className="h-4 w-4" />
-          Edit Investment
-        </Button>
+        <div className="flex gap-2">
+          {userRole === "SUPER_ADMIN" && (
+            <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </Button>
+          )}
+          <Button onClick={() => setEditOpen(true)}>
+            <Pencil className="h-4 w-4" />
+            Edit Investment
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -1081,6 +1108,16 @@ export default function AdminInvestmentDetailPage({
         onOpenChange={setBulkDistributionOpen}
         investmentId={investment.id}
         onSuccess={fetchInvestment}
+      />
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Delete Investment"
+        description={`Are you sure you want to delete ${investment.name}? This will hide the investment from all views. Client positions and related data will be preserved. This action can be reversed.`}
+        confirmLabel="Delete"
+        onConfirm={handleDeleteInvestment}
+        loading={deleting}
       />
     </div>
   )

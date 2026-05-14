@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -18,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { ClientFormDialog } from "@/components/admin/client-form-dialog"
+import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import {
   Search,
   Plus,
@@ -48,6 +50,8 @@ interface Client {
 
 export default function AdminClientsPage() {
   const router = useRouter()
+  const session = useSession()
+  const userRole = session.data?.user?.role
   const [clients, setClients] = useState<Client[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -61,8 +65,10 @@ export default function AdminClientsPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | undefined>(undefined)
 
-  // Archive confirmation
-  const [archiving, setArchiving] = useState<string | null>(null)
+  // Delete confirmation
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const fetchClients = useCallback(async () => {
     setLoading(true)
@@ -107,19 +113,19 @@ export default function AdminClientsPage() {
     setDialogOpen(true)
   }
 
-  async function handleArchive(clientId: string) {
-    if (archiving) return
-    if (!confirm("Are you sure you want to archive this client? This action can be undone.")) return
-
-    setArchiving(clientId)
+  async function handleDeleteClient() {
+    if (!deleteTargetId) return
+    setDeleting(true)
     try {
-      const res = await fetch(`/api/admin/clients/${clientId}`, { method: "DELETE" })
-      if (!res.ok) throw new Error("Failed to archive client")
+      const res = await fetch(`/api/admin/clients/${deleteTargetId}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Failed to delete client")
+      setDeleteConfirmOpen(false)
+      setDeleteTargetId(null)
       fetchClients()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to archive client")
+      setError(err instanceof Error ? err.message : "Failed to delete client")
     } finally {
-      setArchiving(null)
+      setDeleting(false)
     }
   }
 
@@ -260,14 +266,18 @@ export default function AdminClientsPage() {
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleArchive(client.id)}
-                              disabled={archiving === client.id}
-                            >
-                              <Archive className="h-4 w-4" />
-                            </Button>
+                            {userRole === "SUPER_ADMIN" && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setDeleteTargetId(client.id)
+                                  setDeleteConfirmOpen(true)
+                                }}
+                              >
+                                <Archive className="h-4 w-4" />
+                              </Button>
+                            )}
                           </>
                         )}
                       </div>
@@ -314,6 +324,19 @@ export default function AdminClientsPage() {
         onOpenChange={setDialogOpen}
         client={editingClient ? { ...editingClient, phone: editingClient.phone ?? undefined, company: editingClient.company ?? undefined } : undefined}
         onSuccess={fetchClients}
+      />
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={(open) => {
+          setDeleteConfirmOpen(open)
+          if (!open) setDeleteTargetId(null)
+        }}
+        title="Delete Client"
+        description={`Are you sure you want to delete ${clients.find((c) => c.id === deleteTargetId)?.name || "this client"}? This will archive their account and hide them from active views. Their investment data will be preserved. This action can be reversed.`}
+        confirmLabel="Delete"
+        onConfirm={handleDeleteClient}
+        loading={deleting}
       />
     </div>
   )
