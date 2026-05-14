@@ -116,6 +116,9 @@ export default function LoginPage() {
 }
 
 function LoginContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
@@ -134,9 +137,6 @@ function LoginContent() {
   const [accessLoading, setAccessLoading] = useState(false);
   const [accessError, setAccessError] = useState("");
   const [accessSuccess, setAccessSuccess] = useState(false);
-
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     fetch("/api/stats")
