@@ -195,7 +195,7 @@ export default async function AdminLayout({
                 Back to Portal
               </Link>
               <Link
-                href="/api/auth/signout"
+                href="/signout"
                 className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-white/55 hover:text-red-300 hover:bg-white/5 transition-colors"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
