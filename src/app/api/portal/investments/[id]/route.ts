@@ -100,7 +100,8 @@ export async function GET(
     }
 
     // Exclude admin-only fields from portal response
-    const { adminApr: _adminApr, ...safeData } = clientInvestment;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { adminApr, ...safeData } = clientInvestment;
     return NextResponse.json(safeData);
   } catch (error) {
     console.error("Error fetching investment:", error);

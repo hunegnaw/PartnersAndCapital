@@ -273,7 +273,7 @@ async function handleProRata(
     remainder: (a.rawAmount * 100) % 1,
   }));
 
-  let allocated = allocations.reduce((sum, a) => sum + a.amount, 0);
+  const allocated = allocations.reduce((sum, a) => sum + a.amount, 0);
   let remainingCents = Math.round((totalAmount - allocated) * 100);
 
   // Sort by remainder descending to distribute leftover cents
