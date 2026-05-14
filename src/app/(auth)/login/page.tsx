@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Dialog,
@@ -108,6 +108,14 @@ function StepIndicator({ step }: { step: number }) {
 }
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
@@ -119,7 +127,7 @@ export default function LoginPage() {
   const [stats, setStats] = useState<StatsData | null>(null);
 
   // Request access modal state
-  const [accessOpen, setAccessOpen] = useState(false);
+  const [accessOpen, setAccessOpen] = useState(searchParams.get("requestAccess") === "true");
   const [accessName, setAccessName] = useState("");
   const [accessEmail, setAccessEmail] = useState("");
   const [accessPhone, setAccessPhone] = useState("");
@@ -128,6 +136,7 @@ export default function LoginPage() {
   const [accessSuccess, setAccessSuccess] = useState(false);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     fetch("/api/stats")
