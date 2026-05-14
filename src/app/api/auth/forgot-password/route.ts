@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
-import { passwordResetEmail } from "@/lib/email-templates";
+import { passwordResetEmail, getEmailLogoUrl } from "@/lib/email-templates";
 import crypto from "crypto";
 
 export async function POST(request: Request) {
@@ -35,10 +35,11 @@ export async function POST(request: Request) {
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
+    const logoUrl = await getEmailLogoUrl();
     await sendEmail({
       to: email,
       subject: "Reset Your Password",
-      html: passwordResetEmail({ userName: user.name || "Investor", resetUrl }),
+      html: passwordResetEmail({ userName: user.name || "Investor", resetUrl, logoUrl }),
     });
 
     return NextResponse.json({ message: "If an account exists, a reset link has been sent." });

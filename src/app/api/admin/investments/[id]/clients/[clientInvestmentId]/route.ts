@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { createNotification } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
-import { distributionNoticeEmail } from "@/lib/email-templates";
+import { distributionNoticeEmail, getEmailLogoUrl } from "@/lib/email-templates";
 
 export async function PATCH(
   request: Request,
@@ -90,6 +90,7 @@ export async function PATCH(
           message: `Distribution recorded for ${updated.investment.name}`,
           link: `/investments/${id}`,
         });
+        const logoUrl = await getEmailLogoUrl();
         await sendEmail({
           to: updated.user.email,
           subject: `Distribution recorded for ${updated.investment.name}`,
@@ -98,6 +99,7 @@ export async function PATCH(
             investmentName: updated.investment.name,
             amount: `$${Number(cashDistributed).toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
             portalUrl: `${baseUrl}/investments/${id}`,
+            logoUrl,
           }),
         });
       } else {

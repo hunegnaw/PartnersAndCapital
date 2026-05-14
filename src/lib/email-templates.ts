@@ -1,6 +1,27 @@
 // Branded email templates for Partners + Capital investor portal
 
-function emailWrapper(content: string): string {
+import { prisma } from "./prisma";
+
+let cachedLogoUrl: string | null | undefined;
+let logoCacheTime = 0;
+const LOGO_CACHE_TTL = 60_000; // 1 minute
+
+export async function getEmailLogoUrl(): Promise<string | null> {
+  const now = Date.now();
+  if (cachedLogoUrl !== undefined && now - logoCacheTime < LOGO_CACHE_TTL) {
+    return cachedLogoUrl;
+  }
+  const org = await prisma.organization.findFirst({ select: { logoUrl: true } });
+  cachedLogoUrl = org?.logoUrl ?? null;
+  logoCacheTime = now;
+  return cachedLogoUrl;
+}
+
+function emailWrapper(content: string, logoUrl?: string | null): string {
+  const headerContent = logoUrl
+    ? `<img src="${logoUrl}" alt="Partners + Capital" style="max-height: 32px; width: auto;" />`
+    : `<span style="color: #ffffff; font-size: 14px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Partners + Capital</span>`;
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,7 +37,7 @@ function emailWrapper(content: string): string {
           <!-- Header -->
           <tr>
             <td style="background-color: #1A2640; padding: 28px 40px; text-align: center;">
-              <span style="color: #ffffff; font-size: 14px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Partners + Capital</span>
+              ${headerContent}
             </td>
           </tr>
           <!-- Content -->
@@ -58,6 +79,7 @@ interface AdvisorInviteEmailParams {
   permissionLevel: string;
   expiresAt: Date | string | null;
   acceptUrl: string;
+  logoUrl?: string | null;
 }
 
 export function advisorInviteEmail({
@@ -66,6 +88,7 @@ export function advisorInviteEmail({
   permissionLevel,
   expiresAt,
   acceptUrl,
+  logoUrl,
 }: AdvisorInviteEmailParams): string {
   const expiryNote = expiresAt
     ? `<p style="margin: 16px 0 0 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">This invitation expires on ${new Date(expiresAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}.</p>`
@@ -81,17 +104,19 @@ export function advisorInviteEmail({
     <p style="margin: 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">If you were not expecting this invitation, you can safely ignore this email.</p>
     ${expiryNote}`;
 
-  return emailWrapper(content);
+  return emailWrapper(content, logoUrl);
 }
 
 interface PasswordResetEmailParams {
   userName: string;
   resetUrl: string;
+  logoUrl?: string | null;
 }
 
 export function passwordResetEmail({
   userName,
   resetUrl,
+  logoUrl,
 }: PasswordResetEmailParams): string {
   const content = `
     <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">Reset Your Password</h1>
@@ -101,7 +126,7 @@ export function passwordResetEmail({
     <p style="margin: 0 0 8px 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">This link expires in 1 hour.</p>
     <p style="margin: 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">If you didn&rsquo;t request this, you can safely ignore this email. Your password will remain unchanged.</p>`;
 
-  return emailWrapper(content);
+  return emailWrapper(content, logoUrl);
 }
 
 interface TicketReplyEmailParams {
@@ -109,6 +134,7 @@ interface TicketReplyEmailParams {
   ticketSubject: string;
   replyPreview: string;
   ticketUrl: string;
+  logoUrl?: string | null;
 }
 
 export function ticketReplyEmail({
@@ -116,6 +142,7 @@ export function ticketReplyEmail({
   ticketSubject,
   replyPreview,
   ticketUrl,
+  logoUrl,
 }: TicketReplyEmailParams): string {
   const content = `
     <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">New Reply on Your Ticket</h1>
@@ -130,19 +157,21 @@ export function ticketReplyEmail({
     </table>
     ${emailButton("View Ticket", ticketUrl)}`;
 
-  return emailWrapper(content);
+  return emailWrapper(content, logoUrl);
 }
 
 interface DocumentUploadedEmailParams {
   userName: string;
   documentTitle: string;
   portalUrl: string;
+  logoUrl?: string | null;
 }
 
 export function documentUploadedEmail({
   userName,
   documentTitle,
   portalUrl,
+  logoUrl,
 }: DocumentUploadedEmailParams): string {
   const content = `
     <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">New Document Available</h1>
@@ -151,7 +180,7 @@ export function documentUploadedEmail({
     <p style="margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: #1a1a18; line-height: 1.5;">${documentTitle}</p>
     ${emailButton("View Documents", portalUrl)}`;
 
-  return emailWrapper(content);
+  return emailWrapper(content, logoUrl);
 }
 
 interface DistributionNoticeEmailParams {
@@ -159,6 +188,7 @@ interface DistributionNoticeEmailParams {
   investmentName: string;
   amount: string;
   portalUrl: string;
+  logoUrl?: string | null;
 }
 
 export function distributionNoticeEmail({
@@ -166,6 +196,7 @@ export function distributionNoticeEmail({
   investmentName,
   amount,
   portalUrl,
+  logoUrl,
 }: DistributionNoticeEmailParams): string {
   const content = `
     <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">Distribution Notice</h1>
@@ -173,19 +204,21 @@ export function distributionNoticeEmail({
     <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">A distribution of <strong style="color: #1a1a18;">${amount}</strong> has been recorded for <strong style="color: #1a1a18;">${investmentName}</strong>.</p>
     ${emailButton("View Details", portalUrl)}`;
 
-  return emailWrapper(content);
+  return emailWrapper(content, logoUrl);
 }
 
 interface AccessRequestEmailParams {
   name: string;
   email: string;
   phone: string | null;
+  logoUrl?: string | null;
 }
 
 export function accessRequestEmail({
   name,
   email,
   phone,
+  logoUrl,
 }: AccessRequestEmailParams): string {
   const content = `
     <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">New Access Request</h1>
@@ -204,17 +237,19 @@ export function accessRequestEmail({
     </table>
     <p style="margin: 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">You can review this request in the admin panel under Access Requests.</p>`;
 
-  return emailWrapper(content);
+  return emailWrapper(content, logoUrl);
 }
 
 interface WelcomeEmailParams {
   userName: string;
   resetUrl: string;
+  logoUrl?: string | null;
 }
 
 export function welcomeEmail({
   userName,
   resetUrl,
+  logoUrl,
 }: WelcomeEmailParams): string {
   const content = `
     <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">Welcome to Partners + Capital</h1>
@@ -224,5 +259,5 @@ export function welcomeEmail({
     <p style="margin: 0 0 8px 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">This link expires in 1 hour.</p>
     <p style="margin: 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">If you have any questions, reach out to your contact at Partners + Capital.</p>`;
 
-  return emailWrapper(content);
+  return emailWrapper(content, logoUrl);
 }

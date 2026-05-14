@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { createNotification } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
-import { distributionNoticeEmail } from "@/lib/email-templates";
+import { distributionNoticeEmail, getEmailLogoUrl } from "@/lib/email-templates";
 import { Prisma } from "@prisma/client";
 
 // GET all distributions for an investment (across all client positions)
@@ -150,6 +150,7 @@ async function handleBulkImport(
   const skipped: string[] = [];
 
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  const logoUrl = await getEmailLogoUrl();
 
   for (const row of parsed) {
     const position = row.userId
@@ -201,6 +202,7 @@ async function handleBulkImport(
         investmentName,
         amount: `$${row.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
         portalUrl: `${baseUrl}/investments/${position.id}`,
+        logoUrl,
       }),
     });
   }
@@ -285,6 +287,7 @@ async function handleProRata(
   }
 
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  const logoUrl = await getEmailLogoUrl();
   const created: string[] = [];
 
   for (const alloc of allocations) {
@@ -327,6 +330,7 @@ async function handleProRata(
         investmentName,
         amount: `$${alloc.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
         portalUrl: `${baseUrl}/investments/${alloc.position.id}`,
+        logoUrl,
       }),
     });
   }

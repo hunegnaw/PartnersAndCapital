@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createBulkNotifications } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
-import { ticketReplyEmail } from "@/lib/email-templates";
+import { ticketReplyEmail, getEmailLogoUrl } from "@/lib/email-templates";
 import { getEffectiveUserId, requireNotImpersonating } from "@/lib/impersonation";
 
 export async function GET(
@@ -99,6 +99,7 @@ export async function POST(
         }
       );
       // Email each admin
+      const logoUrl = await getEmailLogoUrl();
       for (const admin of admins) {
         await sendEmail({
           to: admin.email,
@@ -108,6 +109,7 @@ export async function POST(
             ticketSubject: ticket.subject,
             replyPreview: message.slice(0, 200),
             ticketUrl: `${baseUrl}/admin/support`,
+            logoUrl,
           }),
         });
       }

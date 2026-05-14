@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { sendEmail } from "@/lib/email";
-import { advisorInviteEmail } from "@/lib/email-templates";
+import { advisorInviteEmail, getEmailLogoUrl } from "@/lib/email-templates";
 import crypto from "crypto";
 import { requireNotImpersonating } from "@/lib/impersonation";
 
@@ -76,6 +76,7 @@ export async function POST(
       SPECIFIC_INVESTMENT: "Specific investment access only",
     };
 
+    const logoUrl = await getEmailLogoUrl();
     await sendEmail({
       to: advisor.email,
       subject: `${clientUser?.name || "An investor"} has invited you to view their portfolio`,
@@ -85,6 +86,7 @@ export async function POST(
         permissionLevel: permissionLabels[access?.permissionLevel || ""] || access?.permissionLevel || "Portfolio access",
         expiresAt: access?.expiresAt || null,
         acceptUrl,
+        logoUrl,
       }),
     });
 

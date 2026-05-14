@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { Prisma } from "@prisma/client";
 import { sendEmail } from "@/lib/email";
-import { welcomeEmail } from "@/lib/email-templates";
+import { welcomeEmail, getEmailLogoUrl } from "@/lib/email-templates";
 
 export async function GET(request: Request) {
   try {
@@ -160,11 +160,13 @@ export async function POST(request: Request) {
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
-    sendEmail({
-      to: email,
-      subject: "Welcome to Partners + Capital",
-      html: welcomeEmail({ userName: name, resetUrl }),
-    }).catch((err) => console.error("Failed to send welcome email:", err));
+    getEmailLogoUrl().then((logoUrl) => {
+      sendEmail({
+        to: email,
+        subject: "Welcome to Partners + Capital",
+        html: welcomeEmail({ userName: name, resetUrl, logoUrl }),
+      }).catch((err) => console.error("Failed to send welcome email:", err));
+    });
 
     return NextResponse.json(client, { status: 201 });
   } catch (error) {

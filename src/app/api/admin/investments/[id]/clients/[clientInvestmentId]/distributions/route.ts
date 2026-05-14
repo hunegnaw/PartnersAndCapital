@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { createNotification } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
-import { distributionNoticeEmail } from "@/lib/email-templates";
+import { distributionNoticeEmail, getEmailLogoUrl } from "@/lib/email-templates";
 
 export async function GET(
   request: Request,
@@ -140,6 +140,7 @@ export async function POST(
       link: `/investments/${position.id}`,
     });
 
+    const logoUrl = await getEmailLogoUrl();
     await sendEmail({
       to: position.user.email,
       subject: `Distribution recorded for ${position.investment.name}`,
@@ -148,6 +149,7 @@ export async function POST(
         investmentName: position.investment.name,
         amount: `$${numAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
         portalUrl: `${baseUrl}/investments/${position.id}`,
+        logoUrl,
       }),
     });
 

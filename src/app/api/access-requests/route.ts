@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email";
-import { accessRequestEmail } from "@/lib/email-templates";
+import { accessRequestEmail, getEmailLogoUrl } from "@/lib/email-templates";
 
 const accessRequestLimiter = createRateLimiter({
   windowMs: 60 * 60 * 1000,
@@ -48,11 +48,13 @@ export async function POST(request: Request) {
 
     // Fire-and-forget email notification
     try {
-      sendEmail({
-        to: "theteam@partnersandcapital.com",
-        subject: `New Access Request from ${name}`,
-        html: accessRequestEmail({ name, email, phone: phone || null }),
-      }).catch(console.error);
+      getEmailLogoUrl().then((logoUrl) => {
+        sendEmail({
+          to: "theteam@partnersandcapital.com",
+          subject: `New Access Request from ${name}`,
+          html: accessRequestEmail({ name, email, phone: phone || null, logoUrl }),
+        }).catch(console.error);
+      });
     } catch {
       // Email notification is best-effort
     }

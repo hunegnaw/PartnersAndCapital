@@ -5,7 +5,7 @@ import { createAuditLog } from "@/lib/audit";
 import { saveUploadedFile } from "@/lib/upload";
 import { createNotification } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
-import { documentUploadedEmail } from "@/lib/email-templates";
+import { documentUploadedEmail, getEmailLogoUrl } from "@/lib/email-templates";
 import { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
@@ -139,6 +139,7 @@ export async function POST(request: Request) {
         message: `New document: ${name}`,
         link: "/documents",
       });
+      const logoUrl = await getEmailLogoUrl();
       await sendEmail({
         to: document.user.email,
         subject: "New document available in your portal",
@@ -146,6 +147,7 @@ export async function POST(request: Request) {
           userName: document.user.name || "Investor",
           documentTitle: name,
           portalUrl: `${baseUrl}/documents`,
+          logoUrl,
         }),
       });
     }
