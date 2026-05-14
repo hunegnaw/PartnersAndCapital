@@ -27,11 +27,14 @@ import { formatCurrency, formatDate, formatDateOnly, formatPercentage } from "@/
 import {
   ResponsiveContainer,
   LineChart,
+  ComposedChart,
   Line,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
+  Legend,
 } from "recharts"
 import {
   ArrowLeft,
@@ -48,6 +51,24 @@ import {
   DollarSign,
 } from "lucide-react"
 
+interface DistributionRecord {
+  id: string
+  amount: number
+  date: string
+  type: string
+  description: string | null
+  status: string
+  createdAt: string
+}
+
+interface ContributionRecord {
+  id: string
+  amount: number
+  date: string
+  description: string | null
+  status: string
+}
+
 interface ClientPosition {
   id: string
   userId: string
@@ -62,6 +83,8 @@ interface ClientPosition {
     name: string
     company: string | null
   }
+  contributions: ContributionRecord[]
+  distributions: DistributionRecord[]
 }
 
 interface DealRoomUpdate {
@@ -321,6 +344,67 @@ export default function AdminInvestmentDetailPage({
       value: Number(v.totalValue),
     }))
 
+  // Aggregate all distributions across all client positions
+  const allDistributions = investment.clientInvestments.flatMap((ci) =>
+    ci.distributions.map((d) => ({
+      ...d,
+      clientName: ci.user.name || ci.user.email,
+      clientId: ci.userId,
+    }))
+  ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+  // Build distribution chart data (monthly bars + cumulative lines)
+  const distributionChartData = (() => {
+    const allContributions = investment.clientInvestments.flatMap((ci) => ci.contributions)
+    const allDists = investment.clientInvestments.flatMap((ci) => ci.distributions)
+
+    const months = new Map<string, { monthlyDistribution: number; contributions: number }>()
+
+    for (const c of allContributions) {
+      const key = new Date(c.date).toISOString().slice(0, 7)
+      const entry = months.get(key) || { monthlyDistribution: 0, contributions: 0 }
+      entry.contributions += Number(c.amount)
+      months.set(key, entry)
+    }
+    for (const d of allDists) {
+      const key = new Date(d.date).toISOString().slice(0, 7)
+      const entry = months.get(key) || { monthlyDistribution: 0, contributions: 0 }
+      entry.monthlyDistribution += Number(d.amount)
+      months.set(key, entry)
+    }
+
+    const sorted = [...months.entries()].sort(([a], [b]) => a.localeCompare(b))
+    if (sorted.length < 1) return []
+
+    let cumulativeDeployed = 0
+    let cumulativeDistributions = 0
+
+    return sorted.map(([month, data]) => {
+      cumulativeDeployed += data.contributions
+      cumulativeDistributions += data.monthlyDistribution
+      const [y, m] = month.split("-")
+      const label = new Date(Number(y), Number(m) - 1).toLocaleDateString("en-US", {
+        month: "short",
+        year: "2-digit",
+      })
+      return {
+        month: label,
+        monthlyDistribution: data.monthlyDistribution,
+        cumulativeDeployed,
+        cumulativeDistributions,
+      }
+    })
+  })()
+
+  const distTypeLabel = (type: string) => {
+    switch (type) {
+      case "CASH": return "Cash"
+      case "REINVESTMENT": return "Reinvestment"
+      case "RETURN_OF_CAPITAL": return "Return of Capital"
+      default: return type
+    }
+  }
+
   return (
     <div className="p-8 space-y-6">
       {/* Header */}
@@ -351,7 +435,7 @@ export default function AdminInvestmentDetailPage({
       </div>
 
       {/* Summary Cards */}
-      <div className={`grid gap-4 ${isClientScoped ? "md:grid-cols-3" : "md:grid-cols-4"}`}>
+      <div className={`grid gap-4 ${isClientScoped ? "md:grid-cols-3" : "md:grid-cols-5"}`}>
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">{isClientScoped ? "Invested" : "Total Invested"}</p>
@@ -364,6 +448,21 @@ export default function AdminInvestmentDetailPage({
             <p className="text-xl font-bold">{formatCurrency(totalCurrentValue)}</p>
           </CardContent>
         </Card>
+        {!isClientScoped && (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground">Total Distributed</p>
+              <p className="text-xl font-bold">
+                {formatCurrency(
+                  investment.clientInvestments.reduce(
+                    (sum, ci) => sum + Number(ci.cashDistributed),
+                    0
+                  )
+                )}
+              </p>
+            </CardContent>
+          </Card>
+        )}
         {!isClientScoped && (
           <Card>
             <CardContent className="pt-6">
@@ -397,6 +496,10 @@ export default function AdminInvestmentDetailPage({
               Client Positions ({investment.clientInvestments.length})
             </TabsTrigger>
           )}
+          <TabsTrigger value="distributions">
+            <DollarSign className="h-4 w-4 mr-1.5" />
+            Distributions ({allDistributions.length})
+          </TabsTrigger>
           <TabsTrigger value="valuations">
             <TrendingUp className="h-4 w-4 mr-1.5" />
             Valuations ({valuations.length})
@@ -547,6 +650,141 @@ export default function AdminInvestmentDetailPage({
                             <DollarSign className="h-3.5 w-3.5" />
                             Distribution
                           </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Distributions Tab */}
+        <TabsContent value="distributions" className="mt-4 space-y-4">
+          {/* Distribution Chart */}
+          {distributionChartData.length >= 2 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Capital Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={280}>
+                  <ComposedChart data={distributionChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(val) =>
+                        val >= 1_000_000
+                          ? `$${(val / 1_000_000).toFixed(1)}M`
+                          : `$${(val / 1_000).toFixed(0)}K`
+                      }
+                      width={70}
+                    />
+                    <Tooltip
+                      formatter={(value, name) => [
+                        formatCurrency(Number(value ?? 0)),
+                        name === "monthlyDistribution"
+                          ? "Monthly Distribution"
+                          : name === "cumulativeDeployed"
+                            ? "Cumulative Deployed"
+                            : "Cumulative Distributions",
+                      ]}
+                      contentStyle={{
+                        backgroundColor: "#fff",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "8px",
+                        fontSize: "13px",
+                      }}
+                    />
+                    <Legend
+                      verticalAlign="top"
+                      height={36}
+                      formatter={(value: string) =>
+                        value === "monthlyDistribution"
+                          ? "Monthly Distribution"
+                          : value === "cumulativeDeployed"
+                            ? "Cumulative Deployed"
+                            : "Cumulative Distributions"
+                      }
+                      wrapperStyle={{ fontSize: "12px" }}
+                    />
+                    <Bar
+                      dataKey="monthlyDistribution"
+                      fill="#B07D3A"
+                      radius={[3, 3, 0, 0]}
+                      barSize={24}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="cumulativeDeployed"
+                      stroke="#1A2640"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="cumulativeDistributions"
+                      stroke="#3b6d11"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4 }}
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Distributions Table */}
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Notes</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {allDistributions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                        <DollarSign className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+                        <p>No distributions recorded yet.</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    allDistributions.map((d) => (
+                      <TableRow key={d.id}>
+                        <TableCell>{formatDateOnly(d.date)}</TableCell>
+                        <TableCell className="font-medium">{d.clientName}</TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(Number(d.amount))}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{distTypeLabel(d.type)}</Badge>
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate">
+                          {d.description || "--"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={d.status === "COMPLETED" ? "default" : "secondary"}>
+                            {d.status}
+                          </Badge>
                         </TableCell>
                       </TableRow>
                     ))

@@ -28,6 +28,30 @@ export async function GET(
                 company: true,
               },
             },
+            contributions: {
+              where: { deletedAt: null },
+              orderBy: { date: "desc" },
+              select: {
+                id: true,
+                amount: true,
+                date: true,
+                description: true,
+                status: true,
+              },
+            },
+            distributions: {
+              where: { deletedAt: null },
+              orderBy: { date: "desc" },
+              select: {
+                id: true,
+                amount: true,
+                date: true,
+                type: true,
+                description: true,
+                status: true,
+                createdAt: true,
+              },
+            },
           },
         },
         documents: {
