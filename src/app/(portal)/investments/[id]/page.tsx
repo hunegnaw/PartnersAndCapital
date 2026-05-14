@@ -41,6 +41,21 @@ interface InvestmentDetail {
     fundStatus: string | null;
     targetReturn: string | null;
     vintage: string | null;
+    dealRoomUpdates: {
+      id: string;
+      title: string;
+      content: string;
+      createdAt: string;
+    }[];
+    documents: {
+      id: string;
+      name: string;
+      type: string;
+      year: string | null;
+      mimeType: string | null;
+      fileSize: number | null;
+      createdAt: string;
+    }[];
   };
   contributions: {
     id: string;
@@ -56,18 +71,6 @@ interface InvestmentDetail {
     type: string;
     description: string | null;
     status: string;
-  }[];
-  dealRoomUpdates: {
-    id: string;
-    title: string;
-    content: string;
-    createdAt: string;
-  }[];
-  documents: {
-    id: string;
-    name: string;
-    type: string;
-    createdAt: string;
   }[];
 }
 
@@ -263,8 +266,8 @@ export default function InvestmentDetailPage({
   );
 
   // Group updates by month/year
-  const updatesByDate: Record<string, typeof data.dealRoomUpdates> = {};
-  for (const update of data.dealRoomUpdates) {
+  const updatesByDate: Record<string, typeof data.investment.dealRoomUpdates> = {};
+  for (const update of data.investment.dealRoomUpdates) {
     const key = formatMonthYear(update.createdAt);
     if (!updatesByDate[key]) updatesByDate[key] = [];
     updatesByDate[key].push(update);
@@ -575,19 +578,19 @@ export default function InvestmentDetailPage({
               )}
 
               {/* Latest Update */}
-              {data.dealRoomUpdates.length > 0 && (
+              {data.investment.dealRoomUpdates.length > 0 && (
                 <div className="bg-[#f5f5f3] rounded-xl border border-[#dfdedd] p-6">
                   <h3 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-3">
                     Latest Update
                   </h3>
                   <h4 className="text-sm font-semibold text-[#1a1a18] mb-1">
-                    {data.dealRoomUpdates[0].title}
+                    {data.investment.dealRoomUpdates[0].title}
                   </h4>
                   <p className="text-sm text-[#5f5e5a] leading-relaxed line-clamp-4">
-                    {data.dealRoomUpdates[0].content}
+                    {data.investment.dealRoomUpdates[0].content}
                   </p>
                   <p className="text-xs text-[#888780] mt-2">
-                    {formatDate(data.dealRoomUpdates[0].createdAt)}
+                    {formatDate(data.investment.dealRoomUpdates[0].createdAt)}
                   </p>
                 </div>
               )}
@@ -597,7 +600,7 @@ export default function InvestmentDetailPage({
 
         {/* Updates Tab */}
         <TabsContent value="updates" className="mt-6">
-          {data.dealRoomUpdates.length > 0 ? (
+          {data.investment.dealRoomUpdates.length > 0 ? (
             <div className="space-y-6">
               {Object.entries(updatesByDate).map(([dateGroup, updates]) => (
                 <div key={dateGroup}>
@@ -633,9 +636,9 @@ export default function InvestmentDetailPage({
 
         {/* Documents Tab */}
         <TabsContent value="documents" className="mt-6">
-          {data.documents.length > 0 ? (
+          {data.investment.documents.length > 0 ? (
             <div className="bg-white rounded-xl border border-[#dfdedd] divide-y divide-[#eeece8]">
-              {data.documents.map((doc) => (
+              {data.investment.documents.map((doc) => (
                 <div
                   key={doc.id}
                   className="flex items-center justify-between p-4"
