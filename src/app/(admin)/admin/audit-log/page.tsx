@@ -249,7 +249,7 @@ export default function AdminAuditLogPage() {
                         {log.user ? (
                           <div>
                             <p className="text-sm font-medium">{log.user.name}</p>
-                            <p className="text-xs text-muted-foreground">{log.user.role}</p>
+                            <p className="text-xs text-muted-foreground">{log.user.email}</p>
                           </div>
                         ) : (
                           <span className="text-muted-foreground">System</span>
