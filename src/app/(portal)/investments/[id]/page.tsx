@@ -93,29 +93,28 @@ function DetailSkeleton() {
 // Generate growth data from contributions/distributions
 function generateGrowthData(
   contributions: { amount: number; date: string }[],
-  distributions: { amount: number; date: string }[],
+  _distributions: { amount: number; date: string }[],
   currentValue: number
 ) {
-  const all = [
-    ...contributions.map((c) => ({ date: c.date, amount: Number(c.amount), type: "contrib" })),
-    ...distributions.map((d) => ({ date: d.date, amount: Number(d.amount), type: "dist" })),
-  ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  // Build value curve from contributions only (distributions don't reduce position value)
+  const sorted = [...contributions]
+    .map((c) => ({ date: c.date, amount: Number(c.amount) }))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  if (all.length === 0) return [];
+  if (sorted.length === 0) return [];
 
   const points: { date: string; value: number }[] = [];
   let cumulative = 0;
 
-  for (const item of all) {
-    if (item.type === "contrib") cumulative += item.amount;
-    else cumulative -= item.amount;
+  for (const item of sorted) {
+    cumulative += item.amount;
     points.push({
       date: formatShortDate(item.date),
       value: cumulative,
     });
   }
 
-  // Add current value as final point
+  // Add current value as final point (reflects actual valuation)
   points.push({
     date: "Now",
     value: currentValue,

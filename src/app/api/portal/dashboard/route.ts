@@ -107,36 +107,24 @@ export async function GET() {
       1
     );
 
-    const [contributions, allDistributions] = await Promise.all([
-      prisma.contribution.findMany({
-        where: {
-          userId,
-          status: "COMPLETED",
-          deletedAt: null,
-          date: { gte: twelveMonthsAgo },
-        },
-        orderBy: { date: "asc" },
-      }),
-      prisma.distribution.findMany({
-        where: {
-          userId,
-          status: "COMPLETED",
-          deletedAt: null,
-          date: { gte: twelveMonthsAgo },
-        },
-        orderBy: { date: "asc" },
-      }),
-    ]);
+    const contributions = await prisma.contribution.findMany({
+      where: {
+        userId,
+        status: "COMPLETED",
+        deletedAt: null,
+        date: { gte: twelveMonthsAgo },
+      },
+      orderBy: { date: "asc" },
+    });
 
     // Build monthly cumulative data
     const monthlyData: {
       month: string;
       contributions: number;
-      distributions: number;
       netValue: number;
     }[] = [];
 
-    // Compute baseline (value before the 12-month window)
+    // Compute baseline (total contributions before the 12-month window)
     const priorContributions = await prisma.contribution.aggregate({
       where: {
         userId,
@@ -146,19 +134,8 @@ export async function GET() {
       },
       _sum: { amount: true },
     });
-    const priorDistributions = await prisma.distribution.aggregate({
-      where: {
-        userId,
-        status: "COMPLETED",
-        deletedAt: null,
-        date: { lt: twelveMonthsAgo },
-      },
-      _sum: { amount: true },
-    });
 
-    let cumulative =
-      Number(priorContributions._sum.amount || 0) -
-      Number(priorDistributions._sum.amount || 0);
+    let cumulative = Number(priorContributions._sum.amount || 0);
 
     for (let i = 0; i < 12; i++) {
       const monthDate = new Date(
@@ -181,18 +158,25 @@ export async function GET() {
         .filter((c) => c.date >= monthDate && c.date <= monthEnd)
         .reduce((sum, c) => sum + Number(c.amount), 0);
 
-      const monthDists = allDistributions
-        .filter((d) => d.date >= monthDate && d.date <= monthEnd)
-        .reduce((sum, d) => sum + Number(d.amount), 0);
-
-      cumulative += monthContribs - monthDists;
+      cumulative += monthContribs;
 
       monthlyData.push({
         month: monthKey,
         contributions: monthContribs,
-        distributions: monthDists,
         netValue: cumulative,
       });
+    }
+
+    // Scale the final month to match the actual current portfolio value
+    // so the chart reflects real valuation, not just capital deployed
+    if (monthlyData.length > 0 && currentValue > 0) {
+      const totalContributions = cumulative;
+      if (totalContributions > 0) {
+        const scale = currentValue / totalContributions;
+        for (const m of monthlyData) {
+          m.netValue = Math.round(m.netValue * scale * 100) / 100;
+        }
+      }
     }
 
     // Recent investments with amountInvested
