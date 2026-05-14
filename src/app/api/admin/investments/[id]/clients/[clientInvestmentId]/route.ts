@@ -40,6 +40,7 @@ export async function PATCH(
       irr,
       returnMultiple,
       cashDistributed,
+      adminApr,
       status,
     } = body;
 
@@ -53,6 +54,7 @@ export async function PATCH(
         ...(irr !== undefined && { irr }),
         ...(returnMultiple !== undefined && { returnMultiple }),
         ...(cashDistributed !== undefined && { cashDistributed }),
+        ...(adminApr !== undefined && { adminApr }),
         ...(status !== undefined && { status }),
       },
       include: {

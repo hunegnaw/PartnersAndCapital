@@ -274,6 +274,7 @@ model ClientInvestment {
   irr               Decimal?               @db.Decimal(10, 4)
   returnMultiple    Decimal?               @db.Decimal(10, 4)
   cashDistributed   Decimal                @default(0) @db.Decimal(14, 2)
+  adminApr          Decimal?               @db.Decimal(10, 4)
   status            ClientInvestmentStatus @default(ACTIVE)
   investmentDate    DateTime?
   createdAt         DateTime               @default(now())

@@ -33,7 +33,9 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ investments });
+    // Exclude admin-only fields from portal response
+    const safeInvestments = investments.map(({ adminApr: _adminApr, ...rest }) => rest);
+    return NextResponse.json({ investments: safeInvestments });
   } catch (error) {
     console.error("Error listing investments:", error);
     return NextResponse.json(

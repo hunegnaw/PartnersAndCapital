@@ -99,7 +99,9 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(clientInvestment);
+    // Exclude admin-only fields from portal response
+    const { adminApr: _adminApr, ...safeData } = clientInvestment;
+    return NextResponse.json(safeData);
   } catch (error) {
     console.error("Error fetching investment:", error);
     return NextResponse.json(

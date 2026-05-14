@@ -21,6 +21,8 @@ import { ClientInvestmentDialog } from "@/components/admin/client-investment-dia
 import { DealRoomUpdateDialog } from "@/components/admin/deal-room-update-dialog"
 import { DocumentUploadDialog } from "@/components/admin/document-upload-dialog"
 import { ValuationFormDialog } from "@/components/admin/valuation-form-dialog"
+import { DistributionFormDialog } from "@/components/admin/distribution-form-dialog"
+import { DistributionImportDialog } from "@/components/admin/distribution-import-dialog"
 import { formatCurrency, formatDate, formatDateOnly, formatPercentage } from "@/lib/utils"
 import {
   ResponsiveContainer,
@@ -43,6 +45,7 @@ import {
   Upload,
   TrendingUp,
   Trash2,
+  DollarSign,
 } from "lucide-react"
 
 interface ClientPosition {
@@ -50,6 +53,8 @@ interface ClientPosition {
   userId: string
   amountInvested: number
   currentValue: number
+  cashDistributed: number
+  adminApr: number | null
   investmentDate: string
   user: {
     id: string
@@ -158,6 +163,9 @@ export default function AdminInvestmentDetailPage({
   const [addClientOpen, setAddClientOpen] = useState(false)
   const [dealRoomOpen, setDealRoomOpen] = useState(false)
   const [docUploadOpen, setDocUploadOpen] = useState(false)
+  const [distributionOpen, setDistributionOpen] = useState(false)
+  const [distributionTarget, setDistributionTarget] = useState<{ clientInvestmentId: string; clientName: string } | null>(null)
+  const [bulkDistributionOpen, setBulkDistributionOpen] = useState(false)
 
   const fetchInvestment = useCallback(async () => {
     setLoading(true)
@@ -466,7 +474,11 @@ export default function AdminInvestmentDetailPage({
 
         {/* Client Positions Tab */}
         <TabsContent value="clients" className="mt-4 space-y-4">
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            <Button size="sm" variant="outline" onClick={() => setBulkDistributionOpen(true)}>
+              <Upload className="h-4 w-4" />
+              Bulk Distribution
+            </Button>
             <Button size="sm" onClick={() => setAddClientOpen(true)}>
               <Plus className="h-4 w-4" />
               Add Client
@@ -478,16 +490,18 @@ export default function AdminInvestmentDetailPage({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Client</TableHead>
-                    <TableHead>Company</TableHead>
                     <TableHead className="text-right">Invested</TableHead>
                     <TableHead className="text-right">Current Value</TableHead>
+                    <TableHead className="text-right">Cash Distributed</TableHead>
+                    <TableHead className="text-right">APR</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {investment.clientInvestments.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                         No client positions yet. Add a client to this investment.
                       </TableCell>
                     </TableRow>
@@ -504,14 +518,36 @@ export default function AdminInvestmentDetailPage({
                             <p className="text-xs text-muted-foreground">{ci.user.email}</p>
                           </div>
                         </TableCell>
-                        <TableCell>{ci.user.company || "--"}</TableCell>
                         <TableCell className="text-right">
                           {formatCurrency(ci.amountInvested)}
                         </TableCell>
                         <TableCell className="text-right">
                           {formatCurrency(ci.currentValue)}
                         </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(ci.cashDistributed)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {ci.adminApr != null ? `${Number(ci.adminApr).toFixed(2)}%` : "--"}
+                        </TableCell>
                         <TableCell>{formatDateOnly(ci.investmentDate)}</TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setDistributionTarget({
+                                clientInvestmentId: ci.id,
+                                clientName: ci.user.name || ci.user.email,
+                              })
+                              setDistributionOpen(true)
+                            }}
+                          >
+                            <DollarSign className="h-3.5 w-3.5" />
+                            Distribution
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -786,6 +822,27 @@ export default function AdminInvestmentDetailPage({
         investmentId={investment.id}
         onSuccess={handleValuationSuccess}
         existing={editingValuation || undefined}
+      />
+
+      {distributionTarget && (
+        <DistributionFormDialog
+          open={distributionOpen}
+          onOpenChange={(open) => {
+            setDistributionOpen(open)
+            if (!open) setDistributionTarget(null)
+          }}
+          investmentId={investment.id}
+          clientInvestmentId={distributionTarget.clientInvestmentId}
+          clientName={distributionTarget.clientName}
+          onSuccess={fetchInvestment}
+        />
+      )}
+
+      <DistributionImportDialog
+        open={bulkDistributionOpen}
+        onOpenChange={setBulkDistributionOpen}
+        investmentId={investment.id}
+        onSuccess={fetchInvestment}
       />
     </div>
   )

@@ -22,7 +22,8 @@ This manual covers setup, administration, and usage of the Partners + Capital in
 14. [Troubleshooting](#troubleshooting)
 15. [Admin "View as Client"](#admin-view-as-client-impersonation)
 16. [Custom Document Types](#custom-document-types)
-17. [Feature Roadmap](#feature-roadmap)
+17. [Distribution Management](#distribution-management)
+18. [Feature Roadmap](#feature-roadmap)
 
 ---
 
@@ -1278,6 +1279,69 @@ Document types (K-1, Tax 1099, Quarterly Report, etc.) are fully customizable by
 
 ---
 
+## Distribution Management
+
+Distributions record cash payments to LPs (limited partners) per client position within an investment. Each distribution is linked to a specific `ClientInvestment` position and tracks amount, date, type, and optional notes.
+
+### Recording a Single Distribution
+
+1. Navigate to **Admin > Investments > [Investment Name]**
+2. Open the **Client Positions** tab
+3. Click the **Distribution** button on the client's row
+4. Fill in the form:
+   - **Amount** — the dollar amount being distributed (required)
+   - **Payment Date** — the date of the distribution (required)
+   - **Type** — Cash Distribution (default), Reinvestment, or Return of Capital
+   - **Notes** — optional description matching the spreadsheet "Notes" column
+5. Click **Record Distribution**
+
+The system will:
+- Create a Distribution record with status COMPLETED
+- Increment the client position's `cashDistributed` total
+- Send the client an in-app notification and email
+
+### Bulk CSV Import
+
+1. From the **Client Positions** tab, click **Bulk Distribution**
+2. Select the **CSV Import** tab
+3. Upload a CSV file or paste CSV data with these columns:
+   - `email` (required) — client email to match against positions
+   - `amount` (required) — distribution amount
+   - `date` (required) — payment date (YYYY-MM-DD)
+   - `notes` (optional) — description
+4. Click **Import**
+
+The system matches each row by client email to their position in this investment. Rows that don't match a position are skipped with a message.
+
+### Pro-Rata Allocation
+
+1. From the **Client Positions** tab, click **Bulk Distribution**
+2. Select the **Pro-Rata** tab
+3. Enter the **Total Distribution Amount** for the fund this period
+4. Select the **Date**
+5. Click **Allocate Pro-Rata**
+
+The system divides the total proportionally by each active position's `amountInvested`. Cent rounding uses largest-remainder method so allocated amounts sum exactly to the total.
+
+### APR (Admin Only)
+
+Each client position has an optional **APR** field visible only to admins. This field (`adminApr` on `ClientInvestment`) stores the annual percentage rate specific to that client's position. It appears in the Client Positions table on the admin investment detail page. APR is never exposed to the client portal.
+
+### cashDistributed Sync
+
+The `cashDistributed` field on each `ClientInvestment` is kept in sync with Distribution records. When a distribution is created, `cashDistributed` is incremented by the distribution amount within the same database transaction. The client portal reads this field for the "Cash Distributed" KPI card.
+
+### Client Portal: Capital Activity Chart
+
+When a client views an investment with distribution and contribution history, a **Capital Activity** chart appears in the Overview tab. This chart shows:
+- **Gold bars**: monthly distribution amounts
+- **Navy line**: cumulative capital deployed over time
+- **Green line**: cumulative distributions over time
+
+The chart only renders when there are 2 or more months of data. Data comes from the existing contributions and distributions already returned by the portal API.
+
+---
+
 ## Feature Roadmap
 
 | Phase | Name                         | Status      |
@@ -1357,3 +1421,5 @@ Document types (K-1, Tax 1099, Quarterly Report, etc.) are fully customizable by
 - Hero image block enhancements: text alignment (left/center/right), optional tagline with decorative dash, grid pattern overlay, radial gradient overlay, bottom gold gradient divider line
 - PageHero enhancement: rich hero content fields per page (tagline, subtitle, description, grid pattern, bottom divider) editable from admin sidebar. Left-aligned layout matching brand mockup with serif typography, gold italic accents, and HTML support. Blog listing pages pass hero fields through to the shared PageHero component
 - Custom document types: admin-managed document types with add/delete from the Documents page, database-backed types replacing hardcoded enum, warning modal for types with existing documents, dynamic type selectors in upload dialog and filter dropdowns
+- Distribution management: per-client distribution recording with amount/date/type/notes, bulk CSV import matching clients by email, pro-rata fund-level allocation with cent rounding, admin-only APR field per position, `cashDistributed` kept in sync via transactions, client notifications and emails on distribution recording
+- Capital Activity chart on portal investment detail: ComposedChart with monthly distribution bars (gold), cumulative deployed line (navy), and cumulative distributions line (green)

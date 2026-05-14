@@ -8,11 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ResponsiveContainer,
   LineChart,
+  ComposedChart,
   Line,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
+  Legend,
 } from "recharts";
 import { formatCurrency, formatDate, formatDateOnly, formatMonthYear, formatShortDate, cn } from "@/lib/utils";
 
@@ -121,6 +124,56 @@ function generateGrowthData(
   return points;
 }
 
+// Generate capital activity chart data: monthly distributions (bars) + cumulative lines
+function generateDistributionChartData(
+  contributions: { amount: number; date: string }[],
+  distributions: { amount: number; date: string }[]
+) {
+  const months = new Map<
+    string,
+    { monthlyDistribution: number; contributions: number }
+  >();
+
+  for (const c of contributions) {
+    const key = c.date.slice(0, 7); // YYYY-MM
+    const entry = months.get(key) || { monthlyDistribution: 0, contributions: 0 };
+    entry.contributions += Number(c.amount);
+    months.set(key, entry);
+  }
+
+  for (const d of distributions) {
+    const key = d.date.slice(0, 7);
+    const entry = months.get(key) || { monthlyDistribution: 0, contributions: 0 };
+    entry.monthlyDistribution += Number(d.amount);
+    months.set(key, entry);
+  }
+
+  const sorted = [...months.entries()].sort(([a], [b]) => a.localeCompare(b));
+  if (sorted.length < 2) return [];
+
+  let cumulativeDeployed = 0;
+  let cumulativeDistributions = 0;
+
+  return sorted.map(([month, data]) => {
+    cumulativeDeployed += data.contributions;
+    cumulativeDistributions += data.monthlyDistribution;
+
+    // Format month label
+    const [y, m] = month.split("-");
+    const label = new Date(Number(y), Number(m) - 1).toLocaleDateString("en-US", {
+      month: "short",
+      year: "2-digit",
+    });
+
+    return {
+      month: label,
+      monthlyDistribution: data.monthlyDistribution,
+      cumulativeDeployed,
+      cumulativeDistributions,
+    };
+  });
+}
+
 export default function InvestmentDetailPage({
   params,
 }: {
@@ -202,6 +255,12 @@ export default function InvestmentDetailPage({
     data.contributions,
     data.distributions,
     data.currentValue
+  );
+
+  // Capital activity chart data
+  const capitalActivityData = generateDistributionChartData(
+    data.contributions,
+    data.distributions
   );
 
   // Group updates by month/year
@@ -434,6 +493,87 @@ export default function InvestmentDetailPage({
                   </div>
                 )}
               </div>
+
+              {/* Capital Activity Chart */}
+              {capitalActivityData.length >= 2 && (
+                <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
+                  <h3 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-4">
+                    Capital Activity
+                  </h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <ComposedChart data={capitalActivityData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#dfdedd" />
+                      <XAxis
+                        dataKey="month"
+                        tick={{ fontSize: 11, fill: "#888780" }}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 11, fill: "#888780" }}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(val) =>
+                          val >= 1_000_000
+                            ? `$${(val / 1_000_000).toFixed(1)}M`
+                            : `$${(val / 1_000).toFixed(0)}K`
+                        }
+                        width={65}
+                      />
+                      <Tooltip
+                        formatter={(value, name) => [
+                          formatCurrency(Number(value ?? 0)),
+                          name === "monthlyDistribution"
+                            ? "Monthly Distribution"
+                            : name === "cumulativeDeployed"
+                              ? "Cumulative Deployed"
+                              : "Cumulative Distributions",
+                        ]}
+                        contentStyle={{
+                          backgroundColor: "#fff",
+                          border: "1px solid #dfdedd",
+                          borderRadius: "8px",
+                          fontSize: "13px",
+                        }}
+                      />
+                      <Legend
+                        verticalAlign="top"
+                        height={36}
+                        formatter={(value: string) =>
+                          value === "monthlyDistribution"
+                            ? "Monthly Distribution"
+                            : value === "cumulativeDeployed"
+                              ? "Cumulative Deployed"
+                              : "Cumulative Distributions"
+                        }
+                        wrapperStyle={{ fontSize: "12px" }}
+                      />
+                      <Bar
+                        dataKey="monthlyDistribution"
+                        fill="#B07D3A"
+                        radius={[3, 3, 0, 0]}
+                        barSize={20}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="cumulativeDeployed"
+                        stroke="#1A2640"
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 4 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="cumulativeDistributions"
+                        stroke="#3b6d11"
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 4 }}
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
 
               {/* Latest Update */}
               {data.dealRoomUpdates.length > 0 && (
