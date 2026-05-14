@@ -117,7 +117,7 @@ The forgot-password, reset-password, and advisor-accept pages share the same mar
 1. Navigate to `/login` in your browser.
 2. Enter the admin email and password (see [Default Credentials](#default-credentials) below).
 3. If two-factor authentication is enabled on the account, a verification code will be sent to your phone via SMS.
-4. After successful login, admins are redirected to the admin panel at `/admin`.
+4. After successful login, users are redirected based on their role: admins and super-admins go to `/admin`, advisors go to `/advisor/dashboard`, and clients go to `/dashboard`.
 
 ### Admin Layout
 
@@ -1529,3 +1529,4 @@ When an access request is submitted, a branded email is sent to theteam@partners
 - Delete client positions: Super Admin trash icon on Client Positions tab with soft delete and confirmation modal
 - Access request system: login page "Request access" modal with name/email/phone form, database storage, branded email notification to theteam@, admin management page with mark-as-reviewed workflow
 - Login page redesign: split-panel layout with navy branding panel (headline, live stats, disclaimer) and white form panel with multi-step flow (email, password, 2FA) and step indicator dots
+- Role-based login redirect: clients go to `/dashboard`, admins/super-admins go to `/admin`, advisors go to `/advisor/dashboard`

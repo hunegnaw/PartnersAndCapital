@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect, Suspense } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -171,7 +171,15 @@ function LoginContent() {
           setError(result.error === "CredentialsSignin" ? "Invalid email or password" : result.error);
         }
       } else {
-        router.push("/");
+        const session = await getSession();
+        const role = session?.user?.role;
+        if (role === "ADMIN" || role === "SUPER_ADMIN") {
+          router.push("/admin");
+        } else if (role === "ADVISOR") {
+          router.push("/advisor/dashboard");
+        } else {
+          router.push("/dashboard");
+        }
         router.refresh();
       }
     } catch {
@@ -204,7 +212,15 @@ function LoginContent() {
       if (result?.error) {
         setError(result.error === "CredentialsSignin" ? "Invalid verification code" : result.error);
       } else {
-        router.push("/");
+        const session = await getSession();
+        const role = session?.user?.role;
+        if (role === "ADMIN" || role === "SUPER_ADMIN") {
+          router.push("/admin");
+        } else if (role === "ADVISOR") {
+          router.push("/advisor/dashboard");
+        } else {
+          router.push("/dashboard");
+        }
         router.refresh();
       }
     } catch {
