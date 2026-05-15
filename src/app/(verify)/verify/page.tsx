@@ -95,7 +95,6 @@ interface VerificationData {
   status: string;
   legalFirstName: string | null;
   legalLastName: string | null;
-  dateOfBirth: string | null;
   country: string | null;
   address: string | null;
   city: string | null;
@@ -118,10 +117,12 @@ export default function VerifyPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Account status (for bypass toggle)
+  const [accountStatus, setAccountStatus] = useState<string | null>(null);
+
   // Identity fields
   const [legalFirstName, setLegalFirstName] = useState("");
   const [legalLastName, setLegalLastName] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
   const [country, setCountry] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
@@ -154,6 +155,7 @@ export default function VerifyPage() {
       const res = await fetch("/api/portal/verify");
       if (!res.ok) return;
       const data = await res.json();
+      if (data.accountStatus) setAccountStatus(data.accountStatus);
       const v: VerificationData | null = data.verification;
       if (!v) return;
 
@@ -179,8 +181,6 @@ export default function VerifyPage() {
       // Populate fields
       if (v.legalFirstName) setLegalFirstName(v.legalFirstName);
       if (v.legalLastName) setLegalLastName(v.legalLastName);
-      if (v.dateOfBirth)
-        setDateOfBirth(new Date(v.dateOfBirth).toISOString().split("T")[0]);
       if (v.country) setCountry(v.country);
       if (v.address) setAddress(v.address);
       if (v.city) setCity(v.city);
@@ -214,6 +214,27 @@ export default function VerifyPage() {
       });
     }
   }, [sessionName, legalFirstName, legalLastName]);
+
+  async function handleBypass() {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/portal/verify", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bypass: true }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Bypass failed");
+      }
+      window.location.href = "/dashboard";
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to bypass verification");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function handleStartVerification() {
     setSaving(true);
@@ -260,7 +281,6 @@ export default function VerifyPage() {
         body: JSON.stringify({
           legalFirstName,
           legalLastName,
-          dateOfBirth,
           country,
           address,
           city,
@@ -437,14 +457,15 @@ export default function VerifyPage() {
           <GateScreen
             rejectionReason={rejectionReason}
             saving={saving}
+            canBypass={accountStatus === "ACTIVE"}
             onStart={handleStartVerification}
+            onBypass={handleBypass}
           />
         )}
         {screen === "identity" && (
           <IdentityScreen
             legalFirstName={legalFirstName}
             legalLastName={legalLastName}
-            dateOfBirth={dateOfBirth}
             country={country}
             address={address}
             city={city}
@@ -457,7 +478,6 @@ export default function VerifyPage() {
             idFileRef={idFileRef}
             onFirstNameChange={setLegalFirstName}
             onLastNameChange={setLegalLastName}
-            onDobChange={setDateOfBirth}
             onCountryChange={setCountry}
             onAddressChange={setAddress}
             onCityChange={setCity}
@@ -519,12 +539,18 @@ export default function VerifyPage() {
 function GateScreen({
   rejectionReason,
   saving,
+  canBypass,
   onStart,
+  onBypass,
 }: {
   rejectionReason: string | null;
   saving: boolean;
+  canBypass: boolean;
   onStart: () => void;
+  onBypass: () => void;
 }) {
+  const [bypassEnabled, setBypassEnabled] = useState(false);
+
   return (
     <div className="grid lg:grid-cols-2 gap-8">
       <div>
@@ -582,15 +608,52 @@ function GateScreen({
             </div>
           </div>
         </div>
-        <button
-          onClick={onStart}
-          disabled={saving}
-          className="bg-[#1A2640] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2C3E5C] transition-colors disabled:opacity-50 flex items-center gap-2"
-        >
-          {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-          {rejectionReason ? "Restart Verification" : "Begin Verification"}
-          <ChevronRight className="h-4 w-4" />
-        </button>
+        {canBypass && (
+          <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200">
+            <label className="flex items-center justify-between cursor-pointer">
+              <div>
+                <p className="text-sm font-medium text-[#1A2640]">Skip verification</p>
+                <p className="text-xs text-gray-500 mt-0.5">I&apos;m an existing client and want to proceed directly to my portfolio.</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={bypassEnabled}
+                onClick={() => setBypassEnabled(!bypassEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                  bypassEnabled ? "bg-[#B07D3A]" : "bg-gray-300"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    bypassEnabled ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </label>
+          </div>
+        )}
+        {bypassEnabled ? (
+          <button
+            onClick={onBypass}
+            disabled={saving}
+            className="bg-[#B07D3A] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#9A6B2E] transition-colors disabled:opacity-50 flex items-center gap-2"
+          >
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            Go to Portfolio
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        ) : (
+          <button
+            onClick={onStart}
+            disabled={saving}
+            className="bg-[#1A2640] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2C3E5C] transition-colors disabled:opacity-50 flex items-center gap-2"
+          >
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            {rejectionReason ? "Restart Verification" : "Begin Verification"}
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        )}
       </div>
       <div className="bg-white rounded-xl border border-gray-200 p-8">
         <h3 className="text-lg font-semibold text-[#1A2640] mb-6">
@@ -635,7 +698,6 @@ function GateScreen({
 function IdentityScreen({
   legalFirstName,
   legalLastName,
-  dateOfBirth,
   country,
   address,
   city,
@@ -648,7 +710,6 @@ function IdentityScreen({
   idFileRef,
   onFirstNameChange,
   onLastNameChange,
-  onDobChange,
   onCountryChange,
   onAddressChange,
   onCityChange,
@@ -660,7 +721,6 @@ function IdentityScreen({
 }: {
   legalFirstName: string;
   legalLastName: string;
-  dateOfBirth: string;
   country: string;
   address: string;
   city: string;
@@ -673,7 +733,6 @@ function IdentityScreen({
   idFileRef: React.RefObject<HTMLInputElement | null>;
   onFirstNameChange: (v: string) => void;
   onLastNameChange: (v: string) => void;
-  onDobChange: (v: string) => void;
   onCountryChange: (v: string) => void;
   onAddressChange: (v: string) => void;
   onCityChange: (v: string) => void;
@@ -686,7 +745,6 @@ function IdentityScreen({
   const canContinue =
     legalFirstName &&
     legalLastName &&
-    dateOfBirth &&
     country &&
     address &&
     city &&
@@ -728,17 +786,6 @@ function IdentityScreen({
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#1A2640]/20 focus:border-[#1A2640] outline-none"
               />
             </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Date of Birth *
-            </label>
-            <input
-              type="date"
-              value={dateOfBirth}
-              onChange={(e) => onDobChange(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#1A2640]/20 focus:border-[#1A2640] outline-none"
-            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -1322,7 +1369,13 @@ function PendingScreen() {
         </div>
       </div>
       <p className="text-xs text-gray-400">
-        Your advisor has been notified that your verification is in progress.
+        Questions? Contact us at{" "}
+        <a
+          href="mailto:support@partnersandcapital.com"
+          className="text-[#B07D3A] hover:underline"
+        >
+          support@partnersandcapital.com
+        </a>
       </p>
     </div>
   );

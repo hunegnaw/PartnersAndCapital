@@ -3,6 +3,8 @@ import { requireClient } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { createBulkNotifications } from "@/lib/notifications";
+import { sendEmail } from "@/lib/email";
+import { verificationSubmittedEmail, getEmailLogoUrl } from "@/lib/email-templates";
 
 export async function POST(request: Request) {
   try {
@@ -38,7 +40,6 @@ export async function POST(request: Request) {
     const missing: string[] = [];
     if (!verification.legalFirstName) missing.push("Legal first name");
     if (!verification.legalLastName) missing.push("Legal last name");
-    if (!verification.dateOfBirth) missing.push("Date of birth");
     if (!verification.country) missing.push("Country");
     if (!verification.address) missing.push("Address");
     if (!verification.city) missing.push("City");
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
       request,
     });
 
-    // Notify admins
+    // Notify admins via in-app notification
     const admins = await prisma.user.findMany({
       where: {
         role: { in: ["ADMIN", "SUPER_ADMIN"] },
@@ -105,6 +106,27 @@ export async function POST(request: Request) {
           link: `/admin/verifications/${verification.id}`,
         }
       ).catch(console.error);
+    }
+
+    // Send email to P+C about pending verification
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const verificationUrl = `${baseUrl}/admin/verifications/${verification.id}`;
+
+    try {
+      getEmailLogoUrl().then((logoUrl) => {
+        sendEmail({
+          to: "theteam@partnersandcapital.com",
+          subject: `Verification Pending: ${user.name || user.email}`,
+          html: verificationSubmittedEmail({
+            clientName: user.name || "Client",
+            clientEmail: user.email,
+            verificationUrl,
+            logoUrl,
+          }),
+        }).catch(console.error);
+      });
+    } catch {
+      // best-effort
     }
 
     return NextResponse.json({ status: "SUBMITTED" });

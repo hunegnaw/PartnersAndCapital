@@ -3,6 +3,8 @@ import { requireAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { createNotification } from "@/lib/notifications";
+import { sendEmail } from "@/lib/email";
+import { verificationApprovedEmail, getEmailLogoUrl } from "@/lib/email-templates";
 
 export async function GET(
   request: Request,
@@ -102,6 +104,33 @@ export async function PATCH(
       where: { id },
       data: updateData,
     });
+
+    // On approval, set user account to ACTIVE and send login email
+    if (action === "approve") {
+      await prisma.user.update({
+        where: { id: verification.userId },
+        data: { accountStatus: "ACTIVE" },
+      });
+
+      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+      const loginUrl = `${baseUrl}/login`;
+
+      try {
+        getEmailLogoUrl().then((logoUrl) => {
+          sendEmail({
+            to: verification.user.email,
+            subject: "Your Portfolio Is Ready \u2014 Partners + Capital",
+            html: verificationApprovedEmail({
+              userName: verification.user.name || "Investor",
+              loginUrl,
+              logoUrl,
+            }),
+          }).catch(console.error);
+        });
+      } catch {
+        // best-effort
+      }
+    }
 
     await createAuditLog({
       userId: admin.id,

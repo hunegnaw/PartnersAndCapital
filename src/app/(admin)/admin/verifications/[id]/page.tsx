@@ -26,7 +26,6 @@ interface VerificationDetail {
   status: string;
   legalFirstName: string | null;
   legalLastName: string | null;
-  dateOfBirth: string | null;
   country: string | null;
   address: string | null;
   city: string | null;
@@ -245,14 +244,6 @@ export default function AdminVerificationDetailPage({
               <DetailRow
                 label="Legal Name"
                 value={`${verification.legalFirstName || ""} ${verification.legalLastName || ""}`}
-              />
-              <DetailRow
-                label="Date of Birth"
-                value={
-                  verification.dateOfBirth
-                    ? new Date(verification.dateOfBirth).toLocaleDateString()
-                    : "—"
-                }
               />
               <DetailRow
                 label="Country"

@@ -314,6 +314,49 @@ export function onboardingEmail({
   return emailWrapper(content, logoUrl);
 }
 
+interface VerificationApprovedEmailParams {
+  userName: string;
+  loginUrl: string;
+  logoUrl?: string | null;
+}
+
+export function verificationApprovedEmail({
+  userName,
+  loginUrl,
+  logoUrl,
+}: VerificationApprovedEmailParams): string {
+  const content = `
+    <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">You&rsquo;re all set.</h1>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Hello ${userName},</p>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Your identity and accreditation verification has been approved. Your portfolio is now ready for you.</p>
+    ${emailButton("Log In to Your Portal", loginUrl)}
+    <p style="margin: 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">If you have any questions, reach out to your contact at Partners + Capital.</p>`;
+
+  return emailWrapper(content, logoUrl);
+}
+
+interface VerificationSubmittedEmailParams {
+  clientName: string;
+  clientEmail: string;
+  verificationUrl: string;
+  logoUrl?: string | null;
+}
+
+export function verificationSubmittedEmail({
+  clientName,
+  clientEmail,
+  verificationUrl,
+  logoUrl,
+}: VerificationSubmittedEmailParams): string {
+  const content = `
+    <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">New Verification Pending Review</h1>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;"><strong>${clientName}</strong> (${clientEmail}) has completed their identity and accreditation verification and is awaiting review.</p>
+    ${emailButton("Review Verification", verificationUrl)}
+    <p style="margin: 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">Please review and approve or reject to grant portal access.</p>`;
+
+  return emailWrapper(content, logoUrl);
+}
+
 export function welcomeEmail({
   userName,
   resetUrl,

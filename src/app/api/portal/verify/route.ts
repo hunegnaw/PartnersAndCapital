@@ -7,11 +7,18 @@ export async function GET() {
     const user = await requireClient();
     if (user instanceof NextResponse) return user;
 
-    const verification = await prisma.verification.findUnique({
-      where: { userId: user.id },
-    });
+    const [verification, userRecord] = await Promise.all([
+      prisma.verification.findUnique({ where: { userId: user.id } }),
+      prisma.user.findUnique({
+        where: { id: user.id },
+        select: { accountStatus: true },
+      }),
+    ]);
 
-    return NextResponse.json({ verification: verification || null });
+    return NextResponse.json({
+      verification: verification || null,
+      accountStatus: userRecord?.accountStatus || null,
+    });
   } catch (error) {
     console.error("Error fetching verification:", error);
     return NextResponse.json(
@@ -47,7 +54,6 @@ export async function PATCH(request: Request) {
     const {
       legalFirstName,
       legalLastName,
-      dateOfBirth,
       country,
       address,
       city,
@@ -56,13 +62,40 @@ export async function PATCH(request: Request) {
       accreditationBasis,
       accreditationDocType,
       status,
+      bypass,
     } = body;
+
+    // Bypass: existing clients (ACTIVE) can skip verification
+    if (bypass === true) {
+      const userRecord = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { accountStatus: true },
+      });
+      if (userRecord?.accountStatus !== "ACTIVE") {
+        return NextResponse.json(
+          { error: "Bypass is only available for existing clients" },
+          { status: 403 }
+        );
+      }
+      const verification = await prisma.verification.upsert({
+        where: { userId: user.id },
+        create: {
+          userId: user.id,
+          status: "APPROVED",
+          reviewNotes: "Bypassed by existing client",
+        },
+        update: {
+          status: "APPROVED",
+          reviewNotes: "Bypassed by existing client",
+          reviewedAt: new Date(),
+        },
+      });
+      return NextResponse.json({ verification });
+    }
 
     const data: Record<string, unknown> = {};
     if (legalFirstName !== undefined) data.legalFirstName = legalFirstName;
     if (legalLastName !== undefined) data.legalLastName = legalLastName;
-    if (dateOfBirth !== undefined)
-      data.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
     if (country !== undefined) data.country = country;
     if (address !== undefined) data.address = address;
     if (city !== undefined) data.city = city;
