@@ -6,6 +6,7 @@ import { getImpersonationContext } from "@/lib/impersonation";
 import { ImpersonationBanner } from "@/components/impersonation-banner";
 import { prisma } from "@/lib/prisma";
 import { getOrganization } from "@/lib/organization";
+import { LogOut } from "lucide-react";
 
 const investorNav = [
   { href: "/dashboard", label: "Dashboard" },
@@ -138,6 +139,13 @@ export default async function PortalLayout({
               {initials}
             </div>
           )}
+          <Link
+            href="/signout"
+            title="Log out"
+            className="text-white/40 hover:text-white transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+          </Link>
         </div>
       </header>
 
