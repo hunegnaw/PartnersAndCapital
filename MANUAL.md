@@ -208,6 +208,8 @@ All public pages share a common layout with:
 | `/blog` | Blog listing -- 3-column grid, 9 posts per page, category/tag filters |
 | `/blog/[slug]` | Individual blog post with hero image, prose content, related posts |
 | `/contact` | Contact page -- rendered from CMS page builder |
+| `/privacy-policy` | Privacy Policy -- TCPA/carrier-compliant privacy disclosures including SMS program terms |
+| `/terms-of-use` | Terms of Use -- service terms including SMS program consent language and carrier disclaimers |
 | `/[slug]` | Dynamic CMS pages -- any published page by slug |
 
 ### Homepage
@@ -489,7 +491,17 @@ The distributions page at `/capital-activity` shows contribution and distributio
 
 ### Settings
 
-The settings page at `/settings` allows users to update their profile information and manage two-factor authentication.
+The settings page at `/settings` allows users to update their profile information, profile photo, and manage two-factor authentication.
+
+#### Profile Avatar
+
+Clients can upload a profile photo that replaces the default initials avatar in the portal header and settings page:
+
+- **Upload:** Click "Upload Photo" in the Profile section. Supported formats: JPEG, PNG, WebP, GIF (max 2MB).
+- **Preview:** The uploaded image displays as a circular avatar in the settings page and in the portal header.
+- **Remove:** Click "Remove" next to the upload button to revert to the default initials avatar.
+- **Persistence:** The avatar is stored on the server and persists across sessions.
+- **Impersonation:** When an admin views as a client, the client's avatar (or initials) is displayed in the header.
 
 ---
 
@@ -1411,15 +1423,16 @@ Prospective clients can request access to the investor portal directly from the 
 
 1. On the login page, click **"Not a client? Request access"** below the login form.
 2. A dialog opens with fields for Full Name (required), Email (required), and Phone (optional).
-3. Submit the form. A confirmation message appears on success.
-4. The request is saved to the database and an email notification is sent to theteam@partnersandcapital.com.
-5. Rate limited to 3 requests per hour per IP address.
+3. Below the phone field, an **SMS consent checkbox** (unchecked by default) allows users to opt in to receive text messages. The checkbox includes TCPA-compliant disclosure text with message frequency, data rates, STOP/HELP instructions, and links to the Privacy Policy and Terms of Use (open in new tabs).
+4. Click **"Yes, Sign Me Up!"** to submit. A confirmation message appears on success.
+5. The request is saved to the database (including SMS consent status) and an email notification is sent to theteam@partnersandcapital.com showing whether the user opted in.
+6. Rate limited to 3 requests per hour per IP address.
 
 ### Admin Management
 
 Navigate to **Manage > Access Requests** in the admin sidebar. The page shows:
 
-- **Table columns:** Name, Email, Phone, Status (PENDING/REVIEWED), Date, Actions
+- **Table columns:** Name, Email, Phone, SMS (Opted In badge or --), Status (PENDING/REVIEWED), Date, Actions
 - **Filter:** Filter by status (All/Pending/Reviewed)
 - **Mark Reviewed:** Click "Mark Reviewed" on any pending request to update its status
 - **Pagination:** Standard pagination for large lists
@@ -1530,3 +1543,7 @@ When an access request is submitted, a branded email is sent to theteam@partners
 - Access request system: login page "Request access" modal with name/email/phone form, database storage, branded email notification to theteam@, admin management page with mark-as-reviewed workflow
 - Login page redesign: split-panel layout with navy branding panel (headline, live stats, disclaimer) and white form panel with multi-step flow (email, password, 2FA) and step indicator dots
 - Role-based login redirect: clients go to `/dashboard`, admins/super-admins go to `/admin`, advisors go to `/advisor/dashboard`
+- Client profile avatar upload: clients can upload a profile photo (JPEG, PNG, WebP, GIF, max 2MB) from the settings page, displayed in the portal header and settings page with initials fallback
+- SMS opt-in consent: TCPA-compliant SMS consent checkbox on the access request form with carrier-required disclosures (message frequency, data rates, STOP/HELP instructions), smsConsent field stored in database, consent status shown in admin notification email and admin access requests table
+- Privacy Policy page (`/privacy-policy`): carrier-compliant privacy policy with SMS program terms, mobile number non-sharing statement, data collection/usage/cookies/security sections
+- Terms of Use page (`/terms-of-use`): carrier-compliant terms including SMS program description, opt-out/help instructions, supported carriers disclaimer, IP, limitation of liability, and governing law

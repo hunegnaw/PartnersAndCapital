@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, email, phone } = await request.json();
+    const { name, email, phone, smsConsent } = await request.json();
 
     if (!name || !email) {
       return NextResponse.json(
@@ -42,6 +42,7 @@ export async function POST(request: Request) {
         name,
         email,
         phone: phone || null,
+        smsConsent: smsConsent === true,
         ipAddress: ip,
       },
     });
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
         sendEmail({
           to: "theteam@partnersandcapital.com",
           subject: `New Access Request from ${name}`,
-          html: accessRequestEmail({ name, email, phone: phone || null, logoUrl }),
+          html: accessRequestEmail({ name, email, phone: phone || null, smsConsent: smsConsent === true, logoUrl }),
         }).catch(console.error);
       });
     } catch {

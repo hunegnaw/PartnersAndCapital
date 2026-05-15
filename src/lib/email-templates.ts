@@ -211,6 +211,7 @@ interface AccessRequestEmailParams {
   name: string;
   email: string;
   phone: string | null;
+  smsConsent?: boolean;
   logoUrl?: string | null;
 }
 
@@ -218,8 +219,12 @@ export function accessRequestEmail({
   name,
   email,
   phone,
+  smsConsent,
   logoUrl,
 }: AccessRequestEmailParams): string {
+  const smsConsentHtml = `<p style="margin: 0 0 8px 0; font-size: 13px; font-weight: 600; color: #1a1a18; text-transform: uppercase; letter-spacing: 0.05em;">SMS Consent</p>
+          <p style="margin: 0; font-size: 15px; color: ${smsConsent ? "#3b6d11" : "#5f5e5a"};">${smsConsent ? "Opted In \u2713" : "Not opted in"}</p>`;
+
   const content = `
     <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">New Access Request</h1>
     <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">A new access request has been submitted through the investor portal login page.</p>
@@ -229,9 +234,10 @@ export function accessRequestEmail({
           <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: 600; color: #1a1a18; text-transform: uppercase; letter-spacing: 0.05em;">Name</p>
           <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a;">${name}</p>
           <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: 600; color: #1a1a18; text-transform: uppercase; letter-spacing: 0.05em;">Email</p>
-          <p style="margin: 0 0 ${phone ? "16px" : "0"} 0; font-size: 15px; color: #5f5e5a;"><a href="mailto:${email}" style="color: #185fa5; text-decoration: none;">${email}</a></p>
+          <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a;"><a href="mailto:${email}" style="color: #185fa5; text-decoration: none;">${email}</a></p>
           ${phone ? `<p style="margin: 0 0 8px 0; font-size: 13px; font-weight: 600; color: #1a1a18; text-transform: uppercase; letter-spacing: 0.05em;">Phone</p>
-          <p style="margin: 0; font-size: 15px; color: #5f5e5a;">${phone}</p>` : ""}
+          <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a;">${phone}</p>` : ""}
+          ${smsConsentHtml}
         </td>
       </tr>
     </table>

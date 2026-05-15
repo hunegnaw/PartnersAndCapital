@@ -29,6 +29,7 @@ interface AccessRequest {
   name: string
   email: string
   phone: string | null
+  smsConsent: boolean
   status: string
   ipAddress: string | null
   createdAt: string
@@ -144,6 +145,7 @@ export default function AdminAccessRequestsPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead className="hidden md:table-cell">Phone</TableHead>
+                <TableHead className="hidden md:table-cell">SMS</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="hidden md:table-cell">Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -156,6 +158,7 @@ export default function AdminAccessRequestsPage() {
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-40" /></TableCell>
                     <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-28" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
@@ -163,7 +166,7 @@ export default function AdminAccessRequestsPage() {
                 ))
               ) : requests.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                     <UserPlus className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
                     <p>No access requests yet.</p>
                   </TableCell>
@@ -174,6 +177,13 @@ export default function AdminAccessRequestsPage() {
                     <TableCell className="font-medium">{req.name}</TableCell>
                     <TableCell>{req.email}</TableCell>
                     <TableCell className="hidden md:table-cell">{req.phone || "--"}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {req.smsConsent ? (
+                        <Badge variant="default" className="bg-[#eaf3de] text-[#3b6d11] hover:bg-[#eaf3de]">Opted In</Badge>
+                      ) : (
+                        <span className="text-muted-foreground">--</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Badge variant={req.status === "REVIEWED" ? "default" : "secondary"}>
                         {req.status}

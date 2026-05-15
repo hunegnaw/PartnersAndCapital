@@ -134,6 +134,7 @@ function LoginContent() {
   const [accessName, setAccessName] = useState("");
   const [accessEmail, setAccessEmail] = useState("");
   const [accessPhone, setAccessPhone] = useState("");
+  const [accessSmsConsent, setAccessSmsConsent] = useState(false);
   const [accessLoading, setAccessLoading] = useState(false);
   const [accessError, setAccessError] = useState("");
   const [accessSuccess, setAccessSuccess] = useState(false);
@@ -259,6 +260,7 @@ function LoginContent() {
           name: accessName,
           email: accessEmail,
           phone: accessPhone || undefined,
+          smsConsent: accessSmsConsent,
         }),
       });
 
@@ -268,6 +270,7 @@ function LoginContent() {
       }
 
       setAccessSuccess(true);
+      setAccessSmsConsent(false);
     } catch (err) {
       setAccessError(err instanceof Error ? err.message : "An unexpected error occurred");
     } finally {
@@ -532,6 +535,7 @@ function LoginContent() {
               setAccessName("");
               setAccessEmail("");
               setAccessPhone("");
+              setAccessSmsConsent(false);
             }}
             className="w-full py-2.5 text-[12px] text-[#5f5e5a] border border-[#eee] rounded-md hover:border-[#B07D3A] hover:text-[#7A5520] transition-colors"
           >
@@ -607,10 +611,47 @@ function LoginContent() {
                 />
               </div>
 
+              {/* SMS Consent */}
+              <div className="rounded-md border border-[#dfdedd] bg-[#fafaf8] p-3">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={accessSmsConsent}
+                    onChange={(e) => setAccessSmsConsent(e.target.checked)}
+                    disabled={accessLoading}
+                    className="mt-0.5 h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A] shrink-0"
+                  />
+                  <span className="text-xs text-[#5f5e5a] leading-relaxed">
+                    I agree to receive account updates, investment notifications, and verification
+                    codes via SMS from Partners + Capital, LLC. Message frequency varies (up to
+                    5 msgs/month). Message and data rates may apply. Reply STOP to opt out, HELP
+                    for help. View our{" "}
+                    <a
+                      href="/privacy-policy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#185fa5] underline hover:text-[#B07D3A]"
+                    >
+                      Privacy Policy
+                    </a>{" "}
+                    and{" "}
+                    <a
+                      href="/terms-of-use"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#185fa5] underline hover:text-[#B07D3A]"
+                    >
+                      Terms of Use
+                    </a>
+                    .
+                  </span>
+                </label>
+              </div>
+
               <DialogFooter>
                 <Button type="submit" disabled={accessLoading}>
                   {accessLoading && <Loader2 className="animate-spin" />}
-                  Submit Request
+                  Yes, Sign Me Up!
                 </Button>
               </DialogFooter>
             </form>
