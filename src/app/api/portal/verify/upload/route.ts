@@ -64,6 +64,23 @@ export async function POST(request: Request) {
       update: updateData,
     });
 
+    // Also create a Document vault record for accreditation uploads
+    if (docCategory === "accreditation") {
+      const accreditDocType = formData.get("accreditationDocType") as string;
+      await prisma.document.create({
+        data: {
+          name: `Accreditation Letter - ${accreditDocType || "Verification"}`,
+          fileName: file.name,
+          filePath: result.filePath,
+          fileSize: file.size,
+          mimeType: file.type,
+          type: "ACCREDITATION_LETTER",
+          userId: user.id,
+          year: new Date().getFullYear(),
+        },
+      });
+    }
+
     return NextResponse.json({
       fileName: file.name,
       filePath: result.filePath,

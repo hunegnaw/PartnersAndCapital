@@ -560,7 +560,7 @@ function LoginContent() {
             <div className="flex flex-col items-center py-4">
               <CheckCircle className="h-10 w-10 text-green-600 mb-3" />
               <p className="text-sm text-muted-foreground text-center">
-                Thank you, {accessName}. We&apos;ll contact you at {accessEmail}.
+                We&apos;ve sent setup instructions to {accessEmail}. Check your email to set your password and complete verification.
               </p>
             </div>
           ) : (

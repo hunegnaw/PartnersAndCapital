@@ -252,6 +252,68 @@ interface WelcomeEmailParams {
   logoUrl?: string | null;
 }
 
+interface OnboardingEmailParams {
+  userName: string;
+  resetUrl: string;
+  logoUrl?: string | null;
+}
+
+export function onboardingEmail({
+  userName,
+  resetUrl,
+  logoUrl,
+}: OnboardingEmailParams): string {
+  const stepCircle = (num: number) =>
+    `<td style="width: 32px; height: 32px; background-color: #1A2640; border-radius: 50%; text-align: center; vertical-align: middle; color: #ffffff; font-size: 14px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">${num}</td>`;
+
+  const content = `
+    <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">Welcome to Partners + Capital</h1>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Hello ${userName},</p>
+    <p style="margin: 0 0 24px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Your investor portal account is ready. Complete these three steps to get started:</p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px 0;">
+      <tr>
+        <td style="padding: 14px 0; border-bottom: 1px solid #e8e5e0;">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            ${stepCircle(1)}
+            <td style="padding-left: 14px;">
+              <p style="margin: 0 0 2px 0; font-size: 15px; font-weight: 600; color: #1a1a18;">Set your password</p>
+              <p style="margin: 0; font-size: 13px; color: #5f5e5a;">Use the button below to create a secure password.</p>
+            </td>
+          </tr></table>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 14px 0; border-bottom: 1px solid #e8e5e0;">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            ${stepCircle(2)}
+            <td style="padding-left: 14px;">
+              <p style="margin: 0 0 2px 0; font-size: 15px; font-weight: 600; color: #1a1a18;">Complete identity verification</p>
+              <p style="margin: 0; font-size: 13px; color: #5f5e5a;">Provide your legal name, address, and government-issued ID.</p>
+            </td>
+          </tr></table>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 14px 0;">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            ${stepCircle(3)}
+            <td style="padding-left: 14px;">
+              <p style="margin: 0 0 2px 0; font-size: 15px; font-weight: 600; color: #1a1a18;">Verify accredited investor status</p>
+              <p style="margin: 0; font-size: 13px; color: #5f5e5a;">Upload supporting documentation to confirm your qualification.</p>
+            </td>
+          </tr></table>
+        </td>
+      </tr>
+    </table>
+
+    ${emailButton("Set Your Password", resetUrl)}
+    <p style="margin: 0 0 8px 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">This link expires in 24 hours.</p>
+    <p style="margin: 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">Verification is required before portfolio access.</p>`;
+
+  return emailWrapper(content, logoUrl);
+}
+
 export function welcomeEmail({
   userName,
   resetUrl,
@@ -261,6 +323,7 @@ export function welcomeEmail({
     <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">Welcome to Partners + Capital</h1>
     <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Hello ${userName},</p>
     <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Your investor portal account has been created by your team at Partners + Capital. To get started, please set your password using the button below.</p>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">After setting your password, you&rsquo;ll need to complete a short identity and accreditation verification before accessing your portfolio.</p>
     ${emailButton("Set Your Password", resetUrl)}
     <p style="margin: 0 0 8px 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">This link expires in 1 hour.</p>
     <p style="margin: 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">If you have any questions, reach out to your contact at Partners + Capital.</p>`;

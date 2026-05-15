@@ -6,14 +6,15 @@ import {
   Check,
   Upload,
   FileText,
-  Shield,
-  User,
+  Lock,
+  Zap,
   ClipboardCheck,
-  Clock,
+  Hourglass,
   X,
   Loader2,
   ChevronRight,
   ChevronLeft,
+  Circle,
 } from "lucide-react";
 
 type Screen = "gate" | "identity" | "accreditation" | "review" | "pending";
@@ -49,7 +50,7 @@ const COUNTRIES = [
 
 const ID_DOC_TYPES = [
   { value: "PASSPORT", label: "Passport" },
-  { value: "DRIVERS_LICENSE", label: "Driver's License" },
+  { value: "DRIVERS_LICENSE", label: "Driver\u2019s license" },
   { value: "NATIONAL_ID", label: "National ID" },
 ];
 
@@ -87,7 +88,6 @@ const ACCREDITATION_DOC_TYPES = [
   "Tax Return",
   "Pay Stubs",
   "1099",
-  "Bank Statement",
 ];
 
 interface VerificationData {
@@ -293,6 +293,7 @@ export default function VerifyPage() {
         const formData = new FormData();
         formData.append("file", accreditationFile);
         formData.append("category", "accreditation");
+        formData.append("accreditationDocType", accreditationDocType);
         const uploadRes = await fetch("/api/portal/verify/upload", {
           method: "POST",
           body: formData,
@@ -487,11 +488,7 @@ export default function VerifyPage() {
           <ReviewScreen
             legalFirstName={legalFirstName}
             legalLastName={legalLastName}
-            dateOfBirth={dateOfBirth}
             country={country}
-            address={address}
-            city={city}
-            zipCode={zipCode}
             idDocumentType={idDocumentType}
             idDocumentName={idDocumentName}
             accreditationBasis={accreditationBasis}
@@ -538,49 +535,49 @@ function GateScreen({
           </div>
         )}
         <span className="inline-block bg-[#B07D3A]/10 text-[#B07D3A] text-xs font-semibold px-3 py-1 rounded-full mb-4 tracking-wide uppercase">
-          Required
+          One-time verification
         </span>
         <h1 className="text-3xl font-bold text-[#1A2640] mb-4">
-          Verify Your Identity & Accreditation
+          Before we hand over the keys.
         </h1>
         <p className="text-gray-600 mb-8 leading-relaxed">
-          Before you can access your investment portal, we need to verify your
-          identity and accredited investor status per SEC Regulation D 506(c)
-          requirements.
+          Partners + Capital is required to verify your identity and accredited
+          investor status before granting access to your portfolio. This is a
+          one-time step.
         </p>
-        <div className="space-y-4 mb-8">
+        <div className="space-y-5 mb-8">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 w-8 h-8 rounded-full bg-[#1A2640]/5 flex items-center justify-center flex-shrink-0">
-              <User className="h-4 w-4 text-[#1A2640]" />
+            <div className="mt-0.5 w-9 h-9 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+              <Lock className="h-4 w-4 text-green-700" />
             </div>
             <div>
-              <p className="font-medium text-[#1A2640]">Identity Verification</p>
+              <p className="font-medium text-[#1A2640]">Your data stays secure</p>
               <p className="text-sm text-gray-500">
-                Government-issued ID and personal information
+                Documents are encrypted with AES-256 and stored securely by
+                Partners + Capital.
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 w-8 h-8 rounded-full bg-[#1A2640]/5 flex items-center justify-center flex-shrink-0">
-              <Shield className="h-4 w-4 text-[#1A2640]" />
+            <div className="mt-0.5 w-9 h-9 rounded-full bg-[#B07D3A]/10 flex items-center justify-center flex-shrink-0">
+              <Zap className="h-4 w-4 text-[#B07D3A]" />
             </div>
             <div>
-              <p className="font-medium text-[#1A2640]">
-                Accredited Investor Status
-              </p>
+              <p className="font-medium text-[#1A2640]">Takes under 5 minutes</p>
               <p className="text-sm text-gray-500">
-                Documentation confirming your qualification
+                Most investors complete this in a single sitting.
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 w-8 h-8 rounded-full bg-[#1A2640]/5 flex items-center justify-center flex-shrink-0">
-              <ClipboardCheck className="h-4 w-4 text-[#1A2640]" />
+            <div className="mt-0.5 w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <ClipboardCheck className="h-4 w-4 text-blue-700" />
             </div>
             <div>
-              <p className="font-medium text-[#1A2640]">Manual Review</p>
+              <p className="font-medium text-[#1A2640]">Required by law</p>
               <p className="text-sm text-gray-500">
-                Our team reviews and approves your verification
+                Reg D 506(c) and OFAC sanctions screening are federal
+                requirements.
               </p>
             </div>
           </div>
@@ -591,34 +588,40 @@ function GateScreen({
           className="bg-[#1A2640] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#2C3E5C] transition-colors disabled:opacity-50 flex items-center gap-2"
         >
           {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-          {rejectionReason ? "Restart Verification" : "Start Verification"}
+          {rejectionReason ? "Restart Verification" : "Begin Verification"}
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
       <div className="bg-white rounded-xl border border-gray-200 p-8">
         <h3 className="text-lg font-semibold text-[#1A2640] mb-6">
-          What We Verify
+          What we verify
         </h3>
-        <div className="space-y-4">
+        <div className="space-y-3 mb-6">
           {[
-            "Government-issued photo identification",
-            "Legal name and date of birth",
-            "Residential address verification",
-            "OFAC / sanctions screening",
-            "Accredited investor qualification",
-            "Supporting financial documentation",
+            "Identity confirmation",
+            "Sanctions screening",
+            "Accredited investor status",
           ].map((item) => (
             <div key={item} className="flex items-center gap-3">
-              <Check className="h-4 w-4 text-[#B07D3A] flex-shrink-0" />
+              <ChevronRight className="h-4 w-4 text-[#B07D3A] flex-shrink-0" />
               <span className="text-sm text-gray-700">{item}</span>
             </div>
           ))}
         </div>
-        <div className="mt-8 pt-6 border-t border-gray-100">
+        <div className="space-y-3 mb-6">
+          {[
+            "No account numbers needed",
+            "No credit check",
+          ].map((item) => (
+            <div key={item} className="flex items-center gap-3">
+              <span className="w-4 text-center text-gray-400 flex-shrink-0">&mdash;</span>
+              <span className="text-sm text-gray-400">{item}</span>
+            </div>
+          ))}
+        </div>
+        <div className="pt-6 border-t border-gray-100">
           <p className="text-xs text-gray-400">
-            Verification is processed by Partners + Capital in accordance with
-            SEC regulations. Documents are encrypted with AES-256 and stored
-            securely.
+            Verification is processed and stored securely by Partners + Capital.
           </p>
         </div>
       </div>
@@ -694,10 +697,10 @@ function IdentityScreen({
   return (
     <div>
       <h2 className="text-2xl font-bold text-[#1A2640] mb-2">
-        Identity Verification
+        Confirm your identity
       </h2>
       <p className="text-gray-500 mb-8">
-        Provide your legal name and government-issued identification.
+        Enter your legal name and address as they appear on your government-issued ID.
       </p>
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Left: Form */}
@@ -795,28 +798,22 @@ function IdentityScreen({
         {/* Right: ID Upload */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-base font-semibold text-[#1A2640] mb-4">
-            Government-Issued ID *
+            Upload your ID *
           </h3>
-          <div className="space-y-3 mb-6">
+          <div className="flex flex-wrap gap-2 mb-6">
             {ID_DOC_TYPES.map((dt) => (
-              <label
+              <button
                 key={dt.value}
-                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                type="button"
+                onClick={() => onIdDocTypeChange(dt.value)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                   idDocumentType === dt.value
-                    ? "border-[#1A2640] bg-[#1A2640]/5"
-                    : "border-gray-200 hover:border-gray-300"
+                    ? "bg-[#1A2640] text-white border-[#1A2640]"
+                    : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
                 }`}
               >
-                <input
-                  type="radio"
-                  name="idDocType"
-                  value={dt.value}
-                  checked={idDocumentType === dt.value}
-                  onChange={(e) => onIdDocTypeChange(e.target.value)}
-                  className="accent-[#1A2640]"
-                />
-                <span className="text-sm font-medium">{dt.label}</span>
-              </label>
+                {dt.label}
+              </button>
             ))}
           </div>
 
@@ -868,8 +865,8 @@ function IdentityScreen({
             )}
           </div>
 
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500">
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+            <p className="text-xs text-blue-700">
               <strong>OFAC Screening:</strong> All investors are screened
               against the U.S. Treasury OFAC sanctions list as required by
               federal law.
@@ -893,7 +890,7 @@ function IdentityScreen({
           className="bg-[#1A2640] text-white px-6 py-2.5 rounded-lg font-medium hover:bg-[#2C3E5C] transition-colors disabled:opacity-50 flex items-center gap-2"
         >
           {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-          Continue
+          Continue to accreditation
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
@@ -939,11 +936,10 @@ function AccreditationScreen({
   return (
     <div>
       <h2 className="text-2xl font-bold text-[#1A2640] mb-2">
-        Accredited Investor Verification
+        Confirm accredited investor status
       </h2>
       <p className="text-gray-500 mb-8">
-        Select your basis for accredited investor status and provide supporting
-        documentation.
+        Select the basis for your accreditation and upload supporting documentation.
       </p>
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Left: Accreditation basis */}
@@ -983,7 +979,7 @@ function AccreditationScreen({
         {/* Right: Document upload */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-base font-semibold text-[#1A2640] mb-4">
-            Supporting Documentation *
+            Supporting documentation *
           </h3>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Document Type
@@ -1057,11 +1053,10 @@ function AccreditationScreen({
             )}
           </div>
 
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500">
-              <strong>Privacy:</strong> Your documents are encrypted with
-              AES-256 and only accessible to authorized compliance personnel.
-              They will not be shared with third parties.
+          <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-100">
+            <p className="text-xs text-green-800">
+              <strong>Your documents stay private.</strong> Documents are encrypted
+              with AES-256 and stored securely.
             </p>
           </div>
         </div>
@@ -1082,7 +1077,7 @@ function AccreditationScreen({
           className="bg-[#1A2640] text-white px-6 py-2.5 rounded-lg font-medium hover:bg-[#2C3E5C] transition-colors disabled:opacity-50 flex items-center gap-2"
         >
           {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-          Continue
+          Review & submit
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
@@ -1096,11 +1091,7 @@ function AccreditationScreen({
 function ReviewScreen({
   legalFirstName,
   legalLastName,
-  dateOfBirth,
   country,
-  address,
-  city,
-  zipCode,
   idDocumentType,
   idDocumentName,
   accreditationBasis,
@@ -1120,11 +1111,7 @@ function ReviewScreen({
 }: {
   legalFirstName: string;
   legalLastName: string;
-  dateOfBirth: string;
   country: string;
-  address: string;
-  city: string;
-  zipCode: string;
   idDocumentType: string;
   idDocumentName: string;
   accreditationBasis: string;
@@ -1173,12 +1160,10 @@ function ReviewScreen({
             </button>
           </div>
           <div className="space-y-3 text-sm">
-            <Row label="Legal Name" value={`${legalFirstName} ${legalLastName}`} />
-            <Row label="Date of Birth" value={dateOfBirth} />
+            <Row label="Full name" value={`${legalFirstName} ${legalLastName}`} />
             <Row label="Country" value={country} />
-            <Row label="Address" value={`${address}, ${city} ${zipCode}`} />
-            <Row label="ID Type" value={idTypeLabel} />
-            <Row label="ID Document" value={idDocumentName || "Uploaded"} />
+            <Row label="ID type" value={`${idTypeLabel}`} badge={idDocumentName ? "uploaded \u2713" : undefined} />
+            <Row label="OFAC screening" value="Will run on submit" muted />
           </div>
         </div>
 
@@ -1196,12 +1181,9 @@ function ReviewScreen({
             </button>
           </div>
           <div className="space-y-3 text-sm">
-            <Row label="Accreditation Basis" value={basisLabel} />
-            <Row label="Document Type" value={accreditationDocType} />
-            <Row
-              label="Document"
-              value={accreditationDocName || "Uploaded"}
-            />
+            <Row label="Basis" value={basisLabel} />
+            <Row label="Documentation" value={accreditationDocType} badge={accreditationDocName ? "uploaded \u2713" : undefined} />
+            <Row label="P+C receives" value="Status only" muted />
           </div>
         </div>
       </div>
@@ -1266,19 +1248,22 @@ function ReviewScreen({
           className="bg-[#B07D3A] text-white px-6 py-2.5 rounded-lg font-medium hover:bg-[#9A6B2E] transition-colors disabled:opacity-50 flex items-center gap-2"
         >
           {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          Submit Verification
+          Submit verification
         </button>
       </div>
     </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value, badge, muted }: { label: string; value: string; badge?: string; muted?: boolean }) {
   return (
-    <div className="flex justify-between">
+    <div className="flex justify-between items-center">
       <span className="text-gray-500">{label}</span>
-      <span className="font-medium text-[#1A2640] text-right max-w-[60%] truncate">
+      <span className={`font-medium text-right max-w-[60%] truncate flex items-center gap-2 ${muted ? "text-gray-400 font-normal italic" : "text-[#1A2640]"}`}>
         {value}
+        {badge && (
+          <span className="text-xs text-green-600 font-normal">{badge}</span>
+        )}
       </span>
     </div>
   );
@@ -1288,37 +1273,47 @@ function Row({ label, value }: { label: string; value: string }) {
    SCREEN 5: PENDING
    ============================================================ */
 function PendingScreen() {
+  const steps = [
+    { label: "Documents received", status: "done" as const },
+    { label: "OFAC screening initiated", status: "done" as const },
+    { label: "Accreditation review", status: "pending" as const },
+    { label: "Portfolio access granted", status: "waiting" as const },
+  ];
+
   return (
     <div className="max-w-xl mx-auto text-center py-12">
       <div className="w-16 h-16 rounded-full bg-[#B07D3A]/10 flex items-center justify-center mx-auto mb-6">
-        <Clock className="h-8 w-8 text-[#B07D3A]" />
+        <Hourglass className="h-8 w-8 text-[#B07D3A]" />
       </div>
       <h2 className="text-2xl font-bold text-[#1A2640] mb-3">
-        Verification Submitted
+        Verification submitted.
       </h2>
       <p className="text-gray-500 mb-8">
-        Thank you for submitting your verification. Our team will review your
-        documents and notify you once the process is complete.
+        Your documents are currently under review. We&apos;ll notify you as soon
+        as the process is complete.
       </p>
       <div className="bg-white rounded-xl border border-gray-200 p-6 text-left mb-8">
         <h3 className="text-sm font-semibold text-[#1A2640] mb-4">
           Verification Status
         </h3>
         <div className="space-y-3">
-          {[
-            { label: "Documents received", done: true },
-            { label: "OFAC screening initiated", done: true },
-            { label: "Accreditation review", done: false },
-            { label: "Portfolio access granted", done: false },
-          ].map((step) => (
+          {steps.map((step) => (
             <div key={step.label} className="flex items-center gap-3">
-              {step.done ? (
-                <Check className="h-4 w-4 text-green-500" />
+              {step.status === "done" ? (
+                <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+              ) : step.status === "pending" ? (
+                <Hourglass className="h-4 w-4 text-[#B07D3A] flex-shrink-0" />
               ) : (
-                <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
+                <Circle className="h-4 w-4 text-gray-300 flex-shrink-0" />
               )}
               <span
-                className={`text-sm ${step.done ? "text-gray-700" : "text-gray-400"}`}
+                className={`text-sm ${
+                  step.status === "done"
+                    ? "text-gray-700"
+                    : step.status === "pending"
+                      ? "text-[#B07D3A] font-medium"
+                      : "text-gray-400"
+                }`}
               >
                 {step.label}
               </span>
@@ -1327,13 +1322,7 @@ function PendingScreen() {
         </div>
       </div>
       <p className="text-xs text-gray-400">
-        Questions? Contact us at{" "}
-        <a
-          href="mailto:support@partnersandcapital.com"
-          className="text-[#B07D3A] hover:underline"
-        >
-          support@partnersandcapital.com
-        </a>
+        Your advisor has been notified that your verification is in progress.
       </p>
     </div>
   );

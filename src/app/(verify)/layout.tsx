@@ -54,8 +54,8 @@ export default async function VerifyLayout({
               org?.name || "Partners + Capital"
             )}
           </Link>
-          <span className="bg-[#B07D3A] text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full tracking-wider uppercase">
-            Verification
+          <span className="bg-white/10 text-white/60 text-[10px] font-semibold px-2.5 py-0.5 rounded-full tracking-wider uppercase">
+            Secure verification
           </span>
         </div>
         <Link
