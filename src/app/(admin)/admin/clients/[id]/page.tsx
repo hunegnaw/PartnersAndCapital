@@ -96,6 +96,11 @@ interface Advisor {
   advisorUser: { id: string; email: string; name: string } | null
 }
 
+interface ClientVerification {
+  id: string
+  status: string
+}
+
 interface ClientDetail {
   id: string
   name: string
@@ -113,6 +118,7 @@ interface ClientDetail {
     documents: number
   }
   advisorsInvited: Advisor[]
+  verification: ClientVerification | null
 }
 
 interface AvailableInvestment {
@@ -307,7 +313,24 @@ export default function AdminClientDetailPage({
             <ArrowLeft className="h-4 w-4" />
             Back to Clients
           </Button>
-          <h1 className="text-2xl font-bold">{client.name}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold">{client.name}</h1>
+            {client.verification && (
+              <Badge
+                variant={
+                  client.verification.status === "APPROVED"
+                    ? "default"
+                    : client.verification.status === "REJECTED"
+                      ? "destructive"
+                      : "secondary"
+                }
+                className="cursor-pointer"
+                onClick={() => router.push(`/admin/verifications/${client.verification!.id}`)}
+              >
+                KYC: {client.verification.status.replace("_", " ")}
+              </Badge>
+            )}
+          </div>
           <p className="text-muted-foreground mt-1">Client account details</p>
         </div>
         <div className="flex gap-2">

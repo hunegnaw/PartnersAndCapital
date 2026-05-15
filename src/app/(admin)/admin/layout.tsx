@@ -26,7 +26,7 @@ export default async function AdminLayout({
   }
 
   // Fetch sidebar counts
-  const [clientCount, investmentCount, assetClassCount, documentCount, advisorCount, ticketCount, accessRequestCount, pageCount, blogPostCount, mediaCount] =
+  const [clientCount, investmentCount, assetClassCount, documentCount, advisorCount, ticketCount, accessRequestCount, verificationCount, pageCount, blogPostCount, mediaCount] =
     await Promise.all([
       prisma.user.count({ where: { role: "CLIENT", deletedAt: null } }),
       prisma.investment.count({ where: { deletedAt: null } }),
@@ -35,6 +35,7 @@ export default async function AdminLayout({
       prisma.advisor.count(),
       prisma.supportTicket.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } }),
       prisma.accessRequest.count({ where: { status: "PENDING" } }),
+      prisma.verification.count({ where: { status: "SUBMITTED" } }),
       prisma.page.count({ where: { deletedAt: null } }),
       prisma.blogPost.count({ where: { deletedAt: null } }),
       prisma.media.count({ where: { deletedAt: null } }),
@@ -51,6 +52,7 @@ export default async function AdminLayout({
     { href: "/admin/activity", label: "Activity Feed" },
     { href: "/admin/support", label: "Support", count: ticketCount > 0 ? ticketCount : undefined },
     { href: "/admin/access-requests", label: "Access Requests", count: accessRequestCount > 0 ? accessRequestCount : undefined },
+    { href: "/admin/verifications", label: "Verifications", count: verificationCount > 0 ? verificationCount : undefined },
   ];
 
   const websiteNav = [

@@ -63,6 +63,9 @@ export async function GET(
             },
           },
         },
+        verification: {
+          select: { id: true, status: true },
+        },
       },
     });
 

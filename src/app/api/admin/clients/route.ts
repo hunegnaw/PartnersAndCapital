@@ -139,6 +139,11 @@ export async function POST(request: Request) {
       },
     });
 
+    // Create verification record so the client must complete KYC
+    await prisma.verification.create({
+      data: { userId: client.id, status: "NOT_STARTED" },
+    });
+
     await createAuditLog({
       userId: user.id,
       action: "CREATE_CLIENT",

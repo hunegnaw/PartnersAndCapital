@@ -33,6 +33,22 @@ enum AccountStatus {
   SUSPENDED
 }
 
+enum VerificationStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum AccreditationBasis {
+  INCOME_INDIVIDUAL
+  INCOME_JOINT
+  NET_WORTH
+  PROFESSIONAL_LICENSE
+  ENTITY_INVESTOR
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -80,6 +96,8 @@ model User {
   mediaUploads      Media[]
   blogPosts         BlogPost[]
   investmentValuations InvestmentValuation[]
+  verification      Verification?      @relation("UserVerification")
+  verificationsReviewed Verification[] @relation("VerificationReviewer")
 
   @@index([email])
   @@index([role])
@@ -157,6 +175,58 @@ model BackupCode {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+// ============================================================
+// KYC / ACCREDITED INVESTOR VERIFICATION
+// ============================================================
+
+model Verification {
+  id                    String              @id @default(cuid())
+  userId                String              @unique
+  status                VerificationStatus  @default(NOT_STARTED)
+
+  // Identity
+  legalFirstName        String?
+  legalLastName         String?
+  dateOfBirth           DateTime?
+  country               String?
+  address               String?
+  city                  String?
+  zipCode               String?
+
+  // ID document
+  idDocumentType        String?             // PASSPORT, DRIVERS_LICENSE, NATIONAL_ID
+  idDocumentPath        String?
+  idDocumentName        String?
+
+  // Accreditation
+  accreditationBasis    AccreditationBasis?
+  accreditationDocType  String?
+  accreditationDocPath  String?
+  accreditationDocName  String?
+
+  // Consent
+  consentAccuracy       Boolean             @default(false)
+  consentDataHandling   Boolean             @default(false)
+  consentScreening      Boolean             @default(false)
+
+  // Admin review
+  reviewedById          String?
+  reviewedAt            DateTime?
+  reviewNotes           String?             @db.Text
+  rejectionReason       String?             @db.Text
+
+  // Timestamps
+  submittedAt           DateTime?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  user                  User                @relation("UserVerification", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy            User?               @relation("VerificationReviewer", fields: [reviewedById], references: [id])
+
+  @@index([status])
+  @@index([submittedAt])
 }
 
 // ============================================================

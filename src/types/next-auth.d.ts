@@ -10,6 +10,7 @@ declare module "next-auth" {
       twoFactorRequired: boolean;
       twoFactorVerified: boolean;
       requiresTwoFactorSetup: boolean;
+      requiresVerification: boolean;
     };
   }
 }
@@ -21,5 +22,6 @@ declare module "next-auth/jwt" {
     twoFactorRequired: boolean;
     twoFactorVerified: boolean;
     requiresTwoFactorSetup: boolean;
+    requiresVerification: boolean;
   }
 }

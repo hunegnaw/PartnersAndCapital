@@ -38,6 +38,17 @@ export default async function PortalLayout({
     redirect("/settings");
   }
 
+  // Verification gate: redirect unverified clients to /verify
+  if (session.user.role === "CLIENT" && !impersonation) {
+    const verification = await prisma.verification.findUnique({
+      where: { userId: session.user.id },
+      select: { status: true },
+    });
+    if (!verification || verification.status !== "APPROVED") {
+      redirect("/verify");
+    }
+  }
+
   if (session.user.role !== "CLIENT" && !impersonation) {
     if (session.user.role === "ADVISOR") {
       redirect("/advisor/dashboard");

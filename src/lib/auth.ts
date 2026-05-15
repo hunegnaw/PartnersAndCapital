@@ -36,6 +36,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const user = await prisma.user.findUnique({
           where: { email },
+          include: {
+            verification: { select: { status: true } },
+          },
         });
 
         if (!user || !user.password) {
@@ -58,6 +61,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           select: { twoFactorPolicy: true },
         });
         const twoFactorPolicy = (org?.twoFactorPolicy || "optional").toLowerCase();
+
+        // Compute verification requirement for CLIENT users
+        const requiresVerification =
+          user.role === "CLIENT" &&
+          (!user.verification || user.verification.status !== "APPROVED");
 
         // If policy = "disabled": skip 2FA entirely
         if (twoFactorPolicy === "disabled") {
@@ -85,6 +93,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             twoFactorRequired: false,
             twoFactorVerified: false,
             requiresTwoFactorSetup: false,
+            requiresVerification,
           } as {
             id: string;
             email: string;
@@ -93,6 +102,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             twoFactorRequired: boolean;
             twoFactorVerified: boolean;
             requiresTwoFactorSetup: boolean;
+            requiresVerification: boolean;
           };
         }
 
@@ -106,6 +116,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             twoFactorRequired: false,
             twoFactorVerified: false,
             requiresTwoFactorSetup: true,
+            requiresVerification,
           } as {
             id: string;
             email: string;
@@ -114,6 +125,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             twoFactorRequired: boolean;
             twoFactorVerified: boolean;
             requiresTwoFactorSetup: boolean;
+            requiresVerification: boolean;
           };
         }
 
@@ -134,6 +146,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               twoFactorRequired: true,
               twoFactorVerified: false,
               requiresTwoFactorSetup: false,
+              requiresVerification,
             } as {
               id: string;
               email: string;
@@ -142,6 +155,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               twoFactorRequired: boolean;
               twoFactorVerified: boolean;
               requiresTwoFactorSetup: boolean;
+              requiresVerification: boolean;
             };
           }
 
@@ -208,6 +222,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           twoFactorRequired: false,
           twoFactorVerified: user.twoFactorEnabled,
           requiresTwoFactorSetup: false,
+          requiresVerification,
         } as {
           id: string;
           email: string;
@@ -216,6 +231,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           twoFactorRequired: boolean;
           twoFactorVerified: boolean;
           requiresTwoFactorSetup: boolean;
+          requiresVerification: boolean;
         };
       },
     }),
@@ -228,6 +244,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.twoFactorRequired = (user as Record<string, unknown>).twoFactorRequired as boolean;
         token.twoFactorVerified = (user as Record<string, unknown>).twoFactorVerified as boolean;
         token.requiresTwoFactorSetup = (user as Record<string, unknown>).requiresTwoFactorSetup as boolean;
+        token.requiresVerification = (user as Record<string, unknown>).requiresVerification as boolean;
       }
       return token;
     },
@@ -238,6 +255,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.twoFactorRequired = token.twoFactorRequired as boolean;
         session.user.twoFactorVerified = token.twoFactorVerified as boolean;
         session.user.requiresTwoFactorSetup = token.requiresTwoFactorSetup as boolean;
+        session.user.requiresVerification = token.requiresVerification as boolean;
       }
       return session;
     },
