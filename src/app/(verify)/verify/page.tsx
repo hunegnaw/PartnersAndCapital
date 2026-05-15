@@ -451,6 +451,13 @@ export default function VerifyPage() {
         </div>
       )}
 
+      {/* Bypass banner for existing clients (shown on wizard steps, not gate/pending) */}
+      {accountStatus === "ACTIVE" && screen !== "gate" && screen !== "pending" && (
+        <div className="max-w-5xl mx-auto px-6 mt-4">
+          <BypassBanner saving={saving} onBypass={handleBypass} />
+        </div>
+      )}
+
       {/* Screen content */}
       <div className="max-w-5xl mx-auto px-6 py-8">
         {screen === "gate" && (
@@ -1371,12 +1378,41 @@ function PendingScreen() {
       <p className="text-xs text-gray-400">
         Questions? Contact us at{" "}
         <a
-          href="mailto:support@partnersandcapital.com"
+          href="mailto:theteam@partnersandcapital.com"
           className="text-[#B07D3A] hover:underline"
         >
-          support@partnersandcapital.com
+          theteam@partnersandcapital.com
         </a>
       </p>
+    </div>
+  );
+}
+
+/* ============================================================
+   BYPASS BANNER (for existing clients on wizard steps)
+   ============================================================ */
+function BypassBanner({
+  saving,
+  onBypass,
+}: {
+  saving: boolean;
+  onBypass: () => void;
+}) {
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg px-4 py-3 flex items-center justify-between">
+      <div>
+        <p className="text-sm font-medium text-[#1A2640]">Existing client?</p>
+        <p className="text-xs text-gray-500">Skip verification and go directly to your portfolio.</p>
+      </div>
+      <button
+        onClick={onBypass}
+        disabled={saving}
+        className="bg-[#B07D3A] text-white px-4 py-2 rounded-lg text-xs font-medium hover:bg-[#9A6B2E] transition-colors disabled:opacity-50 flex items-center gap-1.5 flex-shrink-0"
+      >
+        {saving && <Loader2 className="h-3 w-3 animate-spin" />}
+        Skip to Portfolio
+        <ChevronRight className="h-3 w-3" />
+      </button>
     </div>
   );
 }
