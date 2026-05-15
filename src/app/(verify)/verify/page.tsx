@@ -200,17 +200,20 @@ export default function VerifyPage() {
   }, []);
 
   useEffect(() => {
-    loadVerification();
+    Promise.resolve().then(() => loadVerification());
   }, [loadVerification]);
 
   // Pre-fill name from session
+  const sessionName = session?.user?.name;
   useEffect(() => {
-    if (session?.user?.name && !legalFirstName && !legalLastName) {
-      const parts = session.user.name.split(" ");
-      setLegalFirstName(parts[0] || "");
-      setLegalLastName(parts.slice(1).join(" ") || "");
+    if (sessionName && !legalFirstName && !legalLastName) {
+      const parts = sessionName.split(" ");
+      Promise.resolve().then(() => {
+        setLegalFirstName(parts[0] || "");
+        setLegalLastName(parts.slice(1).join(" ") || "");
+      });
     }
-  }, [session, legalFirstName, legalLastName]);
+  }, [sessionName, legalFirstName, legalLastName]);
 
   async function handleStartVerification() {
     setSaving(true);

@@ -128,7 +128,7 @@ export default function AdminVerificationDetailPage({
   }, [id]);
 
   useEffect(() => {
-    fetchVerification();
+    Promise.resolve().then(() => fetchVerification());
   }, [fetchVerification]);
 
   async function handleAction(action: "approve" | "reject") {

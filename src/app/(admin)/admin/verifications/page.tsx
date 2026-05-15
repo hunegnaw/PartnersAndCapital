@@ -94,7 +94,7 @@ export default function AdminVerificationsPage() {
   }, [search, statusFilter, page]);
 
   useEffect(() => {
-    fetchVerifications();
+    Promise.resolve().then(() => fetchVerifications());
   }, [fetchVerifications]);
 
   const totalPages = Math.ceil(total / pageSize);
