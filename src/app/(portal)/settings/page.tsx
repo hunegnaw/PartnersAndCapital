@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -27,6 +27,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Mail,
+  Camera,
+  Trash2,
 } from "lucide-react";
 
 interface ProfileData {
@@ -35,6 +37,7 @@ interface ProfileData {
   name: string;
   phone: string | null;
   company: string | null;
+  profileImageUrl: string | null;
   twoFactorEnabled: boolean;
   createdAt: string;
 }
@@ -78,6 +81,11 @@ export default function SettingsPage() {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [profileSuccess, setProfileSuccess] = useState("");
+
+  // Avatar state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState("");
 
   // Password form state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -194,6 +202,59 @@ export default function SettingsPage() {
     }
   }, [currentPassword, newPassword, confirmPassword]);
 
+  const handleAvatarUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAvatarUploading(true);
+    setAvatarError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/portal/settings/avatar", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to upload photo");
+      }
+
+      const { profileImageUrl } = await res.json();
+      setProfile((prev) => prev ? { ...prev, profileImageUrl } : prev);
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setAvatarUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }, []);
+
+  const handleAvatarRemove = useCallback(async () => {
+    setAvatarUploading(true);
+    setAvatarError("");
+
+    try {
+      const res = await fetch("/api/portal/settings/avatar", {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to remove photo");
+      }
+
+      setProfile((prev) => prev ? { ...prev, profileImageUrl: null } : prev);
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setAvatarUploading(false);
+    }
+  }, []);
+
   const handleTwoFactorComplete = useCallback(() => {
     fetchProfile();
   }, [fetchProfile]);
@@ -255,6 +316,76 @@ export default function SettingsPage() {
                 <AlertDescription>{profileSuccess}</AlertDescription>
               </Alert>
             )}
+
+            {/* Avatar Section */}
+            <div className="flex items-center gap-4 pb-2">
+              <div className="relative h-16 w-16 shrink-0">
+                {profile?.profileImageUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={profile.profileImageUrl}
+                    alt="Profile"
+                    className="h-16 w-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="h-16 w-16 rounded-full bg-[#B07D3A] flex items-center justify-center text-lg font-semibold text-white">
+                    {profile?.name
+                      ? profile.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()
+                          .slice(0, 2)
+                      : "U"}
+                  </div>
+                )}
+                {avatarUploading && (
+                  <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 animate-spin text-white" />
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={avatarUploading}
+                  >
+                    <Camera className="h-4 w-4 mr-1.5" />
+                    Upload Photo
+                  </Button>
+                  {profile?.profileImageUrl && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleAvatarRemove}
+                      disabled={avatarUploading}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1.5" />
+                      Remove
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  JPEG, PNG, WebP, or GIF. Max 2MB.
+                </p>
+                {avatarError && (
+                  <p className="text-xs text-destructive">{avatarError}</p>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleAvatarUpload}
+              />
+            </div>
+
+            <Separator />
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>

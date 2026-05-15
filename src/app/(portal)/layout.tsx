@@ -46,13 +46,25 @@ export default async function PortalLayout({
     redirect("/admin");
   }
 
-  // When impersonating, look up the client's name for the banner and initials
-  let impersonatedClient: { id: string; name: string | null } | null = null;
+  // When impersonating, look up the client's name and avatar for the banner and header
+  let impersonatedClient: { id: string; name: string | null; profileImageUrl: string | null } | null = null;
   if (impersonation) {
     impersonatedClient = await prisma.user.findUnique({
       where: { id: impersonation.clientId },
-      select: { id: true, name: true },
+      select: { id: true, name: true, profileImageUrl: true },
     });
+  }
+
+  // Fetch the profile image for the current user (when not impersonating)
+  let profileImageUrl: string | null = null;
+  if (impersonation) {
+    profileImageUrl = impersonatedClient?.profileImageUrl ?? null;
+  } else {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id as string },
+      select: { profileImageUrl: true },
+    });
+    profileImageUrl = currentUser?.profileImageUrl ?? null;
   }
 
   const org = await getOrganization();
@@ -107,9 +119,14 @@ export default async function PortalLayout({
             Advisor Access
           </Link>
           <NotificationBell />
-          <div className="h-8 w-8 rounded-full bg-[#B07D3A] flex items-center justify-center text-xs font-semibold text-white">
-            {initials}
-          </div>
+          {profileImageUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={profileImageUrl} alt={displayName || "User"} className="h-8 w-8 rounded-full object-cover" />
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-[#B07D3A] flex items-center justify-center text-xs font-semibold text-white">
+              {initials}
+            </div>
+          )}
         </div>
       </header>
 
