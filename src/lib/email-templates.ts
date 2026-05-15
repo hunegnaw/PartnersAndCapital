@@ -12,7 +12,13 @@ export async function getEmailLogoUrl(): Promise<string | null> {
     return cachedLogoUrl;
   }
   const org = await prisma.organization.findFirst({ select: { logoUrl: true } });
-  cachedLogoUrl = org?.logoUrl ?? null;
+  let url = org?.logoUrl ?? null;
+  // Ensure absolute URL for email clients (relative paths won't resolve)
+  if (url && url.startsWith("/")) {
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    url = `${baseUrl}${url}`;
+  }
+  cachedLogoUrl = url;
   logoCacheTime = now;
   return cachedLogoUrl;
 }

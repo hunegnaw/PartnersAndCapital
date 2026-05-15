@@ -47,6 +47,25 @@ export async function POST(request: Request) {
       },
     });
 
+    // Add to Brevo newsletter list (fire-and-forget)
+    const brevoApiKey = process.env.BREVO_API_KEY;
+    const brevoListId = parseInt(process.env.BREVO_NEWSLETTER_LIST_ID || "2", 10);
+    if (brevoApiKey) {
+      fetch("https://api.brevo.com/v3/contacts", {
+        method: "POST",
+        headers: {
+          "api-key": brevoApiKey,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          listIds: [brevoListId],
+          updateEnabled: true,
+        }),
+      }).catch((err) => console.error("Brevo API error:", err));
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Newsletter subscription error:", error);
