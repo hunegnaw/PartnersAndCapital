@@ -77,7 +77,6 @@ export async function POST(request: Request) {
     // New user — create account, verification, password reset token, and access request
     const tempPassword = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 12);
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const hashedToken = await bcrypt.hash(resetToken, 12);
 
     await prisma.$transaction(async (tx) => {
       // Create user with PENDING status
@@ -105,11 +104,11 @@ export async function POST(request: Request) {
         where: { email: normalizedEmail },
       });
 
-      // Create 24-hour password reset token (longer than forgot-password's 1hr)
+      // Create 24-hour password reset token (stored plaintext, matching forgot-password pattern)
       await tx.passwordResetToken.create({
         data: {
           email: normalizedEmail,
-          token: hashedToken,
+          token: resetToken,
           expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
         },
       });
