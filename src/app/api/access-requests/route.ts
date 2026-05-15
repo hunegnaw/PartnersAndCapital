@@ -41,13 +41,13 @@ export async function POST(request: Request) {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Check if user already exists (anti-enumeration: always return success)
-    const existingUser = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
+    // Check if an active (non-deleted) user already exists
+    const existingUser = await prisma.user.findFirst({
+      where: { email: normalizedEmail, deletedAt: null },
     });
 
     if (existingUser) {
-      // User exists — just create access request for admin tracking + notify admin
+      // Active user exists — just create access request for admin tracking + notify admin
       await prisma.accessRequest.create({
         data: {
           name,
@@ -74,27 +74,54 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true });
     }
 
-    // New user — create account, verification, password reset token, and access request
+    // New or soft-deleted user — create/restore account, verification, token, access request
     const tempPassword = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 12);
     const resetToken = crypto.randomBytes(32).toString("hex");
 
+    // Check if there's a soft-deleted user we need to restore
+    const deletedUser = await prisma.user.findFirst({
+      where: { email: normalizedEmail, deletedAt: { not: null } },
+    });
+
     await prisma.$transaction(async (tx) => {
-      // Create user with PENDING status
-      const user = await tx.user.create({
-        data: {
-          email: normalizedEmail,
-          name,
-          password: tempPassword,
-          role: "CLIENT",
-          accountStatus: "PENDING",
-          phone: phone || null,
-        },
-      });
+      let userId: string;
+
+      if (deletedUser) {
+        // Restore soft-deleted user with fresh data
+        await tx.user.update({
+          where: { id: deletedUser.id },
+          data: {
+            name,
+            password: tempPassword,
+            role: "CLIENT",
+            accountStatus: "PENDING",
+            phone: phone || null,
+            deletedAt: null,
+          },
+        });
+        userId = deletedUser.id;
+
+        // Delete any old verification record and create fresh
+        await tx.verification.deleteMany({ where: { userId } });
+      } else {
+        // Create brand new user
+        const user = await tx.user.create({
+          data: {
+            email: normalizedEmail,
+            name,
+            password: tempPassword,
+            role: "CLIENT",
+            accountStatus: "PENDING",
+            phone: phone || null,
+          },
+        });
+        userId = user.id;
+      }
 
       // Create verification record (NOT_STARTED)
       await tx.verification.create({
         data: {
-          userId: user.id,
+          userId,
           status: "NOT_STARTED",
         },
       });
