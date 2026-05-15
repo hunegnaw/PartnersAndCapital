@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { PageHero } from "@/components/marketing/page-hero";
 
 export const metadata: Metadata = {
@@ -26,9 +27,9 @@ export default function TermsOfUsePage() {
           <p>
             By accessing this website or submitting information through our forms, you acknowledge
             that you have read, understood, and agree to be bound by these Terms of Use and our{" "}
-            <a href="/privacy-policy" className="text-[#185fa5] hover:underline">
+            <Link href="/privacy-policy" className="text-[#185fa5] hover:underline">
               Privacy Policy
-            </a>
+            </Link>
             .
           </p>
 
