@@ -576,6 +576,7 @@ model ActivityFeed {
   title        String
   content      String    @db.Text
   isBroadcast  Boolean   @default(false)
+  showAsBanner Boolean   @default(false)
   targetUserId String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -587,6 +588,7 @@ model ActivityFeed {
   @@index([authorId])
   @@index([targetUserId])
   @@index([isBroadcast])
+  @@index([showAsBanner])
   @@index([deletedAt])
 }
 

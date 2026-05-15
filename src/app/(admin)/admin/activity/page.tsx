@@ -34,6 +34,9 @@ import {
   ChevronRight,
   Megaphone,
   User,
+  Pencil,
+  Trash2,
+  Flag,
 } from "lucide-react"
 
 interface ActivityEntry {
@@ -41,6 +44,7 @@ interface ActivityEntry {
   title: string
   content: string
   isBroadcast: boolean
+  showAsBanner: boolean
   createdAt: string
   author: {
     id: string
@@ -71,13 +75,16 @@ export default function AdminActivityPage() {
 
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingEntry, setEditingEntry] = useState<ActivityEntry | null>(null)
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [isBroadcast, setIsBroadcast] = useState(false)
+  const [showAsBanner, setShowAsBanner] = useState(false)
   const [targetUserId, setTargetUserId] = useState("")
   const [users, setUsers] = useState<UserOption[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   const fetchActivity = useCallback(async () => {
     setLoading(true)
@@ -123,11 +130,24 @@ export default function AdminActivityPage() {
     })
   }, [fetchActivity, fetchUsers])
 
-  function openDialog() {
+  function openCreateDialog() {
+    setEditingEntry(null)
     setTitle("")
     setContent("")
     setIsBroadcast(false)
+    setShowAsBanner(false)
     setTargetUserId("")
+    setFormError(null)
+    setDialogOpen(true)
+  }
+
+  function openEditDialog(entry: ActivityEntry) {
+    setEditingEntry(entry)
+    setTitle(entry.title)
+    setContent(entry.content)
+    setIsBroadcast(entry.isBroadcast)
+    setShowAsBanner(entry.showAsBanner)
+    setTargetUserId(entry.targetUser?.id || "")
     setFormError(null)
     setDialogOpen(true)
   }
@@ -137,18 +157,24 @@ export default function AdminActivityPage() {
     setFormError(null)
     setSubmitting(true)
     try {
-      const body: Record<string, unknown> = { title, content, isBroadcast }
-      if (targetUserId) body.targetUserId = targetUserId
+      const body: Record<string, unknown> = { title, content, isBroadcast, showAsBanner }
+      if (targetUserId && targetUserId !== "none") body.targetUserId = targetUserId
+      else body.targetUserId = null
 
-      const res = await fetch("/api/admin/activity", {
-        method: "POST",
+      const url = editingEntry
+        ? `/api/admin/activity/${editingEntry.id}`
+        : "/api/admin/activity"
+      const method = editingEntry ? "PATCH" : "POST"
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       })
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || "Failed to post update")
+        throw new Error(data.error || "Failed to save")
       }
 
       setDialogOpen(false)
@@ -157,6 +183,20 @@ export default function AdminActivityPage() {
       setFormError(err instanceof Error ? err.message : "An unexpected error occurred")
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleDelete(entry: ActivityEntry) {
+    if (!confirm(`Delete "${entry.title}"? This cannot be undone.`)) return
+    setDeleting(entry.id)
+    try {
+      const res = await fetch(`/api/admin/activity/${entry.id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Failed to delete")
+      fetchActivity()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete")
+    } finally {
+      setDeleting(null)
     }
   }
 
@@ -171,7 +211,7 @@ export default function AdminActivityPage() {
             Post updates and announcements for clients.
           </p>
         </div>
-        <Button onClick={openDialog}>
+        <Button onClick={openCreateDialog}>
           <Plus className="h-4 w-4" />
           Post Update
         </Button>
@@ -211,12 +251,18 @@ export default function AdminActivityPage() {
             <Card key={entry.id}>
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <CardTitle className="text-base">{entry.title}</CardTitle>
                     {entry.isBroadcast && (
                       <Badge variant="default">
                         <Megaphone className="h-3 w-3 mr-1" />
                         Broadcast
+                      </Badge>
+                    )}
+                    {entry.showAsBanner && (
+                      <Badge variant="outline" className="border-[#B07D3A] text-[#B07D3A]">
+                        <Flag className="h-3 w-3 mr-1" />
+                        Banner
                       </Badge>
                     )}
                     {entry.targetUser && (
@@ -226,9 +272,32 @@ export default function AdminActivityPage() {
                       </Badge>
                     )}
                   </div>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
-                    {formatDate(entry.createdAt)}
-                  </span>
+                  <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {formatDate(entry.createdAt)}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openEditDialog(entry)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(entry)}
+                      disabled={deleting === entry.id}
+                      className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    >
+                      {deleting === entry.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3.5 w-3.5" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -271,14 +340,14 @@ export default function AdminActivityPage() {
         </div>
       )}
 
-      {/* Post Update Dialog */}
+      {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <form onSubmit={handleSubmit}>
             <DialogHeader>
-              <DialogTitle>Post Update</DialogTitle>
+              <DialogTitle>{editingEntry ? "Edit Update" : "Post Update"}</DialogTitle>
               <DialogDescription>
-                Share an update or announcement with clients.
+                {editingEntry ? "Modify this update." : "Share an update or announcement with clients."}
               </DialogDescription>
             </DialogHeader>
 
@@ -323,6 +392,17 @@ export default function AdminActivityPage() {
                 </Label>
               </div>
 
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="activity-banner"
+                  checked={showAsBanner}
+                  onCheckedChange={setShowAsBanner}
+                />
+                <Label htmlFor="activity-banner" className="cursor-pointer">
+                  Show as banner on client portal
+                </Label>
+              </div>
+
               <div className="grid gap-2">
                 <Label>Target User (optional)</Label>
                 <Select value={targetUserId} onValueChange={(v) => setTargetUserId(v ?? "")}>
@@ -352,7 +432,7 @@ export default function AdminActivityPage() {
               </Button>
               <Button type="submit" disabled={submitting}>
                 {submitting && <Loader2 className="animate-spin" />}
-                Post Update
+                {editingEntry ? "Save Changes" : "Post Update"}
               </Button>
             </DialogFooter>
           </form>

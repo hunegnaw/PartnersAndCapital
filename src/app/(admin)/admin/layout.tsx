@@ -4,6 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { SavedColorsProvider } from "@/components/providers/saved-colors-provider";
 import { getOrganization } from "@/lib/organization";
+import { SidebarNav } from "@/components/admin/sidebar-nav";
 
 export default async function AdminLayout({
   children,
@@ -25,50 +26,13 @@ export default async function AdminLayout({
     redirect("/settings");
   }
 
-  // Fetch sidebar counts
-  const [clientCount, investmentCount, assetClassCount, documentCount, advisorCount, ticketCount, accessRequestCount, verificationCount, pageCount, blogPostCount, mediaCount] =
-    await Promise.all([
-      prisma.user.count({ where: { role: "CLIENT", deletedAt: null } }),
-      prisma.investment.count({ where: { deletedAt: null } }),
-      prisma.assetClass.count({ where: { deletedAt: null } }),
-      prisma.document.count({ where: { deletedAt: null } }),
-      prisma.advisor.count(),
-      prisma.supportTicket.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } }),
-      prisma.accessRequest.count({ where: { status: "PENDING" } }),
-      prisma.verification.count({ where: { status: "SUBMITTED" } }),
-      prisma.page.count({ where: { deletedAt: null } }),
-      prisma.blogPost.count({ where: { deletedAt: null } }),
-      prisma.media.count({ where: { deletedAt: null } }),
-    ]);
-
-  const org = await getOrganization();
-
-  const manageNav = [
-    { href: "/admin", label: "Clients", count: clientCount },
-    { href: "/admin/investments", label: "Investments", count: investmentCount },
-    { href: "/admin/asset-classes", label: "Asset Classes", count: assetClassCount },
-    { href: "/admin/documents", label: "Documents", count: documentCount },
-    { href: "/admin/advisors", label: "Advisors", count: advisorCount },
-    { href: "/admin/activity", label: "Activity Feed" },
-    { href: "/admin/support", label: "Support", count: ticketCount > 0 ? ticketCount : undefined },
-    { href: "/admin/access-requests", label: "Access Requests", count: accessRequestCount > 0 ? accessRequestCount : undefined },
-    { href: "/admin/verifications", label: "Verifications", count: verificationCount > 0 ? verificationCount : undefined },
-  ];
-
-  const websiteNav = [
-    { href: "/admin/pages", label: "Pages", count: pageCount },
-    { href: "/admin/blog", label: "Blog Posts", count: blogPostCount },
-    { href: "/admin/blog/categories", label: "Blog Categories" },
-    { href: "/admin/media", label: "Media Library", count: mediaCount },
-    { href: "/admin/footer", label: "Footer" },
-    { href: "/admin/brand-palette", label: "Brand Palette" },
-  ];
-
-  const systemNav = [
-    { href: "/admin/users", label: "Admin Users" },
-    { href: "/admin/audit-log", label: "Audit Log" },
-    { href: "/admin/settings", label: "Settings" },
-  ];
+  const [org, adminUser] = await Promise.all([
+    getOrganization(),
+    prisma.user.findUnique({
+      where: { id: session.user.id as string },
+      select: { profileImageUrl: true },
+    }),
+  ]);
 
   const initials = session.user.name
     ? session.user.name
@@ -109,102 +73,21 @@ export default async function AdminLayout({
           >
             Settings
           </Link>
-          <div className="h-8 w-8 rounded-full bg-[#B07D3A] flex items-center justify-center text-xs font-semibold text-white">
-            {initials}
-          </div>
+          {adminUser?.profileImageUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={adminUser.profileImageUrl} alt={session.user.name || "Admin"} className="h-8 w-8 rounded-full object-cover" />
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-[#B07D3A] flex items-center justify-center text-xs font-semibold text-white">
+              {initials}
+            </div>
+          )}
         </div>
       </header>
 
       <div className="flex flex-1">
         {/* Navy sidebar */}
         <aside className="w-60 bg-[#2C3E5C] flex flex-col pt-6">
-          <nav className="flex-1 px-4">
-            {/* MANAGE section */}
-            <p className="text-[10px] font-semibold text-white/25 tracking-widest uppercase mb-3 px-3">
-              Manage
-            </p>
-            <ul className="space-y-0.5 mb-6">
-              {manageNav.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="flex items-center justify-between px-3 py-2 text-sm rounded-md text-white/55 hover:text-[#E8D5B0] hover:bg-white/5 transition-colors"
-                  >
-                    <span className="flex items-center gap-3">
-                      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
-                      {item.label}
-                    </span>
-                    {item.count !== undefined && (
-                      <span className="text-[10px] bg-white/10 text-white/60 px-2 py-0.5 rounded-full tabular-nums">
-                        {item.count}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-
-            {/* WEBSITE section */}
-            <p className="text-[10px] font-semibold text-white/25 tracking-widest uppercase mb-3 px-3">
-              Website
-            </p>
-            <ul className="space-y-0.5 mb-6">
-              {websiteNav.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="flex items-center justify-between px-3 py-2 text-sm rounded-md text-white/55 hover:text-[#E8D5B0] hover:bg-white/5 transition-colors"
-                  >
-                    <span className="flex items-center gap-3">
-                      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
-                      {item.label}
-                    </span>
-                    {item.count !== undefined && (
-                      <span className="text-[10px] bg-white/10 text-white/60 px-2 py-0.5 rounded-full tabular-nums">
-                        {item.count}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-
-            {/* SYSTEM section */}
-            <p className="text-[10px] font-semibold text-white/25 tracking-widest uppercase mb-3 px-3">
-              System
-            </p>
-            <ul className="space-y-0.5 mb-6">
-              {systemNav.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-white/55 hover:text-[#E8D5B0] hover:bg-white/5 transition-colors"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-
-            {/* Back to portal */}
-            <div className="px-3 pt-4 border-t border-white/10">
-              <Link
-                href="/"
-                className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-white/40 hover:text-white/60 transition-colors"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
-                Back to Portal
-              </Link>
-              <Link
-                href="/signout"
-                className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-white/55 hover:text-red-300 hover:bg-white/5 transition-colors"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
-                Log Out
-              </Link>
-            </div>
-          </nav>
+          <SidebarNav />
         </aside>
 
         <main className="flex-1 bg-[#f5f5f3] overflow-auto">

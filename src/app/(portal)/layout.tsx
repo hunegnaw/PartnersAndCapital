@@ -7,6 +7,7 @@ import { ImpersonationBanner } from "@/components/impersonation-banner";
 import { prisma } from "@/lib/prisma";
 import { getOrganization } from "@/lib/organization";
 import { LogOut } from "lucide-react";
+import { ActivityBanner } from "@/components/portal/activity-banner";
 
 const investorNav = [
   { href: "/dashboard", label: "Dashboard" },
@@ -96,6 +97,7 @@ export default async function PortalLayout({
 
   return (
     <div className="flex min-h-screen flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <ActivityBanner />
       {impersonation && impersonatedClient && (
         <ImpersonationBanner
           clientName={impersonatedClient.name || "Client"}

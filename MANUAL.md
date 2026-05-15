@@ -1459,6 +1459,47 @@ When an access request is submitted, a branded email is sent to theteam@partners
 
 ---
 
+## Activity Feed
+
+The Activity Feed lets admins post updates and announcements visible to clients on their dashboards.
+
+### CRUD Operations
+
+- **Create**: Post a new update from Admin > Activity Feed > "Post Update"
+- **Edit**: Click the pencil icon on any entry to modify title, content, targeting, or banner settings
+- **Delete**: Click the trash icon on any entry to soft-delete it (confirmation required)
+
+### Banner Feature
+
+Activity feed messages can be displayed as a prominent banner above the client portal header:
+- Toggle "Show as banner on client portal" when creating or editing a post
+- The banner appears in gold (#B07D3A) with dark navy text at 18px Inter font
+- Only the most recent active banner is shown
+- Clients can dismiss the banner for their session
+- Banners work with both broadcast messages and targeted messages
+
+### Dynamic Sidebar Counts
+
+Admin sidebar navigation counts (Clients, Investments, Documents, etc.) update dynamically as you navigate between pages. No page refresh is needed to see updated counts after adding or deleting records.
+
+---
+
+## Admin Avatar Upload
+
+Admins can upload a profile avatar from Admin > Settings > Profile Avatar section:
+- Supported formats: JPEG, PNG, WebP, GIF (max 2MB)
+- The avatar displays in the admin header navigation bar
+- Upload and remove functionality available
+- Uses the same avatar API as the client portal settings
+
+---
+
+## Blog Category Post Counts
+
+Blog categories display the number of published posts assigned to each category in the admin table.
+
+---
+
 ## Feature Roadmap
 
 | Phase | Name                         | Status      |

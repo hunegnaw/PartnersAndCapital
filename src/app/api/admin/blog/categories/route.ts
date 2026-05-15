@@ -11,6 +11,11 @@ export async function GET() {
     const categories = await prisma.blogCategory.findMany({
       where: { deletedAt: null },
       orderBy: { sortOrder: "asc" },
+      include: {
+        _count: {
+          select: { posts: { where: { deletedAt: null } } },
+        },
+      },
     });
 
     return NextResponse.json({ categories });

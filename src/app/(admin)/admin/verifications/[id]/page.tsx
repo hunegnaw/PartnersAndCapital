@@ -381,11 +381,11 @@ export default function AdminVerificationDetailPage({
               {verification.reviewedAt && verification.reviewedBy && (
                 <>
                   <DetailRow
-                    label="Reviewed"
+                    label={verification.status === "REJECTED" ? "Rejected" : "Approved"}
                     value={formatDate(verification.reviewedAt)}
                   />
                   <DetailRow
-                    label="Reviewed By"
+                    label={verification.status === "REJECTED" ? "Rejected By" : "Approved By"}
                     value={
                       verification.reviewedBy.name ||
                       verification.reviewedBy.email

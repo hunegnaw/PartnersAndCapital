@@ -176,6 +176,9 @@ export function ClientFormDialog({
                   <SelectItem value="SUSPENDED">Suspended</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                This is automatically set to Active when a client&apos;s KYC verification is approved. Only change this to suspend a client&apos;s access.
+              </p>
             </div>
 
           </div>

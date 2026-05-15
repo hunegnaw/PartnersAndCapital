@@ -95,7 +95,7 @@ export async function POST(
       );
     }
 
-    // Check for duplicate
+    // Check for duplicate (active)
     const existingPosition = await prisma.clientInvestment.findFirst({
       where: { userId, investmentId: id, deletedAt: null },
     });
@@ -109,28 +109,63 @@ export async function POST(
 
     const investDate = investmentDate ? new Date(investmentDate) : new Date();
 
+    // Check for soft-deleted record (unique constraint on userId+investmentId)
+    const deletedPosition = await prisma.clientInvestment.findFirst({
+      where: { userId, investmentId: id, deletedAt: { not: null } },
+    });
+
     // Create client investment and initial contribution in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      const clientInvestment = await tx.clientInvestment.create({
-        data: {
-          userId,
-          investmentId: id,
-          amountInvested,
-          currentValue: currentValue ?? amountInvested,
-          investmentDate: investDate,
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              company: true,
-            },
+      let clientInvestment;
+
+      if (deletedPosition) {
+        // Restore the soft-deleted record with new values
+        clientInvestment = await tx.clientInvestment.update({
+          where: { id: deletedPosition.id },
+          data: {
+            amountInvested,
+            currentValue: currentValue ?? amountInvested,
+            totalReturn: 0,
+            returnPercentage: 0,
+            cashDistributed: 0,
+            status: "ACTIVE",
+            investmentDate: investDate,
+            deletedAt: null,
           },
-          investment: true,
-        },
-      });
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                company: true,
+              },
+            },
+            investment: true,
+          },
+        });
+      } else {
+        clientInvestment = await tx.clientInvestment.create({
+          data: {
+            userId,
+            investmentId: id,
+            amountInvested,
+            currentValue: currentValue ?? amountInvested,
+            investmentDate: investDate,
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                company: true,
+              },
+            },
+            investment: true,
+          },
+        });
+      }
 
       // Create initial contribution record
       await tx.contribution.create({

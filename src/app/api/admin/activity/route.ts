@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     if (user instanceof NextResponse) return user;
 
     const body = await request.json();
-    const { title, content, isBroadcast, targetUserId } = body;
+    const { title, content, isBroadcast, showAsBanner, targetUserId } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -76,6 +76,7 @@ export async function POST(request: Request) {
         title,
         content,
         isBroadcast: isBroadcast ?? false,
+        showAsBanner: showAsBanner ?? false,
         targetUserId: targetUserId || null,
       },
       include: {

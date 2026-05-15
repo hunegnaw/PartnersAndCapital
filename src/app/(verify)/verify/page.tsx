@@ -755,9 +755,7 @@ function IdentityScreen({
     country &&
     address &&
     city &&
-    zipCode &&
-    idDocumentType &&
-    (idDocumentName || idFile);
+    zipCode;
 
   return (
     <div>
@@ -852,7 +850,7 @@ function IdentityScreen({
         {/* Right: ID Upload */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-base font-semibold text-[#1A2640] mb-4">
-            Upload your ID *
+            Upload your ID
           </h3>
           <div className="flex flex-wrap gap-2 mb-6">
             {ID_DOC_TYPES.map((dt) => (

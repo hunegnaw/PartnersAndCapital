@@ -25,6 +25,9 @@ import {
   FileText,
   Type,
   ImageIcon,
+  UserCircle,
+  Upload,
+  Trash2,
 } from "lucide-react"
 import { MediaPicker } from "@/components/admin/media-picker"
 import { GOOGLE_FONTS } from "@/lib/google-fonts"
@@ -64,6 +67,11 @@ export default function AdminSettingsPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
+  // Avatar state
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [removingAvatar, setRemovingAvatar] = useState(false)
+
   // Form fields
   const [name, setName] = useState("")
   const [legalName, setLegalName] = useState("")
@@ -89,6 +97,12 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     async function fetchSettings() {
       try {
+        // Fetch avatar
+        fetch("/api/portal/settings")
+          .then((r) => r.ok ? r.json() : null)
+          .then((d) => { if (d?.profileImageUrl) setAvatarUrl(d.profileImageUrl) })
+          .catch(() => {})
+
         const res = await fetch("/api/admin/settings")
         if (!res.ok) throw new Error("Failed to fetch settings")
         const data: Organization = await res.json()
@@ -165,6 +179,46 @@ export default function AdminSettingsPage() {
       setError(err instanceof Error ? err.message : "An unexpected error occurred")
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingAvatar(true)
+    setError(null)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      const res = await fetch("/api/portal/settings/avatar", {
+        method: "POST",
+        body: formData,
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || "Upload failed")
+      }
+      const data = await res.json()
+      setAvatarUrl(data.profileImageUrl)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to upload avatar")
+    } finally {
+      setUploadingAvatar(false)
+      e.target.value = ""
+    }
+  }
+
+  async function handleAvatarRemove() {
+    setRemovingAvatar(true)
+    setError(null)
+    try {
+      const res = await fetch("/api/portal/settings/avatar", { method: "DELETE" })
+      if (!res.ok) throw new Error("Failed to remove avatar")
+      setAvatarUrl(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to remove avatar")
+    } finally {
+      setRemovingAvatar(false)
     }
   }
 
@@ -594,6 +648,75 @@ export default function AdminSettingsPage() {
               <p className="text-xs text-muted-foreground">
                 Controls whether SMS-based two-factor authentication is required, optional, or disabled for all users.
               </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Profile Avatar */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <UserCircle className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-base">Profile Avatar</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                {avatarUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={avatarUrl}
+                    alt="Profile avatar"
+                    className="h-20 w-20 rounded-full object-cover border-2 border-gray-200"
+                  />
+                ) : (
+                  <div className="h-20 w-20 rounded-full bg-[#B07D3A] flex items-center justify-center text-2xl font-semibold text-white">
+                    <UserCircle className="h-10 w-10" />
+                  </div>
+                )}
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={handleAvatarUpload}
+                      disabled={uploadingAvatar}
+                    />
+                    <span className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                      {uploadingAvatar ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Upload className="h-4 w-4" />
+                      )}
+                      {uploadingAvatar ? "Uploading..." : "Upload Photo"}
+                    </span>
+                  </label>
+                  {avatarUrl && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAvatarRemove}
+                      disabled={removingAvatar}
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                    >
+                      {removingAvatar ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                      Remove
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  JPEG, PNG, WebP, or GIF. Max 2MB. Displayed in the header and on your profile.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
