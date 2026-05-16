@@ -100,6 +100,25 @@ export async function GET() {
       color: ASSET_CLASS_COLORS[a.name] || "#718096",
     }));
 
+    // Allocation by individual investment (fund)
+    const INVESTMENT_COLORS = ["#B07D3A", "#1A2640", "#2C3E5C", "#7A5520", "#E8D5B0", "#5f5e5a", "#3b6d11", "#185fa5"];
+    const investmentAllocMap = new Map<string, { name: string; value: number }>();
+    for (const ci of clientInvestments) {
+      const investName = ci.investment.name;
+      const existing = investmentAllocMap.get(investName) || { name: investName, value: 0 };
+      existing.value += Number(ci.currentValue);
+      investmentAllocMap.set(investName, existing);
+    }
+    const investmentAllocation = Array.from(investmentAllocMap.values()).map((a, i) => ({
+      name: a.name,
+      value: a.value,
+      percentage:
+        totalAllocationValue > 0
+          ? Math.round((a.value / totalAllocationValue) * 10000) / 100
+          : 0,
+      color: INVESTMENT_COLORS[i % INVESTMENT_COLORS.length],
+    }));
+
     // Growth data: last 12 months of portfolio value
     const now = new Date();
     const twelveMonthsAgo = new Date(
@@ -285,6 +304,7 @@ export async function GET() {
       totalReturnPct,
       netIRR,
       allocation,
+      investmentAllocation,
       growth: monthlyData,
       recentInvestments,
       recentDocuments,

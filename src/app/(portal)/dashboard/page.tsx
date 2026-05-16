@@ -42,6 +42,12 @@ interface DashboardData {
     percentage: number;
     color: string;
   }[];
+  investmentAllocation: {
+    name: string;
+    value: number;
+    percentage: number;
+    color: string;
+  }[];
   growth: { month: string; netValue: number; cumulativeDistributions: number }[];
   recentInvestments: {
     id: string;
@@ -504,10 +510,10 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Allocation Donut - 2 cols */}
+        {/* Asset Class Allocation - 2 cols */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-[#dfdedd] p-6">
           <h2 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-5">
-            Allocation
+            Asset Class Allocation
           </h2>
           {data.allocation && data.allocation.length > 0 ? (
             <div>
@@ -559,6 +565,57 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Investment Allocation */}
+      {data.investmentAllocation && data.investmentAllocation.length > 1 && (
+        <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
+          <h2 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-5">
+            Investment Allocation
+          </h2>
+          <div className="grid gap-6 lg:grid-cols-2 items-center">
+            <div className="flex justify-center">
+              <PieChart width={220} height={220}>
+                <Pie
+                  data={data.investmentAllocation}
+                  cx={110}
+                  cy={110}
+                  innerRadius={65}
+                  outerRadius={100}
+                  dataKey="value"
+                  stroke="none"
+                >
+                  {data.investmentAllocation.map((entry, index) => (
+                    <Cell key={`inv-cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </div>
+            <div className="space-y-2.5">
+              {data.investmentAllocation.map((item) => (
+                <div key={item.name} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full shrink-0"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span className="text-[#1a1a18]">{item.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[#888780] tabular-nums">{item.percentage.toFixed(1)}%</span>
+                    <span className="text-[#5f5e5a] tabular-nums text-xs">{formatCompact(item.value)}</span>
+                  </div>
+                </div>
+              ))}
+              <div className="border-t border-[#eeece8] pt-2 flex items-center justify-between text-sm font-medium">
+                <span className="text-[#1a1a18]">Total</span>
+                <span className="text-[#1a1a18] tabular-nums">
+                  {formatCurrency(data.investmentAllocation.reduce((sum, a) => sum + a.value, 0))}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Investments + Activity/Docs Row */}
       <div className="grid gap-6 lg:grid-cols-5">
