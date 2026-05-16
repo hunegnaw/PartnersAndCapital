@@ -206,11 +206,11 @@ prepare_package() {
 
 deploy_files() {
     log "Deploying files..."
-    ssh -T -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" "mkdir -p '$DEPLOY_DIR' '$SHARED_DIR/uploads' '$SHARED_DIR/logs'"
+    ssh -T -i "$SSH_KEY" "$SERVER_USER@$SERVER_HOST" "mkdir -p '$DEPLOY_DIR' '$SHARED_DIR/uploads' '$SHARED_DIR/private-uploads' '$SHARED_DIR/logs'"
 
     set +e
     rsync -avz --delete --omit-dir-times \
-        --exclude 'node_modules' --exclude '.git' --exclude '.env*' --exclude '*.log' --exclude '.DS_Store' --exclude 'public/uploads' \
+        --exclude 'node_modules' --exclude '.git' --exclude '.env*' --exclude '*.log' --exclude '.DS_Store' --exclude 'public/uploads' --exclude 'uploads' \
         -e "ssh -i $SSH_KEY" "$LOCAL_PACKAGE/" "$SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/"
     RSYNC_EXIT=$?
     set -e
@@ -288,9 +288,10 @@ echo "Installing dependencies..."
 npm ci --prefer-offline 2>/dev/null || npm install
 
 # Link shared directories
-rm -rf "$DEPLOY_DIR/public/uploads" "$DEPLOY_DIR/logs" 2>/dev/null || true
+rm -rf "$DEPLOY_DIR/public/uploads" "$DEPLOY_DIR/uploads" "$DEPLOY_DIR/logs" 2>/dev/null || true
 mkdir -p "$DEPLOY_DIR/public"
 ln -sfn "$SHARED_DIR/uploads" "$DEPLOY_DIR/public/uploads"
+ln -sfn "$SHARED_DIR/private-uploads" "$DEPLOY_DIR/uploads"
 ln -sfn "$SHARED_DIR/logs" "$DEPLOY_DIR/logs"
 echo "Shared dirs linked"
 
