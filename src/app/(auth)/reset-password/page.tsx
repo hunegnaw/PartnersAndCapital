@@ -139,7 +139,7 @@ function ResetPasswordInner() {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setFieldErrors((prev) => { const { password: _, ...rest } = prev; return rest; }); }}
+                onChange={(e) => { setPassword(e.target.value); setFieldErrors((prev) => { const next = { ...prev }; delete next.password; return next; }); }}
                 required
                 minLength={8}
                 className="w-full rounded-md border border-[#dfdedd] px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#B07D3A] focus:border-[#B07D3A]"
@@ -171,7 +171,7 @@ function ResetPasswordInner() {
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
-                onChange={(e) => { setConfirmPassword(e.target.value); setFieldErrors((prev) => { const { confirmPassword: _, ...rest } = prev; return rest; }); }}
+                onChange={(e) => { setConfirmPassword(e.target.value); setFieldErrors((prev) => { const next = { ...prev }; delete next.confirmPassword; return next; }); }}
                 required
                 minLength={8}
                 className="w-full rounded-md border border-[#dfdedd] px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#B07D3A] focus:border-[#B07D3A]"

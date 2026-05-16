@@ -264,28 +264,28 @@ export default function DashboardPage() {
     Promise.resolve().then(() => fetchDashboard());
   }, [fetchDashboard]);
 
+  const growthData = data?.growth;
   const filteredGrowth = useMemo(() => {
-    if (!data?.growth) return [];
-    const total = data.growth.length;
+    if (!growthData) return [];
     switch (timeRange) {
       case "1M":
-        return data.growth.slice(-1);
+        return growthData.slice(-1);
       case "3M":
-        return data.growth.slice(-3);
+        return growthData.slice(-3);
       case "6M":
-        return data.growth.slice(-6);
+        return growthData.slice(-6);
       case "YTD": {
         const currentYear = new Date().getFullYear();
-        return data.growth.filter((g) => g.month.startsWith(String(currentYear)));
+        return growthData.filter((g) => g.month.startsWith(String(currentYear)));
       }
       case "1Y":
-        return data.growth.slice(-12);
+        return growthData.slice(-12);
       case "All":
-        return data.growth;
+        return growthData;
       default:
-        return data.growth;
+        return growthData;
     }
-  }, [data?.growth, timeRange]);
+  }, [growthData, timeRange]);
 
   if (loading) {
     return <DashboardSkeleton />;
