@@ -357,7 +357,6 @@ model ClientInvestment {
   contributions Contribution[]
   distributions Distribution[]
 
-  @@unique([userId, investmentId])
   @@index([userId])
   @@index([investmentId])
   @@index([deletedAt])

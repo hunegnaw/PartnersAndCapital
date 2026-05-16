@@ -282,8 +282,8 @@ async function main() {
   ];
 
   for (const pos of positions) {
-    const existing = await prisma.clientInvestment.findUnique({
-      where: { userId_investmentId: { userId: pos.userId, investmentId: pos.investmentId } },
+    const existing = await prisma.clientInvestment.findFirst({
+      where: { userId: pos.userId, investmentId: pos.investmentId, deletedAt: null },
     });
     if (existing) {
       console.log(`Position exists for user ${pos.userId} in investment ${pos.investmentId}`);
