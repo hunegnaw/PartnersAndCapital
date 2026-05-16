@@ -405,9 +405,9 @@ export function RichTextEditor({
   if (!editor) return null;
 
   return (
-    <div className="border border-gray-300 rounded-lg overflow-hidden bg-white">
+    <div className="border border-gray-300 rounded-lg bg-white">
       {/* Toolbar */}
-      <div className="border-b border-gray-200 bg-gray-50 px-2 py-1.5 flex flex-wrap items-center gap-0.5">
+      <div className="sticky top-0 z-30 border-b border-gray-200 bg-gray-50 px-2 py-1.5 flex flex-wrap items-center gap-0.5 rounded-t-lg">
         {/* Font select */}
         <select
           value={editor.getAttributes("textStyle").fontFamily || ""}
