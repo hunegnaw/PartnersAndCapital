@@ -102,7 +102,7 @@ export async function GET() {
 
     // Allocation by individual investment (fund)
     // Gold shades for Oil & Gas + Real Estate, Navy shades for Private Credit + Specialty
-    const GOLD_SHADES = ["#B07D3A", "#7A5528", "#D4B483", "#4A3818", "#E8D5B0", "#FDF5E8"];
+    const GOLD_SHADES = ["#B07D3A", "#7A5528", "#4A3818", "#E8D5B0", "#FDF5E8"];
     const NAVY_SHADES = ["#1A2640", "#2C3E5C", "#406984", "#0D1428", "#8599B8", "#C5CCE8"];
     const goldCounter = { i: 0 };
     const navyCounter = { i: 0 };

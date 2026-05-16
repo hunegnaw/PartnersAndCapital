@@ -25,7 +25,7 @@ export function ImpersonationBanner({
   }
 
   return (
-    <div className="bg-amber-500 text-white px-4 py-2 flex items-center justify-center gap-3 text-sm font-medium">
+    <div className="bg-[#B07D3A] text-white px-4 py-2 flex items-center justify-center gap-3 text-sm font-medium">
       <Eye className="h-4 w-4 shrink-0" />
       <span>
         Viewing as <strong>{clientName}</strong> — Read-only mode
