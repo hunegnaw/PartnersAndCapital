@@ -97,14 +97,14 @@ export const DEFAULT_TYPOGRAPHY: TypographySettings = {
     fontWeight: "600",
     fontStyle: "normal",
     color: "#1A2640",
-    fontSize: "18px",
+    fontSize: "24px",
   },
   blogCardExcerpt: {
     fontFamily: "Inter",
     fontWeight: "400",
     fontStyle: "normal",
     color: "#666666",
-    fontSize: "14px",
+    fontSize: "18px",
   },
   h1: {
     fontFamily: "Cormorant Garamond",

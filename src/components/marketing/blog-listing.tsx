@@ -145,7 +145,7 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
                       fontFamily: "var(--font-blog-card-title-family, 'Inter', sans-serif)",
                       fontWeight: "var(--font-blog-card-title-weight, 600)" as unknown as number,
                       fontStyle: "var(--font-blog-card-title-style, normal)",
-                      fontSize: "var(--font-blog-card-title-size, 18px)",
+                      fontSize: "var(--font-blog-card-title-size, 24px)",
                       color: "var(--font-blog-card-title-color, #1A2640)",
                     }}
                   >
@@ -158,7 +158,7 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
                         fontFamily: "var(--font-blog-card-excerpt-family, 'Inter', sans-serif)",
                         fontWeight: "var(--font-blog-card-excerpt-weight, 400)" as unknown as number,
                         fontStyle: "var(--font-blog-card-excerpt-style, normal)",
-                        fontSize: "var(--font-blog-card-excerpt-size, 14px)",
+                        fontSize: "var(--font-blog-card-excerpt-size, 18px)",
                         color: "var(--font-blog-card-excerpt-color, #666666)",
                       }}
                     >
