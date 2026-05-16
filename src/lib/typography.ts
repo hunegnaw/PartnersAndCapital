@@ -14,6 +14,8 @@ export interface TypographySettings {
   body: FontSetting;
   adminBody: FontSetting;
   portalBody: FontSetting;
+  blogCardTitle: FontSetting;
+  blogCardExcerpt: FontSetting;
   h1: FontSetting;
   h2: FontSetting;
   h3: FontSetting;
@@ -30,6 +32,8 @@ export const TYPOGRAPHY_CATEGORIES: { key: keyof TypographySettings; label: stri
   { key: "body", label: "Body Text" },
   { key: "adminBody", label: "Admin Body" },
   { key: "portalBody", label: "Portal Body" },
+  { key: "blogCardTitle", label: "Blog Card Title" },
+  { key: "blogCardExcerpt", label: "Blog Card Excerpt" },
   { key: "h1", label: "Heading 1" },
   { key: "h2", label: "Heading 2" },
   { key: "h3", label: "Heading 3" },
@@ -86,6 +90,20 @@ export const DEFAULT_TYPOGRAPHY: TypographySettings = {
     fontWeight: "400",
     fontStyle: "normal",
     color: "#333333",
+    fontSize: "14px",
+  },
+  blogCardTitle: {
+    fontFamily: "Inter",
+    fontWeight: "600",
+    fontStyle: "normal",
+    color: "#1A2640",
+    fontSize: "18px",
+  },
+  blogCardExcerpt: {
+    fontFamily: "Inter",
+    fontWeight: "400",
+    fontStyle: "normal",
+    color: "#666666",
     fontSize: "14px",
   },
   h1: {

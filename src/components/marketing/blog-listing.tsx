@@ -139,11 +139,29 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
                       {post.category.name}
                     </span>
                   )}
-                  <h2 className="text-lg font-semibold text-[#1A2640] mt-2 group-hover:text-[#B07D3A] transition-colors line-clamp-2">
+                  <h2
+                    className="mt-2 group-hover:text-[#B07D3A] transition-colors line-clamp-2"
+                    style={{
+                      fontFamily: "var(--font-blog-card-title-family, 'Inter', sans-serif)",
+                      fontWeight: "var(--font-blog-card-title-weight, 600)" as unknown as number,
+                      fontStyle: "var(--font-blog-card-title-style, normal)",
+                      fontSize: "var(--font-blog-card-title-size, 18px)",
+                      color: "var(--font-blog-card-title-color, #1A2640)",
+                    }}
+                  >
                     {post.title}
                   </h2>
                   {post.excerpt && (
-                    <p className="text-sm text-gray-600 mt-2 line-clamp-3">
+                    <p
+                      className="mt-2 line-clamp-3"
+                      style={{
+                        fontFamily: "var(--font-blog-card-excerpt-family, 'Inter', sans-serif)",
+                        fontWeight: "var(--font-blog-card-excerpt-weight, 400)" as unknown as number,
+                        fontStyle: "var(--font-blog-card-excerpt-style, normal)",
+                        fontSize: "var(--font-blog-card-excerpt-size, 14px)",
+                        color: "var(--font-blog-card-excerpt-color, #666666)",
+                      }}
+                    >
                       {post.excerpt}
                     </p>
                   )}

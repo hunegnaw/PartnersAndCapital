@@ -15,6 +15,8 @@ function getCSSVariables(typography: TypographySettings): string {
     { key: "body", prefix: "body" },
     { key: "adminBody", prefix: "admin-body" },
     { key: "portalBody", prefix: "portal-body" },
+    { key: "blogCardTitle", prefix: "blog-card-title" },
+    { key: "blogCardExcerpt", prefix: "blog-card-excerpt" },
     { key: "h1", prefix: "h1" },
     { key: "h2", prefix: "h2" },
     { key: "h3", prefix: "h3" },
