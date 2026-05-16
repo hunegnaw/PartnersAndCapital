@@ -3,15 +3,25 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useOrganization } from "@/components/providers/organization-provider";
+import { forgotPasswordSchema } from "@/lib/validation";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fieldError, setFieldError] = useState("");
   const org = useOrganization();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setFieldError("");
+
+    const result = forgotPasswordSchema.safeParse({ email });
+    if (!result.success) {
+      setFieldError(result.error.issues[0].message);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -52,11 +62,12 @@ export default function ForgotPasswordPage() {
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => { setEmail(e.target.value); setFieldError(""); }}
               required
               className="w-full rounded-md border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
               placeholder="you@example.com"
             />
+            {fieldError && <p className="mt-1 text-xs text-red-600">{fieldError}</p>}
           </div>
 
           <button

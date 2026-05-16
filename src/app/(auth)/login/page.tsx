@@ -15,7 +15,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, CheckCircle } from "lucide-react";
+import { Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { z } from "zod";
+import { loginSchema } from "@/lib/validation";
 
 interface StatsData {
   totalDeployed: string;
@@ -126,7 +128,9 @@ function LoginContent() {
   const [step, setStep] = useState<"email" | "password" | "2fa">("email");
   const [useBackupCode, setUseBackupCode] = useState(false);
   const [error, setError] = useState("");
+  const [fieldError, setFieldError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [stats, setStats] = useState<StatsData | null>(null);
 
   // Request access modal state
@@ -148,14 +152,28 @@ function LoginContent() {
 
   function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email) return;
+    setFieldError("");
     setError("");
+    const result = z.string().email("Invalid email address").safeParse(email);
+    if (!result.success) {
+      setFieldError(result.error.issues[0].message);
+      return;
+    }
     setStep("password");
   }
 
   async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setFieldError("");
+
+    const result = loginSchema.safeParse({ email, password });
+    if (!result.success) {
+      const first = result.error.issues[0];
+      setFieldError(first.message);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -398,16 +416,27 @@ function LoginContent() {
                   Forgot password?
                 </Link>
               </div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoFocus
-                placeholder="Enter your password"
-                disabled={loading}
-                className="w-full px-3 py-2.5 text-[13px] border border-[#dfdedd] rounded-md bg-[#fafaf8] text-[#1a1a18] focus:outline-none focus:border-[#B07D3A] disabled:opacity-50"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoFocus
+                  placeholder="Enter your password"
+                  disabled={loading}
+                  className="w-full px-3 py-2.5 pr-10 text-[13px] border border-[#dfdedd] rounded-md bg-[#fafaf8] text-[#1a1a18] focus:outline-none focus:border-[#B07D3A] disabled:opacity-50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#888780] hover:text-[#5f5e5a]"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {fieldError && <p className="mt-1 text-xs text-red-600">{fieldError}</p>}
             </div>
 
             <button
@@ -456,13 +485,14 @@ function LoginContent() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => { setEmail(e.target.value); setFieldError(""); }}
               required
               autoFocus
               placeholder="you@example.com"
               disabled={loading}
               className="w-full px-3 py-2.5 text-[13px] border border-[#dfdedd] rounded-md bg-[#fafaf8] text-[#1a1a18] focus:outline-none focus:border-[#B07D3A] disabled:opacity-50"
             />
+            {fieldError && <p className="mt-1 text-xs text-red-600">{fieldError}</p>}
           </div>
 
           <button

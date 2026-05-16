@@ -58,3 +58,24 @@ export const passwordChangeSchema = z.object({
     .string()
     .min(8, "New password must be at least 8 characters"),
 });
+
+export const resetPasswordFormSchema = z
+  .object({
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export const advisorAcceptFormSchema = z
+  .object({
+    name: z.string().min(1, "Name is required").max(100),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });

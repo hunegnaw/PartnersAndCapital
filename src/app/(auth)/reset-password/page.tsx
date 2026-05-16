@@ -4,7 +4,8 @@ import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useOrganization } from "@/components/providers/organization-provider";
-import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { resetPasswordFormSchema } from "@/lib/validation";
 
 export default function ResetPasswordPage() {
   return (
@@ -33,6 +34,9 @@ function ResetPasswordInner() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -40,23 +44,19 @@ function ResetPasswordInner() {
     }
   }, [token]);
 
-  function validate(): string | null {
-    if (password.length < 8) {
-      return "Password must be at least 8 characters.";
-    }
-    if (password !== confirmPassword) {
-      return "Passwords do not match.";
-    }
-    return null;
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
 
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
+    const result = resetPasswordFormSchema.safeParse({ password, confirmPassword });
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as string;
+        if (!errors[key]) errors[key] = issue.message;
+      }
+      setFieldErrors(errors);
       return;
     }
 
@@ -134,35 +134,60 @@ function ResetPasswordInner() {
             <label htmlFor="password" className="block text-sm font-medium mb-1">
               New Password
             </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              className="w-full rounded-md border border-[#dfdedd] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#B07D3A] focus:border-[#B07D3A]"
-              placeholder="Enter new password"
-              disabled={loading}
-            />
-            <p className="mt-1 text-xs text-muted-foreground">Minimum 8 characters</p>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setFieldErrors((prev) => { const { password: _, ...rest } = prev; return rest; }); }}
+                required
+                minLength={8}
+                className="w-full rounded-md border border-[#dfdedd] px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#B07D3A] focus:border-[#B07D3A]"
+                placeholder="Enter new password"
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#888780] hover:text-[#5f5e5a]"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {fieldErrors.password ? (
+              <p className="mt-1 text-xs text-red-600">{fieldErrors.password}</p>
+            ) : (
+              <p className="mt-1 text-xs text-muted-foreground">Minimum 8 characters</p>
+            )}
           </div>
 
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
               Confirm Password
             </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              minLength={8}
-              className="w-full rounded-md border border-[#dfdedd] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#B07D3A] focus:border-[#B07D3A]"
-              placeholder="Confirm new password"
-              disabled={loading}
-            />
+            <div className="relative">
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => { setConfirmPassword(e.target.value); setFieldErrors((prev) => { const { confirmPassword: _, ...rest } = prev; return rest; }); }}
+                required
+                minLength={8}
+                className="w-full rounded-md border border-[#dfdedd] px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#B07D3A] focus:border-[#B07D3A]"
+                placeholder="Confirm new password"
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#888780] hover:text-[#5f5e5a]"
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {fieldErrors.confirmPassword && <p className="mt-1 text-xs text-red-600">{fieldErrors.confirmPassword}</p>}
           </div>
 
           <button
