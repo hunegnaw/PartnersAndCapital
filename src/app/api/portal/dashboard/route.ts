@@ -3,13 +3,13 @@ import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { getEffectiveUserId } from "@/lib/impersonation";
 
-// Allocation color mapping
+// Allocation color mapping (brand palette)
 const ASSET_CLASS_COLORS: Record<string, string> = {
-  "Oil & Gas": "#185fa5",
-  "Real Estate": "#22c55e",
-  "Private Credit": "#7c3aed",
-  "Specialty Assets": "#B07D3A",
-  Specialty: "#B07D3A",
+  "Oil & Gas": "#B07D3A",
+  "Real Estate": "#1A2640",
+  "Private Credit": "#5f5e5a",
+  "Specialty Assets": "#E8D5B0",
+  Specialty: "#E8D5B0",
 };
 
 export async function GET() {

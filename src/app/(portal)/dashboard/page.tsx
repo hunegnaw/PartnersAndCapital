@@ -333,8 +333,8 @@ export default function DashboardPage() {
         {/* Total Invested */}
         <div className="bg-white rounded-xl border border-[#dfdedd] p-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-              <DollarSign className="h-5 w-5 text-[#185fa5]" />
+            <div className="h-10 w-10 rounded-full bg-[#1A2640]/10 flex items-center justify-center">
+              <DollarSign className="h-5 w-5 text-[#1A2640]" />
             </div>
             <p className="text-xs text-[#888780] font-medium uppercase tracking-wider">
               Total Invested
@@ -351,8 +351,8 @@ export default function DashboardPage() {
         {/* Current Value */}
         <div className="bg-white rounded-xl border border-[#dfdedd] p-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-[#22c55e]" />
+            <div className="h-10 w-10 rounded-full bg-[#B07D3A]/10 flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 text-[#B07D3A]" />
             </div>
             <p className="text-xs text-[#888780] font-medium uppercase tracking-wider">
               Current Value
@@ -420,7 +420,7 @@ export default function DashboardPage() {
                   className={cn(
                     "px-2.5 py-1 text-xs font-medium rounded-md transition-colors",
                     timeRange === range
-                      ? "bg-[#185fa5] text-white"
+                      ? "bg-[#1A2640] text-white"
                       : "text-[#888780] hover:bg-[#eeece8]"
                   )}
                 >
@@ -432,11 +432,11 @@ export default function DashboardPage() {
           {/* Legend */}
           <div className="flex items-center gap-5 mb-4">
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-0.5 bg-[#185fa5] rounded-full" />
+              <div className="w-3 h-0.5 bg-[#1A2640] rounded-full" />
               <span className="text-xs text-[#888780]">Portfolio Value</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-0.5 bg-[#22c55e] rounded-full" />
+              <div className="w-3 h-0.5 bg-[#B07D3A] rounded-full" />
               <span className="text-xs text-[#888780]">Cash Distributed</span>
             </div>
           </div>
@@ -482,18 +482,18 @@ export default function DashboardPage() {
                 <Line
                   type="monotone"
                   dataKey="netValue"
-                  stroke="#185fa5"
+                  stroke="#1A2640"
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 4, fill: "#185fa5" }}
+                  activeDot={{ r: 4, fill: "#1A2640" }}
                 />
                 <Line
                   type="monotone"
                   dataKey="cumulativeDistributions"
-                  stroke="#22c55e"
+                  stroke="#B07D3A"
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 4, fill: "#22c55e" }}
+                  activeDot={{ r: 4, fill: "#B07D3A" }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -668,8 +668,8 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 {data.recentActivity.map((item) => (
                   <div key={item.id} className="flex gap-3">
-                    <div className="mt-0.5 h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                      <TrendingUp className="h-4 w-4 text-[#185fa5]" />
+                    <div className="mt-0.5 h-8 w-8 rounded-full bg-[#B07D3A]/10 flex items-center justify-center shrink-0">
+                      <TrendingUp className="h-4 w-4 text-[#B07D3A]" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-[#1a1a18]">
