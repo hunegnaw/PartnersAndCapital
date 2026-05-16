@@ -111,7 +111,7 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
               <Link
                 key={post.id}
                 href={`/blog/${post.slug}`}
-                className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                className="group blog-card bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
               >
                 {post.heroImageUrl ? (
                   <div className="aspect-[16/10] overflow-hidden">

@@ -267,6 +267,22 @@ body {
   font-size: var(--font-h6-size, 16px) !important;
 }
 
+/* Blog card overrides — more specific than .marketing-typography h2/p */
+.marketing-typography .blog-card h2 {
+  font-family: var(--font-blog-card-title-family, 'Inter', sans-serif) !important;
+  font-weight: var(--font-blog-card-title-weight, 600) !important;
+  font-style: var(--font-blog-card-title-style, normal) !important;
+  color: var(--font-blog-card-title-color, #1A2640);
+  font-size: var(--font-blog-card-title-size, 24px) !important;
+}
+.marketing-typography .blog-card p {
+  font-family: var(--font-blog-card-excerpt-family, 'Inter', sans-serif) !important;
+  font-weight: var(--font-blog-card-excerpt-weight, 400) !important;
+  font-style: var(--font-blog-card-excerpt-style, normal) !important;
+  color: var(--font-blog-card-excerpt-color, #666666);
+  font-size: var(--font-blog-card-excerpt-size, 18px) !important;
+}
+
 /* Subtitle font override — more specific than .marketing-typography p */
 .marketing-typography .subtitle-font {
   font-family: var(--font-subtitle-family, 'Cormorant Garamond'), serif;
