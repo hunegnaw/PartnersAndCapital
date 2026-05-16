@@ -101,23 +101,38 @@ export async function GET() {
     }));
 
     // Allocation by individual investment (fund)
-    const INVESTMENT_COLORS = ["#B07D3A", "#1A2640", "#2C3E5C", "#7A5520", "#E8D5B0", "#5f5e5a", "#3b6d11", "#185fa5"];
-    const investmentAllocMap = new Map<string, { name: string; value: number }>();
+    // Gold shades for Oil & Gas + Real Estate, Navy shades for Private Credit + Specialty
+    const GOLD_SHADES = ["#B07D3A", "#7A5528", "#D4B483", "#4A3818", "#E8D5B0", "#FDF5E8"];
+    const NAVY_SHADES = ["#1A2640", "#2C3E5C", "#406984", "#0D1428", "#8599B8", "#C5CCE8"];
+    const goldCounter = { i: 0 };
+    const navyCounter = { i: 0 };
+
+    const investmentAllocMap = new Map<string, { name: string; value: number; assetClass: string }>();
     for (const ci of clientInvestments) {
       const investName = ci.investment.name;
-      const existing = investmentAllocMap.get(investName) || { name: investName, value: 0 };
+      const existing = investmentAllocMap.get(investName) || {
+        name: investName,
+        value: 0,
+        assetClass: ci.investment.assetClass.name,
+      };
       existing.value += Number(ci.currentValue);
       investmentAllocMap.set(investName, existing);
     }
-    const investmentAllocation = Array.from(investmentAllocMap.values()).map((a, i) => ({
-      name: a.name,
-      value: a.value,
-      percentage:
-        totalAllocationValue > 0
-          ? Math.round((a.value / totalAllocationValue) * 10000) / 100
-          : 0,
-      color: INVESTMENT_COLORS[i % INVESTMENT_COLORS.length],
-    }));
+    const investmentAllocation = Array.from(investmentAllocMap.values()).map((a) => {
+      const isGold = a.assetClass === "Oil & Gas" || a.assetClass === "Real Estate";
+      const color = isGold
+        ? GOLD_SHADES[goldCounter.i++ % GOLD_SHADES.length]
+        : NAVY_SHADES[navyCounter.i++ % NAVY_SHADES.length];
+      return {
+        name: a.name,
+        value: a.value,
+        percentage:
+          totalAllocationValue > 0
+            ? Math.round((a.value / totalAllocationValue) * 10000) / 100
+            : 0,
+        color,
+      };
+    });
 
     // Growth data: last 12 months of portfolio value
     const now = new Date();
