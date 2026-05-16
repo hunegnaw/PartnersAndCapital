@@ -5,10 +5,11 @@ import { getEffectiveUserId } from "@/lib/impersonation";
 
 // Allocation color mapping
 const ASSET_CLASS_COLORS: Record<string, string> = {
-  "Oil & Gas": "#B07D3A",
-  "Real Estate": "#1A2640",
-  "Private Credit": "#4a5568",
-  Specialty: "#a0aec0",
+  "Oil & Gas": "#185fa5",
+  "Real Estate": "#22c55e",
+  "Private Credit": "#7c3aed",
+  "Specialty Assets": "#B07D3A",
+  Specialty: "#B07D3A",
 };
 
 export async function GET() {
@@ -122,6 +123,7 @@ export async function GET() {
       month: string;
       contributions: number;
       netValue: number;
+      cumulativeDistributions: number;
     }[] = [];
 
     // Compute baseline (total contributions before the 12-month window)
@@ -135,7 +137,30 @@ export async function GET() {
       _sum: { amount: true },
     });
 
+    // Fetch distributions within the 12-month window for cumulative tracking
+    const distributionsInWindow = await prisma.distribution.findMany({
+      where: {
+        userId,
+        status: "COMPLETED",
+        deletedAt: null,
+        date: { gte: twelveMonthsAgo },
+      },
+      orderBy: { date: "asc" },
+    });
+
+    // Compute baseline distributions before window
+    const priorDistributions = await prisma.distribution.aggregate({
+      where: {
+        userId,
+        status: "COMPLETED",
+        deletedAt: null,
+        date: { lt: twelveMonthsAgo },
+      },
+      _sum: { amount: true },
+    });
+
     let cumulative = Number(priorContributions._sum.amount || 0);
+    let cumulativeDist = Number(priorDistributions._sum.amount || 0);
 
     for (let i = 0; i < 12; i++) {
       const monthDate = new Date(
@@ -158,12 +183,18 @@ export async function GET() {
         .filter((c) => c.date >= monthDate && c.date <= monthEnd)
         .reduce((sum, c) => sum + Number(c.amount), 0);
 
+      const monthDists = distributionsInWindow
+        .filter((d) => d.date >= monthDate && d.date <= monthEnd)
+        .reduce((sum, d) => sum + Number(d.amount), 0);
+
       cumulative += monthContribs;
+      cumulativeDist += monthDists;
 
       monthlyData.push({
         month: monthKey,
         contributions: monthContribs,
         netValue: cumulative,
+        cumulativeDistributions: cumulativeDist,
       });
     }
 

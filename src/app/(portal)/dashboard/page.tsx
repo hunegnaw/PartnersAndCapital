@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,7 +12,20 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
+import {
+  DollarSign,
+  TrendingUp,
+  BarChart3,
+  Target,
+  ChevronRight,
+  FileText,
+  Users,
+  Download,
+} from "lucide-react";
 import { formatCurrency, formatDate, formatMonthYear, cn } from "@/lib/utils";
 
 interface DashboardData {
@@ -29,7 +42,7 @@ interface DashboardData {
     percentage: number;
     color: string;
   }[];
-  growth: { month: string; netValue: number }[];
+  growth: { month: string; netValue: number; cumulativeDistributions: number }[];
   recentInvestments: {
     id: string;
     investment: { name: string; assetClass: { name: string } };
@@ -54,6 +67,8 @@ interface DashboardData {
   }[];
   lastUpdated: string;
 }
+
+type TimeRange = "1M" | "3M" | "6M" | "YTD" | "1Y" | "All";
 
 function formatCompact(amount: number): string {
   if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
@@ -227,6 +242,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [timeRange, setTimeRange] = useState<TimeRange>("1Y");
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -247,6 +263,29 @@ export default function DashboardPage() {
   useEffect(() => {
     Promise.resolve().then(() => fetchDashboard());
   }, [fetchDashboard]);
+
+  const filteredGrowth = useMemo(() => {
+    if (!data?.growth) return [];
+    const total = data.growth.length;
+    switch (timeRange) {
+      case "1M":
+        return data.growth.slice(-1);
+      case "3M":
+        return data.growth.slice(-3);
+      case "6M":
+        return data.growth.slice(-6);
+      case "YTD": {
+        const currentYear = new Date().getFullYear();
+        return data.growth.filter((g) => g.month.startsWith(String(currentYear)));
+      }
+      case "1Y":
+        return data.growth.slice(-12);
+      case "All":
+        return data.growth;
+      default:
+        return data.growth;
+    }
+  }, [data?.growth, timeRange]);
 
   if (loading) {
     return <DashboardSkeleton />;
@@ -275,122 +314,146 @@ export default function DashboardPage() {
     ? formatDate(data.lastUpdated)
     : formatDate(new Date().toISOString());
 
+  const timeRanges: TimeRange[] = ["1M", "3M", "6M", "YTD", "1Y", "All"];
+
   return (
     <div className="p-8 space-y-8">
       {/* Welcome Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1a18]">
-            Welcome back, {firstName}.
-          </h1>
-          <p className="text-[#5f5e5a] text-sm mt-1">
-            Here&apos;s where your capital stands.
-          </p>
-        </div>
-        <p className="text-xs text-[#888780]">Updated {updatedDate}</p>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-[#1a1a18]">
+          Welcome back, {firstName}.
+        </h1>
+        <p className="text-[#5f5e5a] text-sm mt-1">
+          Here&apos;s a clear view of where your capital stands.
+        </p>
       </div>
 
       {/* 4 KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Total Invested */}
         <div className="bg-white rounded-xl border border-[#dfdedd] p-5">
-          <p className="text-xs text-[#888780] font-medium uppercase tracking-wider mb-1">
-            Total Invested
-          </p>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <DollarSign className="h-5 w-5 text-[#185fa5]" />
+            </div>
+            <p className="text-xs text-[#888780] font-medium uppercase tracking-wider">
+              Total Invested
+            </p>
+          </div>
           <p className="text-2xl font-bold text-[#1a1a18]">
             {formatCurrency(data.totalInvested)}
           </p>
           <p className="text-xs text-[#888780] mt-1">
-            {data.activeInvestments} investment{data.activeInvestments !== 1 ? "s" : ""}
+            Across {data.activeInvestments} active investment{data.activeInvestments !== 1 ? "s" : ""}
           </p>
         </div>
 
+        {/* Current Value */}
         <div className="bg-white rounded-xl border border-[#dfdedd] p-5">
-          <p className="text-xs text-[#888780] font-medium uppercase tracking-wider mb-1">
-            Current Value
-          </p>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 text-[#22c55e]" />
+            </div>
+            <p className="text-xs text-[#888780] font-medium uppercase tracking-wider">
+              Current Value
+            </p>
+          </div>
           <p className="text-2xl font-bold text-[#1a1a18]">
             {formatCurrency(data.currentValue)}
           </p>
-          <p className={cn("text-xs mt-1", data.totalGain >= 0 ? "text-green-600" : "text-red-600")}>
-            {data.totalGain >= 0 ? "+" : ""}
+          <p className="text-xs text-[#888780] mt-1">
+            Updated {updatedDate}
+          </p>
+        </div>
+
+        {/* Total Returns */}
+        <div className="bg-white rounded-xl border border-[#dfdedd] p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-10 w-10 rounded-full bg-[#1A2640]/10 flex items-center justify-center">
+              <BarChart3 className="h-5 w-5 text-[#1A2640]" />
+            </div>
+            <p className="text-xs text-[#888780] font-medium uppercase tracking-wider">
+              Total Returns
+            </p>
+          </div>
+          <p className="text-2xl font-bold text-[#1a1a18]">
             {formatCurrency(data.totalGain)}
           </p>
-        </div>
-
-        <div className="bg-white rounded-xl border border-[#dfdedd] p-5">
-          <p className="text-xs text-[#888780] font-medium uppercase tracking-wider mb-1">
-            Total Return
-          </p>
-          <p className={cn("text-2xl font-bold", data.totalReturnPct >= 0 ? "text-green-600" : "text-red-600")}>
+          <p className={cn("text-xs mt-1 font-medium", data.totalReturnPct >= 0 ? "text-green-600" : "text-red-600")}>
             {data.totalReturnPct >= 0 ? "+" : ""}
-            {data.totalReturnPct.toFixed(1)}%
-          </p>
-          <p className="text-xs text-[#888780] mt-1">
-            Net IRR: {data.netIRR.toFixed(1)}%
+            {data.totalReturnPct.toFixed(1)}% Net Return
           </p>
         </div>
 
+        {/* Cash Distributed */}
         <div className="bg-white rounded-xl border border-[#dfdedd] p-5">
-          <p className="text-xs text-[#888780] font-medium uppercase tracking-wider mb-1">
-            Cash Distributed
-          </p>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-10 w-10 rounded-full bg-[#1A2640]/10 flex items-center justify-center">
+              <Target className="h-5 w-5 text-[#1A2640]" />
+            </div>
+            <p className="text-xs text-[#888780] font-medium uppercase tracking-wider">
+              Cash Distributed
+            </p>
+          </div>
           <p className="text-2xl font-bold text-[#1a1a18]">
             {formatCurrency(data.totalDistributions)}
           </p>
-          <p className="text-xs text-[#888780] mt-1">YTD</p>
+          <p className="text-xs text-[#888780] mt-1">
+            Since inception
+          </p>
         </div>
       </div>
 
-      {/* Allocation + Growth */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Allocation */}
-        <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
-          <h2 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-5">
-            Allocation
-          </h2>
-          {data.allocation && data.allocation.length > 0 ? (
-            <div className="space-y-4">
-              {data.allocation.map((item) => (
-                <div key={item.name} className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-[#1a1a18]">{item.name}</span>
-                    <span className="text-[#5f5e5a] tabular-nums">
-                      {item.percentage.toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="h-2 w-full rounded-full bg-[#eeece8] overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${item.percentage}%`,
-                        backgroundColor: item.color,
-                      }}
-                    />
-                  </div>
-                </div>
+      {/* Performance + Allocation Row */}
+      <div className="grid gap-6 lg:grid-cols-5">
+        {/* Performance Chart - 3 cols */}
+        <div className="lg:col-span-3 bg-white rounded-xl border border-[#dfdedd] p-6">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-xs font-semibold text-[#888780] tracking-widest uppercase">
+              Performance
+            </h2>
+            <div className="flex gap-1">
+              {timeRanges.map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setTimeRange(range)}
+                  className={cn(
+                    "px-2.5 py-1 text-xs font-medium rounded-md transition-colors",
+                    timeRange === range
+                      ? "bg-[#185fa5] text-white"
+                      : "text-[#888780] hover:bg-[#eeece8]"
+                  )}
+                >
+                  {range}
+                </button>
               ))}
             </div>
-          ) : (
-            <div className="flex items-center justify-center h-48 text-sm text-[#888780]">
-              No allocation data available
+          </div>
+          {/* Legend */}
+          <div className="flex items-center gap-5 mb-4">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-0.5 bg-[#185fa5] rounded-full" />
+              <span className="text-xs text-[#888780]">Portfolio Value</span>
             </div>
-          )}
-        </div>
-
-        {/* Portfolio Growth */}
-        <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
-          <h2 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-5">
-            Portfolio Growth
-          </h2>
-          {data.growth && data.growth.length > 0 ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={data.growth}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#dfdedd" />
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-0.5 bg-[#22c55e] rounded-full" />
+              <span className="text-xs text-[#888780]">Cash Distributed</span>
+            </div>
+          </div>
+          {filteredGrowth.length > 0 ? (
+            <ResponsiveContainer width="100%" height={240}>
+              <LineChart data={filteredGrowth}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#eeece8" />
                 <XAxis
                   dataKey="month"
                   tick={{ fontSize: 11, fill: "#888780" }}
                   tickLine={false}
                   axisLine={false}
+                  tickFormatter={(val) => {
+                    const parts = val.split("-");
+                    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                    return months[parseInt(parts[1]) - 1] || val;
+                  }}
                 />
                 <YAxis
                   tick={{ fontSize: 11, fill: "#888780" }}
@@ -400,8 +463,15 @@ export default function DashboardPage() {
                   width={60}
                 />
                 <Tooltip
-                  formatter={(value) => [formatCurrency(Number(value ?? 0)), "Value"]}
-                  labelStyle={{ color: "#1a1a18" }}
+                  formatter={(value, name) => [
+                    formatCurrency(Number(value ?? 0)),
+                    name === "netValue" ? "Portfolio Value" : "Cash Distributed",
+                  ]}
+                  labelFormatter={(label) => {
+                    const parts = label.split("-");
+                    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                    return `${months[parseInt(parts[1]) - 1]} ${parts[0]}`;
+                  }}
                   contentStyle={{
                     backgroundColor: "#fff",
                     border: "1px solid #dfdedd",
@@ -412,10 +482,18 @@ export default function DashboardPage() {
                 <Line
                   type="monotone"
                   dataKey="netValue"
-                  stroke="#B07D3A"
+                  stroke="#185fa5"
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 4, fill: "#B07D3A" }}
+                  activeDot={{ r: 4, fill: "#185fa5" }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="cumulativeDistributions"
+                  stroke="#22c55e"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4, fill: "#22c55e" }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -425,14 +503,70 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* Allocation Donut - 2 cols */}
+        <div className="lg:col-span-2 bg-white rounded-xl border border-[#dfdedd] p-6">
+          <h2 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-5">
+            Allocation
+          </h2>
+          {data.allocation && data.allocation.length > 0 ? (
+            <div>
+              <div className="flex justify-center mb-4">
+                <PieChart width={200} height={200}>
+                  <Pie
+                    data={data.allocation}
+                    cx={100}
+                    cy={100}
+                    innerRadius={60}
+                    outerRadius={90}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {data.allocation.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </div>
+              <div className="space-y-2.5">
+                {data.allocation.map((item) => (
+                  <div key={item.name} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{ backgroundColor: item.color }}
+                      />
+                      <span className="text-[#1a1a18]">{item.name}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[#888780] tabular-nums">{item.percentage.toFixed(1)}%</span>
+                      <span className="text-[#5f5e5a] tabular-nums text-xs">{formatCompact(item.value)}</span>
+                    </div>
+                  </div>
+                ))}
+                <div className="border-t border-[#eeece8] pt-2 flex items-center justify-between text-sm font-medium">
+                  <span className="text-[#1a1a18]">Total</span>
+                  <span className="text-[#1a1a18] tabular-nums">
+                    {formatCurrency(data.allocation.reduce((sum, a) => sum + a.value, 0))}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-48 text-sm text-[#888780]">
+              No allocation data available
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Active Investments Table */}
-      {data.recentInvestments && data.recentInvestments.length > 0 && (
-        <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
+      {/* Investments + Activity/Docs Row */}
+      <div className="grid gap-6 lg:grid-cols-5">
+        {/* Investments Table - 3 cols */}
+        <div className="lg:col-span-3 bg-white rounded-xl border border-[#dfdedd] p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xs font-semibold text-[#888780] tracking-widest uppercase">
-              Active Investments
+              Investments
             </h2>
             <Link
               href="/investments"
@@ -441,141 +575,193 @@ export default function DashboardPage() {
               View all &rarr;
             </Link>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[#dfdedd]">
-                  <th className="text-left text-[10px] font-semibold text-[#888780] tracking-widest uppercase py-2">
-                    Deal
-                  </th>
-                  <th className="text-right text-[10px] font-semibold text-[#888780] tracking-widest uppercase py-2">
-                    Invested
-                  </th>
-                  <th className="text-right text-[10px] font-semibold text-[#888780] tracking-widest uppercase py-2">
-                    Return
-                  </th>
-                  <th className="text-left text-[10px] font-semibold text-[#888780] tracking-widest uppercase py-2 pl-4">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.recentInvestments.map((inv) => (
-                  <tr key={inv.id} className="border-b border-[#eeece8] last:border-0">
-                    <td className="py-3">
-                      <Link
-                        href={`/investments/${inv.id}`}
-                        className="font-medium text-[#1a1a18] hover:text-[#B07D3A] transition-colors"
-                      >
-                        {inv.investment.name}
-                      </Link>
-                    </td>
-                    <td className="text-right py-3 tabular-nums text-[#5f5e5a]">
-                      {formatCompact(inv.amountInvested)}
-                    </td>
-                    <td
-                      className={cn(
-                        "text-right py-3 font-medium tabular-nums",
-                        inv.returnPercentage >= 0 ? "text-green-600" : "text-red-600"
-                      )}
-                    >
-                      {inv.returnPercentage >= 0 ? "+" : ""}
-                      {inv.returnPercentage.toFixed(1)}%
-                    </td>
-                    <td className="py-3 pl-4">
-                      <span
+          {data.recentInvestments && data.recentInvestments.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#dfdedd]">
+                    <th className="text-left text-[10px] font-semibold text-[#888780] tracking-widest uppercase py-2">
+                      Investment
+                    </th>
+                    <th className="text-left text-[10px] font-semibold text-[#888780] tracking-widest uppercase py-2">
+                      Asset Class
+                    </th>
+                    <th className="text-right text-[10px] font-semibold text-[#888780] tracking-widest uppercase py-2">
+                      Invested
+                    </th>
+                    <th className="text-right text-[10px] font-semibold text-[#888780] tracking-widest uppercase py-2">
+                      Current Value
+                    </th>
+                    <th className="text-right text-[10px] font-semibold text-[#888780] tracking-widest uppercase py-2">
+                      Return
+                    </th>
+                    <th className="text-center text-[10px] font-semibold text-[#888780] tracking-widest uppercase py-2">
+                      Status
+                    </th>
+                    <th className="py-2 w-8"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.recentInvestments.map((inv) => (
+                    <tr key={inv.id} className="border-b border-[#eeece8] last:border-0 hover:bg-[#fafaf8] transition-colors">
+                      <td className="py-3">
+                        <Link
+                          href={`/investments/${inv.id}`}
+                          className="font-medium text-[#1a1a18] hover:text-[#B07D3A] transition-colors"
+                        >
+                          {inv.investment.name}
+                        </Link>
+                      </td>
+                      <td className="py-3 text-[#5f5e5a] text-xs">
+                        {inv.investment.assetClass.name}
+                      </td>
+                      <td className="text-right py-3 tabular-nums text-[#5f5e5a]">
+                        {formatCompact(inv.amountInvested)}
+                      </td>
+                      <td className="text-right py-3 tabular-nums text-[#1a1a18] font-medium">
+                        {formatCompact(inv.currentValue)}
+                      </td>
+                      <td
                         className={cn(
-                          "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border",
-                          inv.status === "ACTIVE"
-                            ? "border-[#3b6d11]/20 text-[#3b6d11] bg-[#eaf3de]"
-                            : "border-[#185fa5]/20 text-[#185fa5] bg-[#e6f1fb]"
+                          "text-right py-3 font-medium tabular-nums",
+                          inv.returnPercentage >= 0 ? "text-green-600" : "text-red-600"
                         )}
                       >
-                        {inv.status === "ACTIVE" ? "Active" : "Performing"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        {inv.returnPercentage >= 0 ? "+" : ""}
+                        {inv.returnPercentage.toFixed(1)}%
+                      </td>
+                      <td className="py-3 text-center">
+                        <span
+                          className={cn(
+                            "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border",
+                            inv.status === "ACTIVE"
+                              ? "border-[#3b6d11]/20 text-[#3b6d11] bg-[#eaf3de]"
+                              : "border-[#185fa5]/20 text-[#185fa5] bg-[#e6f1fb]"
+                          )}
+                        >
+                          {inv.status === "ACTIVE" ? "Active" : "Performing"}
+                        </span>
+                      </td>
+                      <td className="py-3">
+                        <Link href={`/investments/${inv.id}`}>
+                          <ChevronRight className="h-4 w-4 text-[#888780]" />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-[#888780]">No investments yet</p>
+          )}
         </div>
-      )}
 
-      {/* Documents + Recent Activity */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Documents */}
-        <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xs font-semibold text-[#888780] tracking-widest uppercase">
-              Documents
+        {/* Activity + Documents - 2 cols */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Recent Activity */}
+          <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
+            <h2 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-4">
+              Recent Activity
             </h2>
-            <Link
-              href="/documents"
-              className="text-xs text-[#B07D3A] hover:underline font-medium"
-            >
-              View all &rarr;
-            </Link>
+            {data.recentActivity && data.recentActivity.length > 0 ? (
+              <div className="space-y-4">
+                {data.recentActivity.map((item) => (
+                  <div key={item.id} className="flex gap-3">
+                    <div className="mt-0.5 h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                      <TrendingUp className="h-4 w-4 text-[#185fa5]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-[#1a1a18]">
+                        {item.title}
+                      </p>
+                      <p className="text-xs text-[#888780] mt-0.5">
+                        {formatMonthYear(item.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-[#888780]">No recent activity</p>
+            )}
           </div>
-          {data.recentDocuments && data.recentDocuments.length > 0 ? (
-            <div className="space-y-3">
-              {data.recentDocuments.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="flex items-center justify-between"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-[#1a1a18]">
-                      {doc.name}
-                    </p>
-                    <p className="text-xs text-[#888780]">
-                      {doc.type.replace(/_/g, " ")}
-                      {doc.investment ? ` \u00b7 ${doc.investment.name}` : ""}
-                    </p>
-                  </div>
-                  <a
-                    href={`/api/portal/documents/${doc.id}/download`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-[#B07D3A] hover:underline font-medium shrink-0 ml-4"
-                  >
-                    Download
-                  </a>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-[#888780]">
-              No documents available yet
-            </p>
-          )}
-        </div>
 
-        {/* Recent Activity */}
-        <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
-          <h2 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-4">
-            Recent Activity
-          </h2>
-          {data.recentActivity && data.recentActivity.length > 0 ? (
-            <div className="space-y-4">
-              {data.recentActivity.map((item) => (
-                <div key={item.id} className="flex gap-3">
-                  <div className="mt-1.5 w-2 h-2 rounded-full bg-[#B07D3A] shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-[#1a1a18]">
-                      {item.title}
-                    </p>
-                    <p className="text-xs text-[#888780] mt-0.5">
-                      {formatMonthYear(item.createdAt)}
-                    </p>
-                  </div>
-                </div>
-              ))}
+          {/* Documents */}
+          <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xs font-semibold text-[#888780] tracking-widest uppercase">
+                Documents
+              </h2>
+              <Link
+                href="/documents"
+                className="text-xs text-[#B07D3A] hover:underline font-medium"
+              >
+                View all &rarr;
+              </Link>
             </div>
-          ) : (
-            <p className="text-sm text-[#888780]">No recent activity</p>
-          )}
+            {data.recentDocuments && data.recentDocuments.length > 0 ? (
+              <div className="space-y-3">
+                {data.recentDocuments.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-[#eeece8] flex items-center justify-center shrink-0">
+                        <FileText className="h-4 w-4 text-[#5f5e5a]" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-[#1a1a18]">
+                          {doc.name}
+                        </p>
+                        <p className="text-xs text-[#888780]">
+                          {doc.type.replace(/_/g, " ")}
+                          {doc.investment ? ` \u00b7 ${doc.investment.name}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href={`/api/portal/documents/${doc.id}/download`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-8 w-8 rounded-lg hover:bg-[#eeece8] flex items-center justify-center transition-colors shrink-0"
+                    >
+                      <Download className="h-4 w-4 text-[#B07D3A]" />
+                    </a>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-[#888780]">
+                No documents available yet
+              </p>
+            )}
+          </div>
         </div>
+      </div>
+
+      {/* CTA Banner - Invite Advisor */}
+      <div className="bg-[#1A2640] rounded-xl p-6 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center">
+            <Users className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-white font-semibold">
+              Share Access with Your Advisor
+            </h3>
+            <p className="text-white/60 text-sm mt-0.5">
+              Give your CPA or financial advisor read-only portal access.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/advisors"
+          className="bg-white text-[#1A2640] px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-white/90 transition-colors shrink-0"
+        >
+          Invite Advisor
+        </Link>
       </div>
     </div>
   );
