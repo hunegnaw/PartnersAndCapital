@@ -46,6 +46,59 @@ export async function GET(
       }
     }
 
+    // Advisor access: check if the authenticated user is an advisor with document permissions
+    if (!hasAccess && user.role === "ADVISOR") {
+      const advisorRecord = await prisma.advisor.findFirst({
+        where: {
+          advisorUserId: user.id,
+          clientId: document.userId ?? undefined,
+          status: "ACTIVE",
+        },
+        include: {
+          accesses: {
+            where: {
+              revokedAt: null,
+              OR: [
+                { expiresAt: null },
+                { expiresAt: { gt: new Date() } },
+              ],
+            },
+            select: { permissionLevel: true, investmentId: true },
+          },
+        },
+      });
+
+      if (advisorRecord && advisorRecord.accesses.length > 0) {
+        for (const access of advisorRecord.accesses) {
+          if (access.permissionLevel === "DASHBOARD_AND_DOCUMENTS") {
+            hasAccess = true;
+            break;
+          }
+          if (
+            access.permissionLevel === "DASHBOARD_AND_TAX_DOCUMENTS" &&
+            document.type &&
+            ["K1", "TAX_1099"].includes(document.type)
+          ) {
+            hasAccess = true;
+            break;
+          }
+          if (
+            access.permissionLevel === "SPECIFIC_INVESTMENT" &&
+            access.investmentId &&
+            document.investmentId === access.investmentId
+          ) {
+            hasAccess = true;
+            break;
+          }
+        }
+      }
+    }
+
+    // Admin access: admins can always download
+    if (!hasAccess && (user.role === "ADMIN" || user.role === "SUPER_ADMIN")) {
+      hasAccess = true;
+    }
+
     if (!hasAccess) {
       return NextResponse.json(
         { error: "Access denied" },
