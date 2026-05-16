@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table"
 import { InvestmentFormDialog } from "@/components/admin/investment-form-dialog"
 import { ClientInvestmentDialog } from "@/components/admin/client-investment-dialog"
+import { EditClientInvestmentDialog } from "@/components/admin/edit-client-investment-dialog"
 import { DealRoomUpdateDialog } from "@/components/admin/deal-room-update-dialog"
 import { DocumentUploadDialog } from "@/components/admin/document-upload-dialog"
 import { ValuationFormDialog } from "@/components/admin/valuation-form-dialog"
@@ -198,6 +199,8 @@ export default function AdminInvestmentDetailPage({
   const [deletePositionOpen, setDeletePositionOpen] = useState(false)
   const [deletingPosition, setDeletingPosition] = useState(false)
   const [deletePositionTarget, setDeletePositionTarget] = useState<{ id: string; clientName: string } | null>(null)
+  const [editPositionOpen, setEditPositionOpen] = useState(false)
+  const [editPositionTarget, setEditPositionTarget] = useState<ClientPosition | null>(null)
 
   const fetchInvestment = useCallback(async () => {
     setLoading(true)
@@ -690,6 +693,17 @@ export default function AdminInvestmentDetailPage({
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation()
+                                setEditPositionTarget(ci)
+                                setEditPositionOpen(true)
+                              }}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
                                 setDistributionTarget({
                                   clientInvestmentId: ci.id,
                                   clientName: ci.user.name || ci.user.email,
@@ -1097,6 +1111,14 @@ export default function AdminInvestmentDetailPage({
         onOpenChange={setAddClientOpen}
         investmentId={investment.id}
         clients={allClients}
+        onSuccess={fetchInvestment}
+      />
+
+      <EditClientInvestmentDialog
+        open={editPositionOpen}
+        onOpenChange={setEditPositionOpen}
+        investmentId={investment.id}
+        position={editPositionTarget}
         onSuccess={fetchInvestment}
       />
 

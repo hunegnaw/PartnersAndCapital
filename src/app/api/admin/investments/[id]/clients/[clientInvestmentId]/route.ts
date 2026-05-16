@@ -42,6 +42,7 @@ export async function PATCH(
       cashDistributed,
       adminApr,
       status,
+      investmentDate,
     } = body;
 
     const updated = await prisma.clientInvestment.update({
@@ -56,6 +57,7 @@ export async function PATCH(
         ...(cashDistributed !== undefined && { cashDistributed }),
         ...(adminApr !== undefined && { adminApr }),
         ...(status !== undefined && { status }),
+        ...(investmentDate !== undefined && { investmentDate: new Date(investmentDate) }),
       },
       include: {
         user: {
