@@ -7,9 +7,9 @@ import { getEffectiveUserId } from "@/lib/impersonation";
 const ASSET_CLASS_COLORS: Record<string, string> = {
   "Oil & Gas": "#B07D3A",
   "Real Estate": "#1A2640",
-  "Private Credit": "#5f5e5a",
-  "Specialty Assets": "#E8D5B0",
-  Specialty: "#E8D5B0",
+  "Private Credit": "#2C3E5C",
+  "Specialty Assets": "#7A5520",
+  Specialty: "#7A5520",
 };
 
 export async function GET() {
