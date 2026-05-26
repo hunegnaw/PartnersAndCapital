@@ -83,6 +83,7 @@ export async function POST(request: Request) {
       ogImageUrl,
       isPublished,
       tags,
+      publishedAt,
     } = body;
 
     if (!title || !slug || !content) {
@@ -105,6 +106,13 @@ export async function POST(request: Request) {
     const wordCount = content.replace(/<[^>]*>/g, "").split(/\s+/).filter(Boolean).length;
     const readTime = Math.max(1, Math.ceil(wordCount / 200));
 
+    // Use explicit publishedAt if provided, otherwise auto-set on publish
+    const resolvedPublishedAt = publishedAt
+      ? new Date(publishedAt)
+      : isPublished
+        ? new Date()
+        : null;
+
     const post = await prisma.blogPost.create({
       data: {
         title,
@@ -118,7 +126,7 @@ export async function POST(request: Request) {
         ogImageUrl: ogImageUrl || null,
         isPublished: isPublished || false,
         isDraft: !isPublished,
-        publishedAt: isPublished ? new Date() : null,
+        publishedAt: resolvedPublishedAt,
         readTime,
         authorId: user.id,
         ...(tags && tags.length > 0

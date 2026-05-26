@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select"
 import { RichTextEditor } from "@/components/admin/rich-text-editor"
 import { MediaPicker } from "@/components/admin/media-picker"
+import { DatePicker } from "@/components/ui/date-picker"
 import {
   ArrowLeft,
   AlertCircle,
@@ -64,6 +65,8 @@ export default function EditBlogPostPage() {
   const [heroImageUrl, setHeroImageUrl] = useState("")
   const [metaTitle, setMetaTitle] = useState("")
   const [metaDescription, setMetaDescription] = useState("")
+  const [publishDate, setPublishDate] = useState("")
+  const [publishTime, setPublishTime] = useState("")
 
   // UI state
   const [categories, setCategories] = useState<Category[]>([])
@@ -112,6 +115,11 @@ export default function EditBlogPostPage() {
       setHeroImageUrl(post.heroImageUrl || "")
       setMetaTitle(post.metaTitle || "")
       setMetaDescription(post.metaDescription || "")
+      if (post.publishedAt) {
+        const d = new Date(post.publishedAt)
+        setPublishDate(d.toISOString().slice(0, 10))
+        setPublishTime(d.toTimeString().slice(0, 5))
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred")
     } finally {
@@ -148,7 +156,7 @@ export default function EditBlogPostPage() {
     setSaving(true)
     setError(null)
     try {
-      const body = {
+      const body: Record<string, unknown> = {
         title,
         slug,
         excerpt: excerpt || null,
@@ -159,6 +167,12 @@ export default function EditBlogPostPage() {
         heroImageUrl: heroImageUrl || null,
         metaTitle: metaTitle || null,
         metaDescription: metaDescription || null,
+      }
+      if (publishDate) {
+        const time = publishTime || "12:00"
+        body.publishedAt = new Date(`${publishDate}T${time}:00`).toISOString()
+      } else {
+        body.publishedAt = null
       }
 
       const res = await fetch(`/api/admin/blog/${id}`, {
@@ -315,6 +329,27 @@ export default function EditBlogPostPage() {
                   Save as draft
                 </Label>
               </div>
+              <div className="space-y-2">
+                <Label className="text-sm text-gray-600">Publish Date</Label>
+                <DatePicker
+                  value={publishDate}
+                  onChange={setPublishDate}
+                  placeholder="Select date"
+                  clearable
+                />
+              </div>
+              {publishDate && (
+                <div className="space-y-2">
+                  <Label htmlFor="publishTime" className="text-sm text-gray-600">Publish Time</Label>
+                  <Input
+                    id="publishTime"
+                    type="time"
+                    value={publishTime}
+                    onChange={(e) => setPublishTime(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+              )}
               <div className="flex flex-col gap-2">
                 <Button
                   onClick={() => handleSubmit(false)}

@@ -67,6 +67,7 @@ export async function PATCH(
       ogImageUrl,
       isPublished,
       tags,
+      publishedAt: publishedAtRaw,
     } = body;
 
     const existing = await prisma.blogPost.findFirst({
@@ -98,9 +99,11 @@ export async function PATCH(
       readTime = Math.max(1, Math.ceil(wordCount / 200));
     }
 
-    // Determine publishedAt: set if switching from draft to published
-    let publishedAt: Date | undefined;
-    if (isPublished === true && !existing.isPublished && !existing.publishedAt) {
+    // Determine publishedAt: use explicit value if provided, otherwise auto-set on first publish
+    let publishedAt: Date | null | undefined;
+    if (publishedAtRaw !== undefined) {
+      publishedAt = publishedAtRaw ? new Date(publishedAtRaw) : null;
+    } else if (isPublished === true && !existing.isPublished && !existing.publishedAt) {
       publishedAt = new Date();
     }
 
@@ -118,7 +121,7 @@ export async function PATCH(
         ...(ogImageUrl !== undefined && { ogImageUrl: ogImageUrl || null }),
         ...(isPublished !== undefined && { isPublished, isDraft: !isPublished }),
         ...(readTime !== undefined && { readTime }),
-        ...(publishedAt !== undefined && { publishedAt }),
+        ...(publishedAt !== undefined && { publishedAt: publishedAt }),
       },
       include: {
         category: true,
