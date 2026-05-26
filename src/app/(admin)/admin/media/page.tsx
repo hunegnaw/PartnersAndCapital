@@ -104,9 +104,10 @@ export default function AdminMediaPage() {
     fetchMedia()
   }
 
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = e.target.files
-    if (!files || files.length === 0) return
+  const [isDragging, setIsDragging] = useState(false)
+
+  async function uploadFiles(files: FileList) {
+    if (files.length === 0) return
 
     setUploading(true)
     setError(null)
@@ -137,6 +138,10 @@ export default function AdminMediaPage() {
         fileInputRef.current.value = ""
       }
     }
+  }
+
+  function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files) uploadFiles(e.target.files)
   }
 
   function openDetail(item: MediaItem) {
@@ -364,10 +369,32 @@ export default function AdminMediaPage() {
               </button>
             </div>
 
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+            <div
+              onDragOver={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setIsDragging(true)
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setIsDragging(false)
+              }}
+              onDrop={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setIsDragging(false)
+                if (e.dataTransfer.files?.length) uploadFiles(e.dataTransfer.files)
+              }}
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                isDragging
+                  ? "border-[#B07D3A] bg-[#B07D3A]/5"
+                  : "border-gray-300"
+              }`}
+            >
               <Upload className="h-8 w-8 text-gray-400 mx-auto mb-3" />
               <p className="text-sm text-gray-600 mb-3">
-                Choose files to upload
+                Drag files here or choose below
               </p>
               <input
                 ref={fileInputRef}

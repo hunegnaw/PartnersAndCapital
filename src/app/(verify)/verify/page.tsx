@@ -749,6 +749,8 @@ function IdentityScreen({
   onContinue: () => void;
   onBack: () => void;
 }) {
+  const [isDragging, setIsDragging] = useState(false);
+
   const canContinue =
     legalFirstName &&
     legalLastName &&
@@ -871,7 +873,28 @@ function IdentityScreen({
 
           <div
             onClick={() => idFileRef.current?.click()}
-            className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-[#B07D3A] transition-colors"
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDragging(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDragging(false);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDragging(false);
+              const f = e.dataTransfer.files?.[0];
+              if (f) onIdFileChange(f);
+            }}
+            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+              isDragging
+                ? "border-[#B07D3A] bg-[#B07D3A]/5"
+                : "border-gray-300 hover:border-[#B07D3A]"
+            }`}
           >
             <input
               ref={idFileRef}
@@ -980,6 +1003,8 @@ function AccreditationScreen({
   onContinue: () => void;
   onBack: () => void;
 }) {
+  const [isDragging, setIsDragging] = useState(false);
+
   const canContinue =
     accreditationBasis &&
     accreditationDocType &&
@@ -1055,7 +1080,28 @@ function AccreditationScreen({
 
           <div
             onClick={() => accreditFileRef.current?.click()}
-            className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-[#B07D3A] transition-colors"
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDragging(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDragging(false);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDragging(false);
+              const f = e.dataTransfer.files?.[0];
+              if (f) onFileChange(f);
+            }}
+            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+              isDragging
+                ? "border-[#B07D3A] bg-[#B07D3A]/5"
+                : "border-gray-300 hover:border-[#B07D3A]"
+            }`}
           >
             <input
               ref={accreditFileRef}
