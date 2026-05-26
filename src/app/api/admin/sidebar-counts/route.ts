@@ -10,6 +10,7 @@ export async function GET() {
     const [
       clientCount,
       investmentCount,
+      distributionCount,
       assetClassCount,
       documentCount,
       advisorCount,
@@ -23,6 +24,7 @@ export async function GET() {
     ] = await Promise.all([
       prisma.user.count({ where: { role: "CLIENT", deletedAt: null } }),
       prisma.investment.count({ where: { deletedAt: null } }),
+      prisma.distribution.count({ where: { deletedAt: null } }),
       prisma.assetClass.count({ where: { deletedAt: null } }),
       prisma.document.count({ where: { deletedAt: null } }),
       prisma.advisor.count(),
@@ -40,6 +42,7 @@ export async function GET() {
     return NextResponse.json({
       clientCount,
       investmentCount,
+      distributionCount,
       assetClassCount,
       documentCount,
       advisorCount,

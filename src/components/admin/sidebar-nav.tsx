@@ -14,6 +14,7 @@ interface NavItem {
 interface SidebarCounts {
   clientCount: number
   investmentCount: number
+  distributionCount: number
   assetClassCount: number
   documentCount: number
   advisorCount: number
@@ -29,6 +30,7 @@ interface SidebarCounts {
 const manageNav: NavItem[] = [
   { href: "/admin", label: "Clients", countKey: "clientCount", showCountWhenZero: true },
   { href: "/admin/investments", label: "Investments", countKey: "investmentCount", showCountWhenZero: true },
+  { href: "/admin/distributions", label: "Distributions", countKey: "distributionCount", showCountWhenZero: true },
   { href: "/admin/asset-classes", label: "Asset Classes", countKey: "assetClassCount", showCountWhenZero: true },
   { href: "/admin/documents", label: "Documents", countKey: "documentCount", showCountWhenZero: true },
   { href: "/admin/advisors", label: "Advisors", countKey: "advisorCount", showCountWhenZero: true },

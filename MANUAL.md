@@ -168,6 +168,7 @@ The admin landing page at `/admin` is the Client Management view. It provides:
 | `/admin/media`         | Media library -- upload, browse, edit, delete media  |
 | `/admin/footer`        | Footer settings -- modules, logo, content, and colors |
 | `/admin/investments`   | Manage investments, funds, and asset classes          |
+| `/admin/distributions` | Centralized list of all distributions across investments |
 | `/admin/documents`     | Upload and manage documents (K-1s, reports, PPMs)    |
 | `/admin/activity`      | Manage activity feed posts and deal room updates     |
 | `/admin/support`       | View and respond to client support tickets           |
@@ -1318,7 +1319,22 @@ Document types (K-1, Tax 1099, Quarterly Report, etc.) are fully customizable by
 
 Distributions record cash payments to LPs (limited partners) per client position within an investment. Each distribution is linked to a specific `ClientInvestment` position and tracks amount, date, type, and optional notes.
 
+### Centralized Distributions Page
+
+The **Distributions** page (`/admin/distributions`) provides a centralized view of all distributions across all investments, accessible from the sidebar under MANAGE.
+
+**Features:**
+- **Table** showing Date, Client, Investment, Amount, Type, Notes, and Status for every distribution
+- **Search** by client name or investment name
+- **Filter** by distribution type (Cash, Reinvestment, Return of Capital) and by investment
+- **Pagination** for large datasets
+- **Record Distribution** button opens a two-step dialog:
+  1. Search for a client position by name or email
+  2. Fill in the distribution details (amount, date, type, notes)
+
 ### Recording a Single Distribution
+
+Distributions can also be recorded from within an individual investment:
 
 1. Navigate to **Admin > Investments > [Investment Name]**
 2. Open the **Client Positions** tab
