@@ -390,7 +390,9 @@ export function DocumentUploadDialog({
               <Label>Client *</Label>
               <Select value={clientId} onValueChange={(v) => setClientId(v ?? "")}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a client" />
+                  <SelectValue placeholder="Select a client">
+                    {clientList.find((c) => c.id === clientId)?.name}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {clientList.map((c) => (
@@ -406,7 +408,9 @@ export function DocumentUploadDialog({
               <Label>Investment *</Label>
               <Select value={investmentId} onValueChange={(v) => setInvestmentId(v ?? "")}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select an investment" />
+                  <SelectValue placeholder="Select an investment">
+                    {investmentList.find((inv) => inv.id === investmentId)?.name}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {investmentList.map((inv) => (

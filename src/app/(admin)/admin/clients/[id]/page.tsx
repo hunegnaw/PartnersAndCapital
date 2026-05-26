@@ -692,7 +692,9 @@ export default function AdminClientDetailPage({
                 <Label>Investment *</Label>
                 <Select value={selectedInvestmentId} onValueChange={(v) => setSelectedInvestmentId(v ?? "")}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select an investment" />
+                    <SelectValue placeholder="Select an investment">
+                      {(() => { const inv = investments.find((i) => i.id === selectedInvestmentId); return inv ? `${inv.name} (${inv.assetClass.name})` : undefined; })()}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {investments.map((inv) => (

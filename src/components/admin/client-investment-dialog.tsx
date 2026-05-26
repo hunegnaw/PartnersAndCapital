@@ -119,7 +119,9 @@ export function ClientInvestmentDialog({
               <Label>Client *</Label>
               <Select value={clientId} onValueChange={(v) => setClientId(v ?? "")} required>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a client" />
+                  <SelectValue placeholder="Select a client">
+                    {(() => { const c = clients.find((c) => c.id === clientId); return c ? `${c.name} (${c.email})` : undefined; })()}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {clients.map((c) => (

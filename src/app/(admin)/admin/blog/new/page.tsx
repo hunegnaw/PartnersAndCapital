@@ -285,9 +285,11 @@ export default function NewBlogPostPage() {
               <CardTitle className="text-sm font-medium">Category</CardTitle>
             </CardHeader>
             <CardContent>
-              <Select value={categoryId} onValueChange={(val) => setCategoryId(val === "none" ? "" : val || "")}>
+              <Select value={categoryId || "none"} onValueChange={(val) => setCategoryId(val === "none" ? "" : val || "")}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder="Select category">
+                    {categoryId ? categories.find((cat) => cat.id === categoryId)?.name : "No category"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No category</SelectItem>

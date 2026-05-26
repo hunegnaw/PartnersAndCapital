@@ -405,9 +405,11 @@ export default function AdminActivityPage() {
 
               <div className="grid gap-2">
                 <Label>Target User (optional)</Label>
-                <Select value={targetUserId} onValueChange={(v) => setTargetUserId(v ?? "")}>
+                <Select value={targetUserId || "none"} onValueChange={(v) => setTargetUserId(v === "none" ? "" : v ?? "")}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a user (optional)" />
+                    <SelectValue placeholder="Select a user (optional)">
+                      {(() => { const u = users.find((u) => u.id === targetUserId); return u ? `${u.name} (${u.email})` : "None"; })()}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>

@@ -209,7 +209,9 @@ export function InvestmentFormDialog({
                   required
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select class" />
+                    <SelectValue placeholder="Select class">
+                      {assetClasses.find((ac) => ac.id === assetClassId)?.name}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {assetClasses.map((ac) => (
