@@ -16,9 +16,10 @@ export async function GET(request: Request) {
     const type = searchParams.get("type") || "";
     const year = searchParams.get("year") || "";
     const investmentFilter = searchParams.get("investment") || "";
+    const category = searchParams.get("category") || "";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const pageSize = Math.min(
-      100,
+      500,
       Math.max(1, parseInt(searchParams.get("pageSize") || "20"))
     );
 
@@ -40,11 +41,25 @@ export async function GET(request: Request) {
       ],
     };
 
+    // Map category shorthand to an array of document types
+    const CATEGORY_TYPE_MAP: Record<string, string[]> = {
+      TAX: ["K1", "TAX_1099"],
+      REPORTS: ["QUARTERLY_REPORT", "ANNUAL_REPORT"],
+      LEGAL: ["SUBSCRIPTION_AGREEMENT", "PPM", "INVESTOR_LETTER"],
+      CAPITAL: ["CAPITAL_CALL_NOTICE", "DISTRIBUTION_NOTICE"],
+    };
+
+    const categoryTypes = category ? CATEGORY_TYPE_MAP[category] : undefined;
+
     const where: Prisma.DocumentWhereInput = {
       deletedAt: null,
       ...ownershipFilter,
       ...(search ? { name: { contains: search } } : {}),
-      ...(type && type !== "all" ? { type } : {}),
+      ...(categoryTypes
+        ? { type: { in: categoryTypes } }
+        : type && type !== "all"
+          ? { type }
+          : {}),
       ...(year && year !== "all" ? { year: parseInt(year) } : {}),
       ...(investmentFilter && investmentFilter !== "all"
         ? { investment: { name: investmentFilter } }

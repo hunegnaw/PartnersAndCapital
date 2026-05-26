@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui/tabs";
 import { Search, FolderOpen } from "lucide-react";
 import { formatDate, formatDateOnly, cn } from "@/lib/utils";
+import TaxCenterTab from "./TaxCenterTab";
 
 interface Document {
   id: string;
@@ -163,6 +170,13 @@ export default function DocumentsPage() {
   const [selectedInvestment, setSelectedInvestment] = useState<string>("all");
   const [page, setPage] = useState(1);
 
+  // Tab state
+  const [activeTab, setActiveTab] = useState<string | number>("all-documents");
+  const [taxDocuments, setTaxDocuments] = useState<Document[]>([]);
+  const [taxTypeLabels, setTaxTypeLabels] = useState<Record<string, string>>({});
+  const [taxLoading, setTaxLoading] = useState(false);
+  const taxFetchedRef = useRef(false);
+
   const fetchDocuments = useCallback(async () => {
     try {
       setLoading(true);
@@ -172,8 +186,7 @@ export default function DocumentsPage() {
       if (selectedCategory !== "all") {
         const group = CATEGORY_GROUPS[selectedCategory];
         if (group) {
-          // Use the first type as filter (API will need to handle multiple)
-          params.set("type", group.types[0]);
+          params.set("category", selectedCategory);
         } else {
           params.set("type", selectedCategory);
         }
@@ -198,6 +211,27 @@ export default function DocumentsPage() {
     Promise.resolve().then(() => fetchDocuments());
   }, [fetchDocuments]);
 
+  // Fetch tax documents when Tax Center tab is first opened
+  useEffect(() => {
+    if (activeTab === "tax-center" && !taxFetchedRef.current) {
+      taxFetchedRef.current = true;
+      setTaxLoading(true);
+      fetch("/api/portal/documents?category=TAX&pageSize=500")
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to load tax documents");
+          return res.json();
+        })
+        .then((json) => {
+          setTaxDocuments(json.documents);
+          setTaxTypeLabels(json.typeLabels || {});
+        })
+        .catch(() => {
+          // Silently fail - TaxCenterTab will show empty state
+        })
+        .finally(() => setTaxLoading(false));
+    }
+  }, [activeTab]);
+
   // Debounced search
   const [searchInput, setSearchInput] = useState("");
   useEffect(() => {
@@ -214,6 +248,9 @@ export default function DocumentsPage() {
     0
   );
 
+  const taxDocCount =
+    (categoryCounts["K1"] || 0) + (categoryCounts["TAX_1099"] || 0);
+
   // Compute category sidebar counts
   const sidebarCategories = [
     {
@@ -224,7 +261,7 @@ export default function DocumentsPage() {
     {
       key: "TAX",
       label: "Tax Documents",
-      count: (categoryCounts["K1"] || 0) + (categoryCounts["TAX_1099"] || 0),
+      count: taxDocCount,
     },
     {
       key: "REPORTS",
@@ -308,276 +345,317 @@ export default function DocumentsPage() {
         </div>
       )}
 
-      <div className="flex gap-6">
-        {/* Left Sidebar */}
-        <div className="hidden lg:block w-56 shrink-0 space-y-6">
-          {/* Categories */}
-          <div>
-            <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3">
-              Categories
-            </p>
-            <nav className="space-y-0.5">
-              {sidebarCategories.map((cat) => (
-                <button
-                  key={cat.key}
-                  onClick={() => {
-                    setSelectedCategory(cat.key);
-                    setPage(1);
-                  }}
-                  className={cn(
-                    "flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-colors text-left",
-                    selectedCategory === cat.key
-                      ? "bg-[#f5f5f3] text-[#B07D3A] font-medium"
-                      : "text-[#5f5e5a] hover:text-[#1a1a18] hover:bg-[#f5f5f3]"
-                  )}
-                >
-                  <span>{cat.label}</span>
-                  <span className="text-xs tabular-nums text-[#888780]">
-                    {cat.count}
-                  </span>
-                </button>
-              ))}
-            </nav>
-          </div>
+      {/* Tabs */}
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value)}
+      >
+        <TabsList variant="line" className="border-b border-[#eeece8] w-full justify-start gap-0">
+          <TabsTrigger
+            value="all-documents"
+            className="px-4 py-2 text-sm"
+          >
+            All Documents
+          </TabsTrigger>
+          <TabsTrigger
+            value="tax-center"
+            className="px-4 py-2 text-sm gap-2"
+          >
+            Tax Center
+            {taxDocCount > 0 && (
+              <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-[#1A2640] text-white text-[10px] font-semibold">
+                {taxDocCount}
+              </span>
+            )}
+          </TabsTrigger>
+        </TabsList>
 
-          {/* By Investment */}
-          {investmentCounts.length > 0 && (
-            <div>
-              <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3">
-                By Investment
-              </p>
-              <nav className="space-y-0.5">
-                {investmentCounts.map((inv) => (
-                  <button
-                    key={inv.name}
-                    onClick={() => {
-                      setSelectedInvestment(
-                        selectedInvestment === inv.name ? "all" : inv.name
-                      );
+        {/* All Documents Tab */}
+        <TabsContent value="all-documents" className="mt-4">
+          <div className="flex gap-6">
+            {/* Left Sidebar */}
+            <div className="hidden lg:block w-56 shrink-0 space-y-6">
+              {/* Categories */}
+              <div>
+                <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3">
+                  Categories
+                </p>
+                <nav className="space-y-0.5">
+                  {sidebarCategories.map((cat) => (
+                    <button
+                      key={cat.key}
+                      onClick={() => {
+                        setSelectedCategory(cat.key);
+                        setPage(1);
+                      }}
+                      className={cn(
+                        "flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-colors text-left",
+                        selectedCategory === cat.key
+                          ? "bg-[#f5f5f3] text-[#B07D3A] font-medium"
+                          : "text-[#5f5e5a] hover:text-[#1a1a18] hover:bg-[#f5f5f3]"
+                      )}
+                    >
+                      <span>{cat.label}</span>
+                      <span className="text-xs tabular-nums text-[#888780]">
+                        {cat.count}
+                      </span>
+                    </button>
+                  ))}
+                </nav>
+              </div>
+
+              {/* By Investment */}
+              {investmentCounts.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3">
+                    By Investment
+                  </p>
+                  <nav className="space-y-0.5">
+                    {investmentCounts.map((inv) => (
+                      <button
+                        key={inv.name}
+                        onClick={() => {
+                          setSelectedInvestment(
+                            selectedInvestment === inv.name ? "all" : inv.name
+                          );
+                          setPage(1);
+                        }}
+                        className={cn(
+                          "flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-colors text-left",
+                          selectedInvestment === inv.name
+                            ? "bg-[#f5f5f3] text-[#B07D3A] font-medium"
+                            : "text-[#5f5e5a] hover:text-[#1a1a18] hover:bg-[#f5f5f3]"
+                        )}
+                      >
+                        <span className="truncate">{inv.name}</span>
+                        <span className="text-xs tabular-nums text-[#888780]">
+                          {inv.count}
+                        </span>
+                      </button>
+                    ))}
+                  </nav>
+                </div>
+              )}
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 space-y-4">
+              {/* Search + Filters */}
+              <div className="space-y-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#888780]" />
+                  <Input
+                    placeholder="Search documents..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    className="pl-9 bg-white border-[#dfdedd]"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Select
+                    value={selectedYear}
+                    onValueChange={(val) => {
+                      setSelectedYear(val ?? "all");
                       setPage(1);
                     }}
-                    className={cn(
-                      "flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-colors text-left",
-                      selectedInvestment === inv.name
-                        ? "bg-[#f5f5f3] text-[#B07D3A] font-medium"
-                        : "text-[#5f5e5a] hover:text-[#1a1a18] hover:bg-[#f5f5f3]"
-                    )}
                   >
-                    <span className="truncate">{inv.name}</span>
-                    <span className="text-xs tabular-nums text-[#888780]">
-                      {inv.count}
-                    </span>
-                  </button>
-                ))}
-              </nav>
-            </div>
-          )}
-        </div>
+                    <SelectTrigger className="w-full sm:w-[180px] bg-white border-[#dfdedd]">
+                      <SelectValue placeholder="All years" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All years</SelectItem>
+                      <SelectItem value="2025">2025</SelectItem>
+                      <SelectItem value="2024">2024</SelectItem>
+                      <SelectItem value="2023">2023</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-        {/* Main Content */}
-        <div className="flex-1 space-y-4">
-          {/* Search + Filters */}
-          <div className="space-y-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#888780]" />
-              <Input
-                placeholder="Search documents..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-9 bg-white border-[#dfdedd]"
-              />
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Select
-                value={selectedYear}
-                onValueChange={(val) => {
-                  setSelectedYear(val ?? "all");
-                  setPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full sm:w-[180px] bg-white border-[#dfdedd]">
-                  <SelectValue placeholder="All years" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All years</SelectItem>
-                  <SelectItem value="2025">2025</SelectItem>
-                  <SelectItem value="2024">2024</SelectItem>
-                  <SelectItem value="2023">2023</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Mobile category */}
-              <div className="lg:hidden">
-                <Select
-                  value={selectedCategory}
-                  onValueChange={(val) => {
-                    setSelectedCategory(val ?? "all");
-                    setPage(1);
-                  }}
-                >
-                  <SelectTrigger className="w-[180px] bg-white border-[#dfdedd]">
-                    <SelectValue placeholder="All types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sidebarCategories.map((cat) => (
-                      <SelectItem key={cat.key} value={cat.key}>
-                        {cat.label} ({cat.count})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Mobile investment filter */}
-              <div className="lg:hidden">
-                <Select
-                  value={selectedInvestment}
-                  onValueChange={(val) => {
-                    setSelectedInvestment(val ?? "all");
-                    setPage(1);
-                  }}
-                >
-                  <SelectTrigger className="w-[200px] bg-white border-[#dfdedd]">
-                    <SelectValue placeholder="All investments" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All investments</SelectItem>
-                    {investmentCounts.map((inv) => (
-                      <SelectItem key={inv.name} value={inv.name}>
-                        {inv.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          {/* Document List */}
-          {loading ? (
-            <div className="bg-white rounded-xl border border-[#dfdedd] divide-y divide-[#eeece8]">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <DocumentSkeleton key={i} />
-              ))}
-            </div>
-          ) : error ? (
-            <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
-              <p className="text-red-600">{error}</p>
-            </div>
-          ) : documents.length > 0 ? (
-            <div className="space-y-6">
-              {Object.entries(grouped).map(([groupKey, docs]) => {
-                const groupLabel =
-                  CATEGORY_GROUPS[groupKey]?.label || "Other Documents";
-                return (
-                  <div key={groupKey}>
-                    <h3 className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3">
-                      {groupLabel}
-                    </h3>
-                    <div className="bg-white rounded-xl border border-[#dfdedd] divide-y divide-[#eeece8]">
-                      {docs.map((doc) => (
-                        <div
-                          key={doc.id}
-                          className="flex items-center gap-4 p-4 hover:bg-[#f5f5f3] transition-colors"
-                        >
-                          {fileTypeBadge(doc.mimeType)}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-[#1a1a18] truncate">
-                              {doc.name}
-                            </p>
-                            <div className="flex items-center gap-2 text-xs text-[#888780] mt-0.5">
-                              <span>Uploaded {formatDate(doc.createdAt)}</span>
-                              <span>&middot;</span>
-                              <span>{formatFileSize(doc.fileSize)}</span>
-                            </div>
-                            {doc.advisorVisible && (
-                              <p className="text-xs text-[#B07D3A] mt-0.5">
-                                Visible to CPA
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Badge
-                              variant="outline"
-                              className="border-[#dfdedd] text-[#5f5e5a] text-[10px]"
-                            >
-                              {typeLabel(doc.type, data?.typeLabels)}
-                            </Badge>
-                            {isNew(doc.createdAt) && (
-                              <Badge className="bg-[#B07D3A] text-white text-[10px] hover:bg-[#7A5520]">
-                                New
-                              </Badge>
-                            )}
-                            <a
-                              href={`/api/portal/documents/${doc.id}/download`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="border-[#dfdedd] text-[#5f5e5a] text-xs"
-                              >
-                                Download
-                              </Button>
-                            </a>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  {/* Mobile category */}
+                  <div className="lg:hidden">
+                    <Select
+                      value={selectedCategory}
+                      onValueChange={(val) => {
+                        setSelectedCategory(val ?? "all");
+                        setPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-[180px] bg-white border-[#dfdedd]">
+                        <SelectValue placeholder="All types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sidebarCategories.map((cat) => (
+                          <SelectItem key={cat.key} value={cat.key}>
+                            {cat.label} ({cat.count})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                );
-              })}
 
-              {/* Pagination */}
-              {data && data.total > data.pageSize && (
-                <div className="flex items-center justify-between pt-4">
-                  <p className="text-sm text-[#888780]">
-                    Showing {(data.page - 1) * data.pageSize + 1}
-                    {" - "}
-                    {Math.min(data.page * data.pageSize, data.total)} of{" "}
-                    {data.total} documents
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={data.page <= 1}
-                      onClick={() => setPage((p) => p - 1)}
-                      className="border-[#dfdedd]"
+                  {/* Mobile investment filter */}
+                  <div className="lg:hidden">
+                    <Select
+                      value={selectedInvestment}
+                      onValueChange={(val) => {
+                        setSelectedInvestment(val ?? "all");
+                        setPage(1);
+                      }}
                     >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={data.page * data.pageSize >= data.total}
-                      onClick={() => setPage((p) => p + 1)}
-                      className="border-[#dfdedd]"
-                    >
-                      Next
-                    </Button>
+                      <SelectTrigger className="w-[200px] bg-white border-[#dfdedd]">
+                        <SelectValue placeholder="All investments" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All investments</SelectItem>
+                        {investmentCounts.map((inv) => (
+                          <SelectItem key={inv.name} value={inv.name}>
+                            {inv.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Document List */}
+              {loading ? (
+                <div className="bg-white rounded-xl border border-[#dfdedd] divide-y divide-[#eeece8]">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <DocumentSkeleton key={i} />
+                  ))}
+                </div>
+              ) : error ? (
+                <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
+                  <p className="text-red-600">{error}</p>
+                </div>
+              ) : documents.length > 0 ? (
+                <div className="space-y-6">
+                  {Object.entries(grouped).map(([groupKey, docs]) => {
+                    const groupLabel =
+                      CATEGORY_GROUPS[groupKey]?.label || "Other Documents";
+                    return (
+                      <div key={groupKey}>
+                        <h3 className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-3">
+                          {groupLabel}
+                        </h3>
+                        <div className="bg-white rounded-xl border border-[#dfdedd] divide-y divide-[#eeece8]">
+                          {docs.map((doc) => (
+                            <div
+                              key={doc.id}
+                              className="flex items-center gap-4 p-4 hover:bg-[#f5f5f3] transition-colors"
+                            >
+                              {fileTypeBadge(doc.mimeType)}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-[#1a1a18] truncate">
+                                  {doc.name}
+                                </p>
+                                <div className="flex items-center gap-2 text-xs text-[#888780] mt-0.5">
+                                  <span>Uploaded {formatDate(doc.createdAt)}</span>
+                                  <span>&middot;</span>
+                                  <span>{formatFileSize(doc.fileSize)}</span>
+                                </div>
+                                {doc.advisorVisible && (
+                                  <p className="text-xs text-[#B07D3A] mt-0.5">
+                                    Visible to CPA
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <Badge
+                                  variant="outline"
+                                  className="border-[#dfdedd] text-[#5f5e5a] text-[10px]"
+                                >
+                                  {typeLabel(doc.type, data?.typeLabels)}
+                                </Badge>
+                                {isNew(doc.createdAt) && (
+                                  <Badge className="bg-[#B07D3A] text-white text-[10px] hover:bg-[#7A5520]">
+                                    New
+                                  </Badge>
+                                )}
+                                <a
+                                  href={`/api/portal/documents/${doc.id}/download`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="border-[#dfdedd] text-[#5f5e5a] text-xs"
+                                  >
+                                    Download
+                                  </Button>
+                                </a>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Pagination */}
+                  {data && data.total > data.pageSize && (
+                    <div className="flex items-center justify-between pt-4">
+                      <p className="text-sm text-[#888780]">
+                        Showing {(data.page - 1) * data.pageSize + 1}
+                        {" - "}
+                        {Math.min(data.page * data.pageSize, data.total)} of{" "}
+                        {data.total} documents
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={data.page <= 1}
+                          onClick={() => setPage((p) => p - 1)}
+                          className="border-[#dfdedd]"
+                        >
+                          Previous
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={data.page * data.pageSize >= data.total}
+                          onClick={() => setPage((p) => p + 1)}
+                          className="border-[#dfdedd]"
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
+                  <div className="text-center py-12">
+                    <FolderOpen className="h-12 w-12 text-[#888780] mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-[#1a1a18] mb-2">
+                      No Documents Found
+                    </h3>
+                    <p className="text-sm text-[#5f5e5a] max-w-md mx-auto">
+                      {search || selectedCategory !== "all" || selectedYear !== "all"
+                        ? "No documents match your current filters. Try adjusting your search criteria."
+                        : "Documents will appear here once they are uploaded by your advisor."}
+                    </p>
                   </div>
                 </div>
               )}
             </div>
-          ) : (
-            <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
-              <div className="text-center py-12">
-                <FolderOpen className="h-12 w-12 text-[#888780] mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-[#1a1a18] mb-2">
-                  No Documents Found
-                </h3>
-                <p className="text-sm text-[#5f5e5a] max-w-md mx-auto">
-                  {search || selectedCategory !== "all" || selectedYear !== "all"
-                    ? "No documents match your current filters. Try adjusting your search criteria."
-                    : "Documents will appear here once they are uploaded by your advisor."}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </TabsContent>
+
+        {/* Tax Center Tab */}
+        <TabsContent value="tax-center" className="mt-4">
+          <TaxCenterTab
+            documents={taxDocuments}
+            typeLabels={taxTypeLabels}
+            loading={taxLoading}
+            fileTypeBadge={fileTypeBadge}
+            formatFileSize={formatFileSize}
+            typeLabel={typeLabel}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -26,7 +26,8 @@ This manual covers setup, administration, and usage of the Partners + Capital in
 18. [Soft Delete (Investments & Clients)](#soft-delete-investments--clients)
 19. [Delete Client Positions](#delete-client-positions)
 20. [Access Requests](#access-requests)
-21. [Feature Roadmap](#feature-roadmap)
+21. [Tax Center](#tax-center)
+22. [Feature Roadmap](#feature-roadmap)
 
 ---
 
@@ -495,6 +496,22 @@ The documents page at `/documents` includes:
   - BY INVESTMENT: Each investment name with document count
 - **Document cards:** File type badge (PDF = red, DOC = blue), title, upload date, file size, "Visible to CPA" indicator, type tags, "New" badge for recently uploaded documents, Download button
 - **Filters:** Year, type, and investment dropdowns
+
+The Documents page has two tabs:
+
+**All Documents tab** -- The default view described above with the sidebar, filters, and full document list.
+
+**Tax Center tab** -- A purpose-built view for tax season that organizes K-1s and 1099s by year and investment:
+
+- **Tax season reminder banner:** Navy card reminding that K-1 forms are typically available by March 15. Includes a link to the Advisor Access page for granting CPA access.
+- **Summary line:** Shows the count of tax documents, number of investments, and selected year. Includes a "Download All" button.
+- **Year selector:** Horizontal pill buttons for each year that has tax documents. The most recent year is selected by default.
+- **Investment cards:** 2-column grid where each card groups tax documents by investment. Each row shows the document type, file size, a "New" badge (if uploaded in the last 30 days) or "Available" badge, and a download button.
+- **Download All:** Downloads all tax documents for the selected year sequentially.
+- **Previous Years:** Collapsible section below the investment cards showing older years in a compact list format.
+- **Empty state:** If no tax documents exist, shows a message about K-1 availability timeline.
+
+The Tax Center tab badge on the tab trigger shows the total count of tax documents.
 
 ### Distributions
 
@@ -1559,6 +1576,33 @@ Admins can upload a profile avatar from Admin > Settings > Profile Avatar sectio
 ## Blog Category Post Counts
 
 Blog categories display the number of published posts assigned to each category in the admin table.
+
+---
+
+## Tax Center
+
+The Tax Center is a dedicated tab on the portal Documents page (`/documents`) that provides a streamlined experience for accessing tax documents during tax season. It organizes K-1 and 1099 documents by year and investment, making it easy for investors to find and download their tax forms.
+
+### Features
+
+- **Year-based organization:** Tax documents are grouped by tax year with pill-style selectors for quick navigation.
+- **Investment grouping:** Within each year, documents are displayed in cards grouped by investment name.
+- **Bulk download:** A "Download All" button downloads every tax document for the selected year.
+- **New document indicators:** Documents uploaded within the last 30 days display a "New" badge; older documents show "Available."
+- **Tax season reminder:** A banner at the top reminds investors that K-1 forms are typically available by March 15 and provides a link to grant CPA access.
+- **Previous years:** A collapsible section provides access to tax documents from prior years in a compact list format.
+- **Lazy loading:** Tax documents are only fetched from the API when the Tax Center tab is first opened, not on initial page load.
+
+### API
+
+The documents API (`/api/portal/documents`) supports a `category` query parameter:
+
+- `category=TAX` returns documents of type K1 and TAX_1099
+- `category=REPORTS` returns QUARTERLY_REPORT and ANNUAL_REPORT
+- `category=LEGAL` returns SUBSCRIPTION_AGREEMENT, PPM, and INVESTOR_LETTER
+- `category=CAPITAL` returns CAPITAL_CALL_NOTICE and DISTRIBUTION_NOTICE
+
+The `pageSize` parameter supports values up to 500 (previously 100).
 
 ---
 
