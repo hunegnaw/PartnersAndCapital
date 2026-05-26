@@ -519,7 +519,7 @@ function LoginContent() {
 
           <div>
             <h1
-              className="text-[22px] font-medium text-white leading-snug"
+              className="text-[22px] font-medium text-[#E8D5B0] leading-snug"
               style={{ fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif" }}
             >
               Your capital.<br />A clear view.
