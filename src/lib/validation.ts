@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PERMISSION_LEVEL_VALUES } from "./advisor-permissions";
 
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -35,12 +36,7 @@ export const advisorInviteSchema = z.object({
   email: z.string().email("Invalid email address"),
   firm: z.string().max(200).optional(),
   advisorType: z.string().max(100).optional(),
-  permissionLevel: z.enum([
-    "DASHBOARD_ONLY",
-    "DASHBOARD_AND_TAX_DOCUMENTS",
-    "DASHBOARD_AND_DOCUMENTS",
-    "SPECIFIC_INVESTMENT",
-  ]),
+  permissionLevel: z.enum(PERMISSION_LEVEL_VALUES),
   investmentId: z.string().optional(),
   accessStartAt: z.string().optional(),
   expiresAt: z.string().optional(),

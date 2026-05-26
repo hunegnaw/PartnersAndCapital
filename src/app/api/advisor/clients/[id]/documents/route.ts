@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdvisor } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
+import { getAdvisorPermissions } from "@/lib/advisor-permissions";
 
 export async function GET(
   request: Request,
@@ -56,9 +57,9 @@ export async function GET(
 
     const access = activeAccesses[0];
     const permissionLevel = access.permissionLevel;
+    const perms = getAdvisorPermissions(permissionLevel);
 
-    // DASHBOARD_ONLY cannot view documents
-    if (permissionLevel === "DASHBOARD_ONLY") {
+    if (!perms.canViewDocuments) {
       return NextResponse.json(
         { error: "Your access level does not include documents" },
         { status: 403 }
@@ -71,11 +72,11 @@ export async function GET(
       deletedAt: null,
     };
 
-    if (permissionLevel === "DASHBOARD_AND_TAX_DOCUMENTS") {
-      docWhere.type = { in: ["K1", "TAX_1099"] };
+    if (perms.allowedDocTypes !== null) {
+      docWhere.type = { in: perms.allowedDocTypes };
     }
 
-    if (permissionLevel === "SPECIFIC_INVESTMENT" && access.investmentId) {
+    if (access.investmentId) {
       docWhere.investmentId = access.investmentId;
     }
 

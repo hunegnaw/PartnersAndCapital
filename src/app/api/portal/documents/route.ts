@@ -127,8 +127,14 @@ export async function GET(request: Request) {
           some: {
             permissionLevel: {
               in: [
-                "DASHBOARD_AND_TAX_DOCUMENTS",
-                "DASHBOARD_AND_DOCUMENTS",
+                "DASHBOARD_AND_TAX",
+                "DASHBOARD_AND_LEGAL",
+                "DASHBOARD_AND_REPORTS",
+                "DASHBOARD_TAX_AND_LEGAL",
+                "DASHBOARD_TAX_AND_REPORTS",
+                "DASHBOARD_AND_ALL_DOCUMENTS",
+                "DASHBOARD_CAPITAL_AND_ALL_DOCUMENTS",
+                "FULL_ACCESS",
               ],
             },
             revokedAt: null,

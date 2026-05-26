@@ -280,9 +280,17 @@ export default function DocumentsPage() {
               <p className="text-sm font-medium text-[#1a1a18]">
                 {advisorAccess.name} ({advisorAccess.type || "Advisor"}) has
                 access to{" "}
-                {advisorAccess.permissionLevel === "DASHBOARD_AND_TAX_DOCUMENTS"
+                {advisorAccess.permissionLevel === "DASHBOARD_AND_TAX"
                   ? "tax documents"
-                  : "all documents"}
+                  : advisorAccess.permissionLevel === "DASHBOARD_AND_LEGAL"
+                    ? "legal documents"
+                    : advisorAccess.permissionLevel === "DASHBOARD_AND_REPORTS"
+                      ? "reports"
+                      : advisorAccess.permissionLevel === "DASHBOARD_TAX_AND_LEGAL"
+                        ? "tax and legal documents"
+                        : advisorAccess.permissionLevel === "DASHBOARD_TAX_AND_REPORTS"
+                          ? "tax documents and reports"
+                          : "all documents"}
               </p>
               <p className="text-xs text-[#888780]">
                 View + Download

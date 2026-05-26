@@ -536,13 +536,21 @@ Investors can share read-only portfolio access with their CPAs, financial adviso
 The invite form collects:
 - **Advisor name** and **email address**
 - **Advisor type:** CPA / Tax Advisor, Financial Advisor, Family Office, Attorney, Other
-- **Access level** (4 tiers):
+- **Access level** (10 tiers):
   1. **Dashboard only** -- Portfolio summary, allocation, and performance numbers. No documents.
-  2. **Dashboard + Tax documents** -- Includes K-1s and 1099s. No legal agreements or reports. Best for CPAs.
-  3. **Dashboard + All documents** -- Full document vault access. Recommended for financial advisors and family offices.
-  4. **Specific investment only** -- Restrict to one deal. Useful for deal-specific attorneys or co-investors.
+  2. **Dashboard + Tax documents** -- Includes K-1s and 1099s. Best for CPAs.
+  3. **Dashboard + Legal documents** -- Includes Subscription Agreements and PPMs. Best for attorneys.
+  4. **Dashboard + Reports** -- Includes Quarterly Reports and Annual Reports. No tax or legal docs.
+  5. **Dashboard + Tax + Legal** -- K-1s, 1099s, Subscription Agreements, and PPMs. No reports.
+  6. **Dashboard + Tax + Reports** -- K-1s, 1099s, Quarterly Reports, and Annual Reports. No legal docs.
+  7. **Dashboard + All documents** -- Full document vault access. Recommended for financial advisors and family offices.
+  8. **Dashboard + Capital Activity** -- Portfolio summary plus contributions and distributions. No documents.
+  9. **Dashboard + Capital Activity + All documents** -- Full document vault plus capital activity history.
+  10. **Full access** -- Everything: all documents, capital activity, and investment details.
 - **Access start date** (defaults to today)
 - **Expiration date** (when access automatically expires)
+
+The `investmentId` field on AdvisorAccess can scope any permission level to a single investment.
 
 Upon submission, the advisor receives a secure email invitation.
 
@@ -854,12 +862,20 @@ Full document list with:
 
 ### Permission Level Scoping
 
-| Level | Dashboard | Tax Docs (K-1, 1099) | All Documents | Investments |
-|-------|-----------|---------------------|---------------|-------------|
-| DASHBOARD_ONLY | Yes | No | No | All |
-| DASHBOARD_AND_TAX_DOCUMENTS | Yes | Yes | No | All |
-| DASHBOARD_AND_DOCUMENTS | Yes | Yes | Yes | All |
-| SPECIFIC_INVESTMENT | Yes | Per permission | Per permission | Specified only |
+| Level | Dashboard | Tax Docs | Legal Docs | Reports | All Docs | Capital Activity | Investment Details |
+|-------|-----------|----------|------------|---------|----------|------------------|--------------------|
+| DASHBOARD_ONLY | Yes | No | No | No | No | No | No |
+| DASHBOARD_AND_TAX | Yes | Yes | No | No | No | No | No |
+| DASHBOARD_AND_LEGAL | Yes | No | Yes | No | No | No | No |
+| DASHBOARD_AND_REPORTS | Yes | No | No | Yes | No | No | No |
+| DASHBOARD_TAX_AND_LEGAL | Yes | Yes | Yes | No | No | No | No |
+| DASHBOARD_TAX_AND_REPORTS | Yes | Yes | No | Yes | No | No | No |
+| DASHBOARD_AND_ALL_DOCUMENTS | Yes | Yes | Yes | Yes | Yes | No | No |
+| DASHBOARD_AND_CAPITAL_ACTIVITY | Yes | No | No | No | No | Yes | No |
+| DASHBOARD_CAPITAL_AND_ALL_DOCUMENTS | Yes | Yes | Yes | Yes | Yes | Yes | No |
+| FULL_ACCESS | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
+
+Any level can be scoped to a single investment using the `investmentId` field on AdvisorAccess.
 
 ---
 
@@ -1520,7 +1536,7 @@ Blog categories display the number of published posts assigned to each category 
 - Full admin CRUD for clients, investments, documents, activity feed
 - Client portal with dashboard (full + empty states), portfolio, documents, distributions
 - Design-aligned UI matching all 6 mockup screenshots
-- Advisor access with 4-tier permission levels and access logging
+- Advisor access with 10-tier granular permission levels and access logging
 - Full advisor portal with dashboard, client view, and scoped document access
 - Advisor invitation and acceptance flow with branded emails
 - Password reset flow (page + API + email)

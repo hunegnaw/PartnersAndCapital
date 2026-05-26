@@ -34,6 +34,10 @@ import {
 } from "lucide-react";
 import { formatDate, formatDateOnly, cn } from "@/lib/utils";
 import { DatePicker } from "@/components/ui/date-picker";
+import {
+  PERMISSION_LEVELS as PERM_LEVELS,
+  getAccessTags as getAccessTagsHelper,
+} from "@/lib/advisor-permissions";
 
 interface AdvisorAccess {
   permissionLevel: string;
@@ -73,46 +77,10 @@ const ADVISOR_TYPES = [
   { value: "OTHER", label: "Other" },
 ];
 
-const PERMISSION_LEVELS = [
-  {
-    value: "DASHBOARD_ONLY",
-    label: "Dashboard only",
-    description:
-      "Portfolio summary, allocation, and performance numbers. No documents.",
-  },
-  {
-    value: "DASHBOARD_AND_TAX_DOCUMENTS",
-    label: "Dashboard + Tax documents",
-    description:
-      "Best for CPAs. Includes K-1s and 1099s. No legal agreements or reports.",
-  },
-  {
-    value: "DASHBOARD_AND_DOCUMENTS",
-    label: "Dashboard + All documents",
-    description:
-      "Full document vault access. Recommended for financial advisors and family offices.",
-  },
-  {
-    value: "SPECIFIC_INVESTMENT",
-    label: "Specific investment only",
-    description:
-      "Restrict to one deal. Useful for deal-specific attorneys or co-investors.",
-  },
-];
+const PERMISSION_LEVELS = PERM_LEVELS;
 
 function getAccessTags(permissionLevel: string): string[] {
-  switch (permissionLevel) {
-    case "DASHBOARD_ONLY":
-      return ["Dashboard"];
-    case "DASHBOARD_AND_TAX_DOCUMENTS":
-      return ["Dashboard", "K-1s", "1099s"];
-    case "DASHBOARD_AND_DOCUMENTS":
-      return ["Dashboard", "All documents"];
-    case "SPECIFIC_INVESTMENT":
-      return ["Specific deal"];
-    default:
-      return [];
-  }
+  return getAccessTagsHelper(permissionLevel);
 }
 
 function formatAccessLogAction(action: string): string {
@@ -195,10 +163,7 @@ export default function AdvisorsPage() {
       setInviteError("Please fill in all required fields");
       return;
     }
-    if (invitePermission === "SPECIFIC_INVESTMENT" && !inviteInvestmentId) {
-      setInviteError("Please select an investment");
-      return;
-    }
+    // investmentId is optional and can scope any permission level to a single deal
 
     setInviteLoading(true);
     setInviteError("");
@@ -419,25 +384,6 @@ export default function AdvisorsPage() {
                 ))}
               </RadioGroup>
             </div>
-
-            {invitePermission === "SPECIFIC_INVESTMENT" && (
-              <div className="space-y-2">
-                <Label className="text-sm text-[#5f5e5a]">Select Investment</Label>
-                <Select
-                  value={inviteInvestmentId}
-                  onValueChange={(v) => setInviteInvestmentId(v ?? "")}
-                >
-                  <SelectTrigger className="bg-white border-[#dfdedd]">
-                    <SelectValue placeholder="Choose an investment" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="placeholder">
-                      Investment options loaded from your portfolio
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">

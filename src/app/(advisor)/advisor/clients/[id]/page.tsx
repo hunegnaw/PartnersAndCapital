@@ -4,6 +4,7 @@ import { use, useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatDateOnly, cn } from "@/lib/utils";
+import { getPermissionShortLabel } from "@/lib/advisor-permissions";
 
 interface AllocationItem {
   name: string;
@@ -36,16 +37,7 @@ interface ClientViewData {
   allocation: AllocationItem[];
   investments: InvestmentItem[];
   documents?: DocumentItem[];
-}
-
-function permissionLabel(level: string) {
-  const labels: Record<string, string> = {
-    DASHBOARD_ONLY: "Dashboard Only",
-    DASHBOARD_AND_TAX_DOCUMENTS: "Dashboard + Tax Docs",
-    DASHBOARD_AND_DOCUMENTS: "Dashboard + All Docs",
-    SPECIFIC_INVESTMENT: "Specific Investment",
-  };
-  return labels[level] || level;
+  canViewCapitalActivity?: boolean;
 }
 
 function statusBadge(status: string) {
@@ -151,7 +143,7 @@ export default function AdvisorClientViewPage({
         )}
         <div className="mt-2">
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium border border-[#dfdedd] text-[#888780] bg-[#f5f5f3]">
-            {permissionLabel(data.permissionLevel)}
+            {getPermissionShortLabel(data.permissionLevel)}
           </span>
         </div>
       </div>
@@ -276,6 +268,18 @@ export default function AdvisorClientViewPage({
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* Capital Activity indicator (if permission allows) */}
+      {data.canViewCapitalActivity && (
+        <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
+          <h2 className="text-xs font-semibold text-[#888780] tracking-widest uppercase mb-4">
+            Capital Activity
+          </h2>
+          <p className="text-sm text-[#5f5e5a]">
+            Contribution and distribution history is available for this client.
+          </p>
         </div>
       )}
 

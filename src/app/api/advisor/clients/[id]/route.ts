@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdvisor } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { getAdvisorPermissions } from "@/lib/advisor-permissions";
 
 const ASSET_CLASS_COLORS = [
   "#B07D3A",
@@ -67,13 +68,14 @@ export async function GET(
     const access = activeAccesses[0];
     const permissionLevel = access.permissionLevel;
     const specificInvestmentId = access.investmentId;
+    const perms = getAdvisorPermissions(permissionLevel);
 
     // Build investment filter
     const investmentWhere: Record<string, unknown> = {
       userId: clientId,
       deletedAt: null,
     };
-    if (permissionLevel === "SPECIFIC_INVESTMENT" && specificInvestmentId) {
+    if (specificInvestmentId) {
       investmentWhere.investmentId = specificInvestmentId;
     }
 
@@ -146,21 +148,17 @@ export async function GET(
     };
 
     // Add documents if permission allows
-    if (
-      permissionLevel === "DASHBOARD_AND_TAX_DOCUMENTS" ||
-      permissionLevel === "DASHBOARD_AND_DOCUMENTS" ||
-      permissionLevel === "SPECIFIC_INVESTMENT"
-    ) {
+    if (perms.canViewDocuments) {
       const docWhere: Record<string, unknown> = {
         userId: clientId,
         deletedAt: null,
       };
 
-      if (permissionLevel === "DASHBOARD_AND_TAX_DOCUMENTS") {
-        docWhere.type = { in: ["K1", "TAX_1099"] };
+      if (perms.allowedDocTypes !== null) {
+        docWhere.type = { in: perms.allowedDocTypes };
       }
 
-      if (permissionLevel === "SPECIFIC_INVESTMENT" && specificInvestmentId) {
+      if (specificInvestmentId) {
         docWhere.investmentId = specificInvestmentId;
       }
 
@@ -182,6 +180,11 @@ export async function GET(
         docType: d.type,
         createdAt: d.createdAt.toISOString(),
       }));
+    }
+
+    // Add capital activity if permission allows
+    if (perms.canViewCapitalActivity) {
+      response.canViewCapitalActivity = true;
     }
 
     return NextResponse.json(response);

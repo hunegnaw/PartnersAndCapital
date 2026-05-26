@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatDateOnly } from "@/lib/utils";
+import { getPermissionShortLabel } from "@/lib/advisor-permissions";
 
 interface ClientData {
   id: string;
@@ -22,16 +23,9 @@ interface DashboardData {
 }
 
 function permissionBadge(level: string) {
-  const labels: Record<string, string> = {
-    DASHBOARD_ONLY: "Dashboard Only",
-    DASHBOARD_AND_TAX_DOCUMENTS: "Dashboard + Tax Docs",
-    DASHBOARD_AND_DOCUMENTS: "Dashboard + All Docs",
-    SPECIFIC_INVESTMENT: "Specific Investment",
-  };
-
   return (
     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border border-[#dfdedd] text-[#888780] bg-[#f5f5f3]">
-      {labels[level] || level}
+      {getPermissionShortLabel(level)}
     </span>
   );
 }

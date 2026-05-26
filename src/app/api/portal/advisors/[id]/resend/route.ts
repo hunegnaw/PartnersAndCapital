@@ -6,6 +6,7 @@ import { sendEmail } from "@/lib/email";
 import { advisorInviteEmail, getEmailLogoUrl } from "@/lib/email-templates";
 import crypto from "crypto";
 import { requireNotImpersonating } from "@/lib/impersonation";
+import { getPermissionEmailLabel } from "@/lib/advisor-permissions";
 
 export async function POST(
   request: Request,
@@ -69,13 +70,6 @@ export async function POST(
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const acceptUrl = `${baseUrl}/advisor-accept?token=${invitationToken}`;
 
-    const permissionLabels: Record<string, string> = {
-      DASHBOARD_ONLY: "Dashboard only — portfolio summary and performance numbers",
-      DASHBOARD_AND_TAX_DOCUMENTS: "Dashboard + tax documents (K-1s and 1099s)",
-      DASHBOARD_AND_DOCUMENTS: "Dashboard + all documents",
-      SPECIFIC_INVESTMENT: "Specific investment access only",
-    };
-
     const logoUrl = await getEmailLogoUrl();
     await sendEmail({
       to: advisor.email,
@@ -83,7 +77,7 @@ export async function POST(
       html: advisorInviteEmail({
         clientName: clientUser?.name || "An investor",
         advisorName: advisor.name || "Advisor",
-        permissionLevel: permissionLabels[access?.permissionLevel || ""] || access?.permissionLevel || "Portfolio access",
+        permissionLevel: getPermissionEmailLabel(access?.permissionLevel || ""),
         expiresAt: access?.expiresAt || null,
         acceptUrl,
         logoUrl,

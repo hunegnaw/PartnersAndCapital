@@ -431,7 +431,7 @@ async function main() {
       advisorType: "CPA",
       status: "ACTIVE" as const,
       acceptedAt: new Date("2024-06-15"),
-      permissionLevel: "DASHBOARD_AND_TAX_DOCUMENTS" as const,
+      permissionLevel: "DASHBOARD_AND_TAX" as const,
     },
     {
       clientId: clientUsers[0].id,
@@ -441,7 +441,7 @@ async function main() {
       advisorType: "FINANCIAL_ADVISOR",
       status: "PENDING" as const,
       acceptedAt: null,
-      permissionLevel: "DASHBOARD_AND_DOCUMENTS" as const,
+      permissionLevel: "DASHBOARD_AND_ALL_DOCUMENTS" as const,
     },
   ];
 

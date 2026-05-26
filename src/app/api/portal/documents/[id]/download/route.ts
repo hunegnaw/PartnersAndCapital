@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { getDecryptedFile } from "@/lib/upload";
 import { getEffectiveUserId } from "@/lib/impersonation";
+import { getAdvisorPermissions } from "@/lib/advisor-permissions";
 
 export async function GET(
   request: Request,
@@ -70,23 +71,22 @@ export async function GET(
 
       if (advisorRecord && advisorRecord.accesses.length > 0) {
         for (const access of advisorRecord.accesses) {
-          if (access.permissionLevel === "DASHBOARD_AND_DOCUMENTS") {
+          const perms = getAdvisorPermissions(access.permissionLevel);
+          if (!perms.canViewDocuments) continue;
+
+          // Investment-scoped access: only allow docs for that investment
+          if (access.investmentId && document.investmentId !== access.investmentId) {
+            continue;
+          }
+
+          // null = all doc types allowed
+          if (perms.allowedDocTypes === null) {
             hasAccess = true;
             break;
           }
-          if (
-            access.permissionLevel === "DASHBOARD_AND_TAX_DOCUMENTS" &&
-            document.type &&
-            ["K1", "TAX_1099"].includes(document.type)
-          ) {
-            hasAccess = true;
-            break;
-          }
-          if (
-            access.permissionLevel === "SPECIFIC_INVESTMENT" &&
-            access.investmentId &&
-            document.investmentId === access.investmentId
-          ) {
+
+          // Check if this document's type is in the allowed list
+          if (document.type && perms.allowedDocTypes.includes(document.type)) {
             hasAccess = true;
             break;
           }
