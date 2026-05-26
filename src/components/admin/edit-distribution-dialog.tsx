@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -51,19 +51,23 @@ export function EditDistributionDialog({
   const [status, setStatus] = useState("COMPLETED")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [prevOpen, setPrevOpen] = useState(false)
 
-  useEffect(() => {
-    if (open && distribution) {
-      setAmount(String(distribution.amount))
-      const d = new Date(distribution.date)
-      setDate(d.toISOString().slice(0, 10))
-      setTime(d.toTimeString().slice(0, 5))
-      setType(distribution.type)
-      setDescription(distribution.description || "")
-      setStatus(distribution.status)
-      setError(null)
-    }
-  }, [open, distribution])
+  // Sync form state from props when dialog opens (React recommended pattern)
+  if (open && !prevOpen && distribution) {
+    setPrevOpen(true)
+    setAmount(String(distribution.amount))
+    const d = new Date(distribution.date)
+    setDate(d.toISOString().slice(0, 10))
+    setTime(d.toTimeString().slice(0, 5))
+    setType(distribution.type)
+    setDescription(distribution.description || "")
+    setStatus(distribution.status)
+    setError(null)
+  }
+  if (!open && prevOpen) {
+    setPrevOpen(false)
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

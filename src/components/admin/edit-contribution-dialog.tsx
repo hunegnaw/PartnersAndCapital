@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -49,18 +49,22 @@ export function EditContributionDialog({
   const [status, setStatus] = useState("COMPLETED")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [prevOpen, setPrevOpen] = useState(false)
 
-  useEffect(() => {
-    if (open && contribution) {
-      setAmount(String(contribution.amount))
-      const d = new Date(contribution.date)
-      setDate(d.toISOString().slice(0, 10))
-      setTime(d.toTimeString().slice(0, 5))
-      setDescription(contribution.description || "")
-      setStatus(contribution.status)
-      setError(null)
-    }
-  }, [open, contribution])
+  // Sync form state from props when dialog opens (React recommended pattern)
+  if (open && !prevOpen && contribution) {
+    setPrevOpen(true)
+    setAmount(String(contribution.amount))
+    const d = new Date(contribution.date)
+    setDate(d.toISOString().slice(0, 10))
+    setTime(d.toTimeString().slice(0, 5))
+    setDescription(contribution.description || "")
+    setStatus(contribution.status)
+    setError(null)
+  }
+  if (!open && prevOpen) {
+    setPrevOpen(false)
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
