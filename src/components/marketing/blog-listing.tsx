@@ -28,7 +28,7 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
     deletedAt: null,
   };
   if (categorySlug) {
-    where.category = { slug: categorySlug };
+    where.categories = { some: { category: { slug: categorySlug } } };
   }
   if (tagSlug) {
     where.tags = { some: { tag: { slug: tagSlug } } };
@@ -44,7 +44,7 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
       skip: (page - 1) * pageSize,
       take: pageSize,
       include: {
-        category: { select: { id: true, name: true, slug: true, color: true } },
+        categories: { include: { category: { select: { id: true, name: true, slug: true, color: true } } } },
         tags: { include: { tag: { select: { id: true, name: true, slug: true, color: true } } } },
         author: { select: { id: true, name: true } },
       },
@@ -128,16 +128,21 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
                   </div>
                 )}
                 <div className="p-5">
-                  {post.category && (
-                    <span
-                      className="text-xs font-medium px-2 py-0.5 rounded-full"
-                      style={{
-                        backgroundColor: (post.category.color || "#B07D3A") + "20",
-                        color: post.category.color || "#B07D3A",
-                      }}
-                    >
-                      {post.category.name}
-                    </span>
+                  {post.categories && post.categories.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {post.categories.map((pc: { category: { id: string; name: string; color: string | null } }) => (
+                        <span
+                          key={pc.category.id}
+                          className="text-xs font-medium px-2 py-0.5 rounded-full"
+                          style={{
+                            backgroundColor: (pc.category.color || "#B07D3A") + "20",
+                            color: pc.category.color || "#B07D3A",
+                          }}
+                        >
+                          {pc.category.name}
+                        </span>
+                      ))}
+                    </div>
                   )}
                   <h2
                     className="mt-2 group-hover:text-[#B07D3A] transition-colors line-clamp-2"

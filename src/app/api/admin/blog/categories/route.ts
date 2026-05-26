@@ -13,7 +13,7 @@ export async function GET() {
       orderBy: { sortOrder: "asc" },
       include: {
         _count: {
-          select: { posts: { where: { deletedAt: null } } },
+          select: { posts: { where: { post: { deletedAt: null } } } },
         },
       },
     });

@@ -10,13 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+// Select components no longer needed for categories (now using checkboxes)
 import { RichTextEditor } from "@/components/admin/rich-text-editor"
 import { MediaPicker } from "@/components/admin/media-picker"
 import { DatePicker } from "@/components/ui/date-picker"
@@ -57,7 +51,7 @@ export default function NewBlogPostPage() {
   const [slugManual, setSlugManual] = useState(false)
   const [excerpt, setExcerpt] = useState("")
   const [content, setContent] = useState("")
-  const [categoryId, setCategoryId] = useState("")
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [isDraft, setIsDraft] = useState(true)
   const [heroImageUrl, setHeroImageUrl] = useState("")
@@ -109,6 +103,12 @@ export default function NewBlogPostPage() {
     setSlug(value)
   }
 
+  function toggleCategory(catId: string) {
+    setSelectedCategories((prev) =>
+      prev.includes(catId) ? prev.filter((c) => c !== catId) : [...prev, catId]
+    )
+  }
+
   function toggleTag(tagId: string) {
     setSelectedTags((prev) =>
       prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId]
@@ -124,7 +124,7 @@ export default function NewBlogPostPage() {
         slug,
         excerpt: excerpt || null,
         content,
-        categoryId: categoryId || null,
+        categoryIds: selectedCategories,
         tags: selectedTags,
         isPublished: !asDraft,
         heroImageUrl: heroImageUrl || null,
@@ -307,27 +307,30 @@ export default function NewBlogPostPage() {
             </CardContent>
           </Card>
 
-          {/* Category card */}
+          {/* Categories card */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Category</CardTitle>
+              <CardTitle className="text-sm font-medium">Categories</CardTitle>
             </CardHeader>
             <CardContent>
-              <Select value={categoryId || "none"} onValueChange={(val) => setCategoryId(val === "none" ? "" : val || "")}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category">
-                    {categoryId ? categories.find((cat) => cat.id === categoryId)?.name : "No category"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No category</SelectItem>
+              {categories.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No categories available.</p>
+              ) : (
+                <div className="space-y-2 max-h-48 overflow-y-auto">
                   {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
+                    <div key={cat.id} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`cat-${cat.id}`}
+                        checked={selectedCategories.includes(cat.id)}
+                        onCheckedChange={() => toggleCategory(cat.id)}
+                      />
+                      <Label htmlFor={`cat-${cat.id}`} className="text-sm cursor-pointer">
+                        {cat.name}
+                      </Label>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              )}
             </CardContent>
           </Card>
 

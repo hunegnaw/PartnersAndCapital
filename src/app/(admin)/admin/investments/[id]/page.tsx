@@ -25,6 +25,8 @@ import { DocumentUploadDialog } from "@/components/admin/document-upload-dialog"
 import { ValuationFormDialog } from "@/components/admin/valuation-form-dialog"
 import { DistributionFormDialog } from "@/components/admin/distribution-form-dialog"
 import { DistributionImportDialog } from "@/components/admin/distribution-import-dialog"
+import { EditDistributionDialog } from "@/components/admin/edit-distribution-dialog"
+import { EditContributionDialog } from "@/components/admin/edit-contribution-dialog"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { formatCurrency, formatDate, formatDateOnly, formatPercentage } from "@/lib/utils"
 import {
@@ -201,6 +203,10 @@ export default function AdminInvestmentDetailPage({
   const [deletePositionTarget, setDeletePositionTarget] = useState<{ id: string; clientName: string } | null>(null)
   const [editPositionOpen, setEditPositionOpen] = useState(false)
   const [editPositionTarget, setEditPositionTarget] = useState<ClientPosition | null>(null)
+  const [editDistributionOpen, setEditDistributionOpen] = useState(false)
+  const [editDistributionTarget, setEditDistributionTarget] = useState<DistributionRecord | null>(null)
+  const [editContributionOpen, setEditContributionOpen] = useState(false)
+  const [editContributionTarget, setEditContributionTarget] = useState<ContributionRecord | null>(null)
 
   const fetchInvestment = useCallback(async () => {
     setLoading(true)
@@ -838,12 +844,13 @@ export default function AdminInvestmentDetailPage({
                     <TableHead>Type</TableHead>
                     <TableHead>Notes</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {allDistributions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                         <DollarSign className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
                         <p>No distributions recorded yet.</p>
                       </TableCell>
@@ -866,6 +873,18 @@ export default function AdminInvestmentDetailPage({
                           <Badge variant={d.status === "COMPLETED" ? "default" : "secondary"}>
                             {d.status}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditDistributionTarget(d)
+                              setEditDistributionOpen(true)
+                            }}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
@@ -1180,6 +1199,26 @@ export default function AdminInvestmentDetailPage({
         confirmLabel="Delete"
         onConfirm={handleDeleteInvestment}
         loading={deleting}
+      />
+
+      <EditDistributionDialog
+        open={editDistributionOpen}
+        onOpenChange={(open) => {
+          setEditDistributionOpen(open)
+          if (!open) setEditDistributionTarget(null)
+        }}
+        distribution={editDistributionTarget}
+        onSuccess={fetchInvestment}
+      />
+
+      <EditContributionDialog
+        open={editContributionOpen}
+        onOpenChange={(open) => {
+          setEditContributionOpen(open)
+          if (!open) setEditContributionTarget(null)
+        }}
+        contribution={editContributionTarget}
+        onSuccess={fetchInvestment}
       />
 
       <ConfirmDialog

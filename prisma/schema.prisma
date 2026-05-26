@@ -850,7 +850,6 @@ model BlogPost {
   excerpt      String?   @db.Text
   heroImageUrl String?
   authorId     String
-  categoryId   String?
   viewCount    Int       @default(0)
   sortOrder    Int       @default(0)
   readTime     Int?
@@ -866,13 +865,12 @@ model BlogPost {
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
 
-  author   User          @relation(fields: [authorId], references: [id])
-  category BlogCategory? @relation(fields: [categoryId], references: [id])
-  tags     BlogPostTag[]
+  author     User               @relation(fields: [authorId], references: [id])
+  categories BlogPostCategory[]
+  tags       BlogPostTag[]
 
   @@index([slug])
   @@index([authorId])
-  @@index([categoryId])
   @@index([isPublished])
   @@index([publishedAt])
   @@index([deletedAt])
@@ -888,10 +886,23 @@ model BlogCategory {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  posts BlogPost[]
+  posts BlogPostCategory[]
 
   @@index([slug])
   @@index([deletedAt])
+}
+
+model BlogPostCategory {
+  id         String @id @default(cuid())
+  postId     String
+  categoryId String
+
+  post     BlogPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  category BlogCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, categoryId])
+  @@index([postId])
+  @@index([categoryId])
 }
 
 model BlogTag {

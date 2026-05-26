@@ -670,6 +670,7 @@ async function main() {
     const wordCount = post.content.replace(/<[^>]+>/g, "").split(/\s+/).length;
     const readTime = Math.max(1, Math.ceil(wordCount / 200));
 
+    const categoryId = catMap[post.categorySlug] || null;
     const created = await prisma.blogPost.create({
       data: {
         title: post.title,
@@ -677,12 +678,18 @@ async function main() {
         excerpt: post.excerpt,
         content: post.content,
         authorId: admin.id,
-        categoryId: catMap[post.categorySlug] || null,
         readTime,
         isPublished: true,
         isDraft: false,
         publishedAt: post.publishedAt,
         viewCount: Math.floor(Math.random() * 500) + 50,
+        ...(categoryId
+          ? {
+              categories: {
+                create: [{ categoryId }],
+              },
+            }
+          : {}),
       },
     });
 

@@ -16,7 +16,11 @@ export async function GET(
     const post = await prisma.blogPost.findFirst({
       where: { id, deletedAt: null },
       include: {
-        category: true,
+        categories: {
+          include: {
+            category: true,
+          },
+        },
         tags: {
           include: {
             tag: true,
@@ -62,6 +66,7 @@ export async function PATCH(
       excerpt,
       heroImageUrl,
       categoryId,
+      categoryIds,
       metaTitle,
       metaDescription,
       ogImageUrl,
@@ -107,7 +112,17 @@ export async function PATCH(
       publishedAt = new Date();
     }
 
-    const post = await prisma.blogPost.update({
+    // Resolve category IDs: support both categoryIds (new) and categoryId (legacy)
+    const resolvedCategoryIds: string[] | undefined =
+      categoryIds !== undefined
+        ? categoryIds
+        : categoryId !== undefined
+          ? categoryId
+            ? [categoryId]
+            : []
+          : undefined;
+
+    await prisma.blogPost.update({
       where: { id },
       data: {
         ...(title !== undefined && { title }),
@@ -115,7 +130,6 @@ export async function PATCH(
         ...(content !== undefined && { content }),
         ...(excerpt !== undefined && { excerpt: excerpt || null }),
         ...(heroImageUrl !== undefined && { heroImageUrl: heroImageUrl || null }),
-        ...(categoryId !== undefined && { categoryId: categoryId || null }),
         ...(metaTitle !== undefined && { metaTitle: metaTitle || null }),
         ...(metaDescription !== undefined && { metaDescription: metaDescription || null }),
         ...(ogImageUrl !== undefined && { ogImageUrl: ogImageUrl || null }),
@@ -123,14 +137,21 @@ export async function PATCH(
         ...(readTime !== undefined && { readTime }),
         ...(publishedAt !== undefined && { publishedAt: publishedAt }),
       },
-      include: {
-        category: true,
-        tags: { include: { tag: true } },
-        author: {
-          select: { id: true, name: true, email: true },
-        },
-      },
     });
+
+    // Handle categories: delete existing and recreate (same pattern as tags)
+    if (resolvedCategoryIds !== undefined) {
+      await prisma.blogPostCategory.deleteMany({ where: { postId: id } });
+
+      if (resolvedCategoryIds.length > 0) {
+        await prisma.blogPostCategory.createMany({
+          data: resolvedCategoryIds.map((catId: string) => ({
+            postId: id,
+            categoryId: catId,
+          })),
+        });
+      }
+    }
 
     // Handle tags: delete existing and recreate
     if (tags !== undefined) {
@@ -144,30 +165,19 @@ export async function PATCH(
           })),
         });
       }
-
-      // Re-fetch to include updated tags
-      const updated = await prisma.blogPost.findUnique({
-        where: { id },
-        include: {
-          category: true,
-          tags: { include: { tag: true } },
-          author: {
-            select: { id: true, name: true, email: true },
-          },
-        },
-      });
-
-      createAuditLog({
-        userId: user.id,
-        action: "UPDATE_BLOG_POST",
-        targetType: "BlogPost",
-        targetId: id,
-        details: { title: title || existing.title, slug: slug || existing.slug },
-        request,
-      });
-
-      return NextResponse.json(updated);
     }
+
+    // Re-fetch with all relations
+    const updated = await prisma.blogPost.findUnique({
+      where: { id },
+      include: {
+        categories: { include: { category: true } },
+        tags: { include: { tag: true } },
+        author: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+    });
 
     createAuditLog({
       userId: user.id,
@@ -178,7 +188,7 @@ export async function PATCH(
       request,
     });
 
-    return NextResponse.json(post);
+    return NextResponse.json(updated);
   } catch (error) {
     console.error("Error updating blog post:", error);
     return NextResponse.json(

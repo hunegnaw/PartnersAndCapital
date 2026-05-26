@@ -17,7 +17,11 @@ export async function GET(request: NextRequest) {
     };
 
     if (category) {
-      where.category = { slug: category };
+      where.categories = {
+        some: {
+          category: { slug: category },
+        },
+      };
     }
 
     if (tag) {
@@ -36,8 +40,12 @@ export async function GET(request: NextRequest) {
       prisma.blogPost.findMany({
         where,
         include: {
-          category: {
-            select: { id: true, name: true, slug: true, color: true },
+          categories: {
+            include: {
+              category: {
+                select: { id: true, name: true, slug: true, color: true },
+              },
+            },
           },
           tags: {
             select: {

@@ -231,7 +231,17 @@ The blog (called "Partner Thoughts" publicly) provides article publishing with c
 
 **Create/Edit Post** (`/admin/blog/new`, `/admin/blog/[id]/edit`): Two-column editor with:
 - **Main area:** Title (auto-generates slug), excerpt, Tiptap rich text editor with full toolbar (bold, italic, underline, strikethrough, headings, lists, alignment, colors, links, images via media picker, blockquotes, code blocks, tables, undo/redo, HTML source toggle)
-- **Sidebar:** Publish settings (draft/publish toggle), category dropdown, tag checkboxes, hero image (via media picker), SEO fields (meta title, meta description)
+- **Sidebar:** Publish settings (draft/publish toggle), category checkboxes (multi-select), tag checkboxes, hero image (via media picker), SEO fields (meta title, meta description)
+
+### Multiple Categories per Post
+
+Blog posts support multiple categories. The category selector uses checkboxes (the same pattern as tags) instead of a single-select dropdown:
+
+- **Create post:** Check one or more categories from the Categories card in the sidebar.
+- **Edit post:** Previously assigned categories are pre-checked. Add or remove categories by toggling the checkboxes.
+- **Public display:** Posts show all assigned category badges on blog cards and listing pages.
+- **Filtering:** Category filter on the public blog page shows posts that belong to the selected category (posts can appear under multiple category filters).
+- **Migration:** Existing posts with a single category were automatically migrated to the new multi-category system.
 
 **Categories** (`/admin/blog/categories`): CRUD management with name, slug, color, and sort order.
 
@@ -1378,6 +1388,24 @@ The system divides the total proportionally by each active position's `amountInv
 
 Each client position has an optional **APR** field visible only to admins. This field (`adminApr` on `ClientInvestment`) stores the annual percentage rate specific to that client's position. It appears in the Client Positions table on the admin investment detail page. APR is never exposed to the client portal.
 
+### Editing Distributions and Contributions
+
+Admins can edit existing distribution and contribution records from two locations:
+
+- **Investment Detail Page** (`/admin/investments/[id]`): In the Distributions tab, click the pencil icon on any distribution row to open the edit dialog.
+- **Centralized Distributions Page** (`/admin/distributions`): Click the pencil icon on any distribution row.
+
+The edit dialog allows updating:
+- **Amount** -- Changing the amount automatically adjusts the `cashDistributed` total on the client position (increments or decrements by the difference).
+- **Date and Time** -- Full date and time editing via the DatePicker and time input.
+- **Type** -- Cash Distribution, Reinvestment, or Return of Capital.
+- **Status** -- Completed, Pending, or Cancelled.
+- **Notes** -- Optional description text.
+
+Contribution records can be edited from the investment detail page with similar fields (amount, date/time, status, notes).
+
+All edits are recorded in the audit log with `UPDATE_DISTRIBUTION` or `UPDATE_CONTRIBUTION` actions.
+
 ### cashDistributed Sync
 
 The `cashDistributed` field on each `ClientInvestment` is kept in sync with Distribution records. When a distribution is created, `cashDistributed` is incremented by the distribution amount within the same database transaction. The client portal reads this field for the "Cash Distributed" KPI card.
@@ -1628,3 +1656,5 @@ Blog categories display the number of published posts assigned to each category 
 - Verification refinements: Date of birth field removed from identity screen and submit validation. Bypass toggle on gate screen for existing clients (accountStatus=ACTIVE) — toggle lets them skip verification and go directly to portfolio. Email notification sent to theteam@partnersandcapital.com when a client submits verification. Approval email sent to client when admin approves verification (includes login link), and user accountStatus set to ACTIVE. Soft-deleted users properly handled in access request flow (restored instead of blocked by unique constraint).
 - Auth form show/hide password toggle: Eye icon button on password fields across login, reset-password, and advisor-accept forms. Click to toggle between masked and visible password text. Uses `Eye`/`EyeOff` icons from lucide-react.
 - Auth form client-side Zod validation: All 4 auth forms (login, forgot-password, reset-password, advisor-accept) now validate inputs using Zod schemas from `src/lib/validation.ts` before submitting. Per-field inline error messages displayed below inputs in red. Login validates email format before advancing to password step. Reset-password and advisor-accept validate password length and confirm-password match with per-field errors.
+- Edit distributions and contributions: Admin can edit date/time, amount, type, status, and notes on existing distribution and contribution records. Pencil icon on distribution rows in both investment detail and centralized distributions page. Amount changes on distributions automatically adjust the client position's `cashDistributed` total via database transaction. All edits recorded in audit log.
+- Multiple blog categories per post: Blog posts now support multiple categories via a junction table (`BlogPostCategory`). Category selector changed from single-select dropdown to multi-select checkboxes in both create and edit blog pages. Public blog pages show multiple category badges per post. Existing single-category posts migrated automatically.

@@ -15,8 +15,12 @@ export async function GET(
         deletedAt: null,
       },
       include: {
-        category: {
-          select: { id: true, name: true, slug: true, color: true },
+        categories: {
+          include: {
+            category: {
+              select: { id: true, name: true, slug: true, color: true },
+            },
+          },
         },
         tags: {
           select: {

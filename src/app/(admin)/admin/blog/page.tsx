@@ -61,6 +61,10 @@ interface BlogCategory {
   color: string | null
 }
 
+interface BlogPostCategoryJoin {
+  category: BlogCategory
+}
+
 interface BlogPost {
   id: string
   title: string
@@ -71,7 +75,7 @@ interface BlogPost {
   sortOrder: number
   publishedAt: string | null
   createdAt: string
-  category: BlogCategory | null
+  categories: BlogPostCategoryJoin[]
 }
 
 function SortableRow({
@@ -114,20 +118,25 @@ function SortableRow({
         <div className="truncate">{post.title}</div>
       </TableCell>
       <TableCell>
-        {post.category ? (
-          <Badge
-            variant="secondary"
-            style={{
-              backgroundColor: post.category.color
-                ? `${post.category.color}20`
-                : undefined,
-              color: post.category.color || undefined,
-              borderColor: post.category.color || undefined,
-            }}
-            className={post.category.color ? "border" : ""}
-          >
-            {post.category.name}
-          </Badge>
+        {post.categories && post.categories.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {post.categories.map((pc) => (
+              <Badge
+                key={pc.category.id}
+                variant="secondary"
+                style={{
+                  backgroundColor: pc.category.color
+                    ? `${pc.category.color}20`
+                    : undefined,
+                  color: pc.category.color || undefined,
+                  borderColor: pc.category.color || undefined,
+                }}
+                className={pc.category.color ? "border" : ""}
+              >
+                {pc.category.name}
+              </Badge>
+            ))}
+          </div>
         ) : (
           <span className="text-muted-foreground">--</span>
         )}

@@ -32,7 +32,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   const post = await prisma.blogPost.findFirst({
     where: { slug, isPublished: true, deletedAt: null },
     include: {
-      category: { select: { id: true, name: true, slug: true, color: true } },
+      categories: { include: { category: { select: { id: true, name: true, slug: true, color: true } } } },
       tags: { include: { tag: { select: { id: true, name: true, slug: true } } } },
       author: { select: { id: true, name: true } },
     },
@@ -46,11 +46,12 @@ export default async function BlogPostPage({ params }: PageProps) {
     data: { viewCount: { increment: 1 } },
   }).catch(() => {});
 
-  // Fetch related posts (same category, exclude current)
-  const relatedPosts = post.categoryId
+  // Fetch related posts (same categories, exclude current)
+  const categoryIds = post.categories.map((pc: { category: { id: string } }) => pc.category.id);
+  const relatedPosts = categoryIds.length > 0
     ? await prisma.blogPost.findMany({
         where: {
-          categoryId: post.categoryId,
+          categories: { some: { categoryId: { in: categoryIds } } },
           id: { not: post.id },
           isPublished: true,
           deletedAt: null,

@@ -20,7 +20,9 @@ export async function GET(request: Request) {
       deletedAt: null,
       ...(status === "published" ? { isPublished: true } : {}),
       ...(status === "draft" ? { isPublished: false } : {}),
-      ...(categoryId ? { categoryId } : {}),
+      ...(categoryId
+        ? { categories: { some: { categoryId } } }
+        : {}),
       ...(search
         ? {
             OR: [
@@ -34,7 +36,11 @@ export async function GET(request: Request) {
       prisma.blogPost.findMany({
         where,
         include: {
-          category: true,
+          categories: {
+            include: {
+              category: true,
+            },
+          },
           tags: {
             include: {
               tag: true,
@@ -78,6 +84,7 @@ export async function POST(request: Request) {
       excerpt,
       heroImageUrl,
       categoryId,
+      categoryIds,
       metaTitle,
       metaDescription,
       ogImageUrl,
@@ -85,6 +92,13 @@ export async function POST(request: Request) {
       tags,
       publishedAt,
     } = body;
+
+    // Support both categoryIds (new multi-select) and categoryId (legacy)
+    const resolvedCategoryIds: string[] = categoryIds
+      ? categoryIds
+      : categoryId
+        ? [categoryId]
+        : [];
 
     if (!title || !slug || !content) {
       return NextResponse.json(
@@ -120,7 +134,6 @@ export async function POST(request: Request) {
         content,
         excerpt: excerpt || null,
         heroImageUrl: heroImageUrl || null,
-        categoryId: categoryId || null,
         metaTitle: metaTitle || null,
         metaDescription: metaDescription || null,
         ogImageUrl: ogImageUrl || null,
@@ -129,6 +142,15 @@ export async function POST(request: Request) {
         publishedAt: resolvedPublishedAt,
         readTime,
         authorId: user.id,
+        ...(resolvedCategoryIds.length > 0
+          ? {
+              categories: {
+                create: resolvedCategoryIds.map((catId: string) => ({
+                  categoryId: catId,
+                })),
+              },
+            }
+          : {}),
         ...(tags && tags.length > 0
           ? {
               tags: {
@@ -140,7 +162,7 @@ export async function POST(request: Request) {
           : {}),
       },
       include: {
-        category: true,
+        categories: { include: { category: true } },
         tags: { include: { tag: true } },
         author: {
           select: { id: true, name: true, email: true },

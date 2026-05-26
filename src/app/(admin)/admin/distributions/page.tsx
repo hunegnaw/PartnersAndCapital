@@ -34,6 +34,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { formatCurrency, formatDateOnly } from "@/lib/utils"
+import { EditDistributionDialog } from "@/components/admin/edit-distribution-dialog"
 import {
   Search,
   Plus,
@@ -41,6 +42,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  Pencil,
 } from "lucide-react"
 
 interface DistributionUser {
@@ -137,6 +139,10 @@ export default function AdminDistributionsPage() {
   const [distDescription, setDistDescription] = useState("")
   const [distLoading, setDistLoading] = useState(false)
   const [distError, setDistError] = useState<string | null>(null)
+
+  // Edit dialog state
+  const [editOpen, setEditOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<Distribution | null>(null)
 
   const fetchDistributions = useCallback(async () => {
     setLoading(true)
@@ -357,6 +363,7 @@ export default function AdminDistributionsPage() {
                 <TableHead>Type</TableHead>
                 <TableHead className="hidden md:table-cell">Notes</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -374,7 +381,7 @@ export default function AdminDistributionsPage() {
                 ))
               ) : distributions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                     {search || typeFilter || investmentFilter
                       ? "No distributions match your filters."
                       : "No distributions yet. Record your first distribution to get started."}
@@ -405,6 +412,18 @@ export default function AdminDistributionsPage() {
                       <Badge variant={statusVariant(dist.status)}>
                         {dist.status}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditTarget(dist)
+                          setEditOpen(true)
+                        }}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -442,6 +461,17 @@ export default function AdminDistributionsPage() {
           </div>
         </div>
       )}
+
+      {/* Edit Distribution Dialog */}
+      <EditDistributionDialog
+        open={editOpen}
+        onOpenChange={(open) => {
+          setEditOpen(open)
+          if (!open) setEditTarget(null)
+        }}
+        distribution={editTarget}
+        onSuccess={fetchDistributions}
+      />
 
       {/* Record Distribution Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
