@@ -27,6 +27,7 @@ export const BLOCK_TYPES = {
       cta2ButtonFont: "",
       overlayOpacity: 0.5,
       showStats: true,
+      avgNetReturn: "",
       scrollHintText: "Scroll",
     },
   },

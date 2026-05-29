@@ -28,6 +28,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
   const posterImageUrl = (props.posterImageUrl as string) ?? "";
   const overlayOpacity = (props.overlayOpacity as number) ?? 0.5;
   const showStats = props.showStats !== false;
+  const manualAvgNetReturn = (props.avgNetReturn as string) ?? "";
 
 
   const taglineFont = resolveBlockFont((props.taglineFont as string) || "");
@@ -240,7 +241,7 @@ export function HeroVideoBlock({ props }: HeroVideoBlockProps) {
                   color: "#E8D5B0",
                 }}
               >
-                {stats.avgNetReturn}
+                {manualAvgNetReturn || stats.avgNetReturn}
               </div>
               <div
                 className="mt-1 uppercase tracking-[0.12em]"

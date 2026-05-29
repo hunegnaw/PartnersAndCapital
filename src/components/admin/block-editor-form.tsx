@@ -624,6 +624,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
           <ColorField label="Secondary CTA Text Color" field="cta2ButtonTextColor" {...fp} />
           <FontField label="Secondary CTA Button Font" field="cta2ButtonFont" hint={fontHint(t.body)} {...fp} />
           <CheckboxField label="Show Dynamic Stats" field="showStats" {...fp} />
+          <InputField label="Avg Net Return (e.g. 12%)" field="avgNetReturn" {...fp} />
           <InputField label="Scroll Hint Text" field="scrollHintText" {...fp} />
           <RangeField label="Overlay Opacity" field="overlayOpacity" {...fp} />
           <ColorField label="Background Color" field="backgroundColor" {...fp} />
