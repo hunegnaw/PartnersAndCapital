@@ -460,7 +460,17 @@ export default function DashboardPage() {
                   }}
                 />
                 <YAxis
-                  tick={{ fontSize: 11, fill: "#888780" }}
+                  yAxisId="left"
+                  tick={{ fontSize: 11, fill: "#1A2640" }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(val) => `$${(val / 1000).toFixed(0)}K`}
+                  width={60}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tick={{ fontSize: 11, fill: "#B07D3A" }}
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(val) => `$${(val / 1000).toFixed(0)}K`}
@@ -484,6 +494,7 @@ export default function DashboardPage() {
                   }}
                 />
                 <Line
+                  yAxisId="left"
                   type="monotone"
                   dataKey="netValue"
                   stroke="#1A2640"
@@ -492,6 +503,7 @@ export default function DashboardPage() {
                   activeDot={{ r: 4, fill: "#1A2640" }}
                 />
                 <Line
+                  yAxisId="right"
                   type="monotone"
                   dataKey="cumulativeDistributions"
                   stroke="#B07D3A"

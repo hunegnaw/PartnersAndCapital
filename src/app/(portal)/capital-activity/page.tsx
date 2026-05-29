@@ -92,8 +92,8 @@ function SummarySkeleton() {
         <Skeleton className="h-8 w-40 mb-2" />
         <Skeleton className="h-4 w-64" />
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
+      <div className="grid gap-4 md:grid-cols-2">
+        {Array.from({ length: 2 }).map((_, i) => (
           <Card key={i}>
             <CardContent className="pt-6">
               <Skeleton className="h-4 w-28 mb-2" />
@@ -273,13 +273,6 @@ export default function CapitalActivityPage() {
       icon: ArrowDownLeft,
       color: "text-green-500",
     },
-    {
-      label: "Net Cash Flow",
-      value: formatCurrency(summary.netCashFlow),
-      icon: TrendingUp,
-      color:
-        summary.netCashFlow >= 0 ? "text-green-600" : "text-red-600",
-    },
   ];
 
   return (
@@ -293,7 +286,7 @@ export default function CapitalActivityPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         {summaryCards.map((card) => (
           <Card key={card.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
