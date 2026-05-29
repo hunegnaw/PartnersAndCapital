@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { getOrganization } from "@/lib/organization";
 import { LogOut } from "lucide-react";
 import { ActivityBanner } from "@/components/portal/activity-banner";
+import { UnreadMessagesModal } from "@/components/portal/unread-messages-modal";
 
 const investorNav = [
   { href: "/dashboard", label: "Dashboard" },
@@ -18,6 +19,7 @@ const investorNav = [
 ];
 
 const accountNav = [
+  { href: "/messages", label: "Messages" },
   { href: "/settings", label: "Settings" },
   { href: "/support", label: "Support" },
 ];
@@ -80,6 +82,36 @@ export default async function PortalLayout({
     profileImageUrl = currentUser?.profileImageUrl ?? null;
   }
 
+  // Fetch unread message count for sidebar badge
+  const effectiveUserId = impersonation ? impersonation.clientId : session.user.id as string;
+  let unreadMessageCount = 0;
+  try {
+    const unreadThreads = await prisma.messageThread.findMany({
+      where: {
+        deletedAt: null,
+        OR: [
+          { isBroadcast: true, broadcastParentId: null },
+          { participantId: effectiveUserId },
+        ],
+      },
+      select: {
+        updatedAt: true,
+        _count: { select: { messages: true } },
+        readReceipts: {
+          where: { userId: effectiveUserId },
+          select: { readAt: true },
+        },
+      },
+    });
+    unreadMessageCount = unreadThreads.filter((t) => {
+      if (t._count.messages === 0) return false;
+      if (t.readReceipts.length === 0) return true;
+      return t.readReceipts[0].readAt < t.updatedAt;
+    }).length;
+  } catch {
+    // Non-critical
+  }
+
   const org = await getOrganization();
 
   const displayName = impersonation
@@ -97,6 +129,7 @@ export default async function PortalLayout({
 
   return (
     <div className="flex min-h-screen flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <UnreadMessagesModal />
       <ActivityBanner />
       {impersonation && impersonatedClient && (
         <ImpersonationBanner
@@ -182,10 +215,15 @@ export default async function PortalLayout({
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="sidebar-link flex items-center gap-3 px-3 py-2 text-sm rounded-md text-white/55 hover:text-[#E8D5B0] hover:bg-white/5 transition-colors"
+                    className="sidebar-link flex items-center justify-between px-3 py-2 text-sm rounded-md text-white/55 hover:text-[#E8D5B0] hover:bg-white/5 transition-colors"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
-                    {item.label}
+                    <span className="flex items-center gap-3">
+                      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
+                      {item.label}
+                    </span>
+                    {item.href === "/messages" && unreadMessageCount > 0 && (
+                      <span className="h-2 w-2 rounded-full bg-[#B07D3A]" />
+                    )}
                   </Link>
                 </li>
               ))}

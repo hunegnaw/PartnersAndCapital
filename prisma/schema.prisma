@@ -98,6 +98,10 @@ model User {
   investmentValuations InvestmentValuation[]
   verification      Verification?      @relation("UserVerification")
   verificationsReviewed Verification[] @relation("VerificationReviewer")
+  threadsCreated    MessageThread[]    @relation("ThreadCreator")
+  threadParticipant MessageThread[]    @relation("ThreadParticipant")
+  messagesSent      Message[]          @relation("MessageSender")
+  messageReadReceipts MessageReadReceipt[] @relation("MessageReadReceipts")
 
   @@index([email])
   @@index([role])
@@ -607,6 +611,7 @@ enum NotificationType {
   SUPPORT_TICKET
   SYSTEM_MESSAGE
   ACTIVITY_POST
+  SECURE_MESSAGE
 }
 
 model Notification {
@@ -646,6 +651,67 @@ model AuditLog {
   @@index([action])
   @@index([targetType])
   @@index([createdAt])
+}
+
+// ============================================================
+// SECURE COMMUNICATIONS
+// ============================================================
+
+model MessageThread {
+  id               String    @id @default(cuid())
+  subject          String
+  isBroadcast      Boolean   @default(false)
+  showAsBanner     Boolean   @default(false)
+  bannerContent    String?   @db.Text
+  createdById      String
+  participantId    String?
+  broadcastParentId String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  createdBy        User           @relation("ThreadCreator", fields: [createdById], references: [id])
+  participant      User?          @relation("ThreadParticipant", fields: [participantId], references: [id])
+  broadcastParent  MessageThread? @relation("BroadcastReplies", fields: [broadcastParentId], references: [id])
+  broadcastReplies MessageThread[] @relation("BroadcastReplies")
+  messages         Message[]
+  readReceipts     MessageReadReceipt[]
+
+  @@index([createdById])
+  @@index([participantId])
+  @@index([broadcastParentId])
+  @@index([isBroadcast])
+  @@index([showAsBanner])
+  @@index([deletedAt])
+  @@index([updatedAt])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  threadId  String
+  senderId  String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+
+  thread MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender User          @relation("MessageSender", fields: [senderId], references: [id])
+
+  @@index([threadId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+model MessageReadReceipt {
+  id       String   @id @default(cuid())
+  threadId String
+  userId   String
+  readAt   DateTime @default(now())
+
+  thread MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User          @relation("MessageReadReceipts", fields: [userId], references: [id])
+
+  @@unique([threadId, userId])
+  @@index([userId])
 }
 
 // ============================================================

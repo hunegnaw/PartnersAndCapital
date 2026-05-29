@@ -363,6 +363,28 @@ export function verificationSubmittedEmail({
   return emailWrapper(content, logoUrl);
 }
 
+interface SecureMessageEmailParams {
+  userName: string;
+  loginUrl: string;
+  logoUrl?: string | null;
+}
+
+export function secureMessageEmail({
+  userName,
+  loginUrl,
+  logoUrl,
+}: SecureMessageEmailParams): string {
+  const content = `
+    <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">New Secure Message</h1>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Hello ${userName},</p>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">A new secure message is waiting for you in your Partners + Capital portal.</p>
+    <p style="margin: 0 0 16px 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">For your security, message content is not included in email notifications.</p>
+    ${emailButton("Log In to Read Message", loginUrl)}
+    <p style="margin: 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">If you did not expect this message, you can safely ignore this email.</p>`;
+
+  return emailWrapper(content, logoUrl);
+}
+
 export function welcomeEmail({
   userName,
   resetUrl,

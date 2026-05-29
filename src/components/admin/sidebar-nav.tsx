@@ -25,6 +25,7 @@ interface SidebarCounts {
   blogPostCount: number
   blogCategoryCount: number
   mediaCount: number
+  messageCount: number
 }
 
 const manageNav: NavItem[] = [
@@ -34,7 +35,7 @@ const manageNav: NavItem[] = [
   { href: "/admin/asset-classes", label: "Asset Classes", countKey: "assetClassCount", showCountWhenZero: true },
   { href: "/admin/documents", label: "Documents", countKey: "documentCount", showCountWhenZero: true },
   { href: "/admin/advisors", label: "Advisors", countKey: "advisorCount", showCountWhenZero: true },
-  { href: "/admin/activity", label: "Activity Feed" },
+  { href: "/admin/activity", label: "Communications", countKey: "messageCount" },
   { href: "/admin/support", label: "Support", countKey: "ticketCount" },
   { href: "/admin/access-requests", label: "Access Requests", countKey: "accessRequestCount" },
   { href: "/admin/verifications", label: "Verifications", countKey: "verificationCount" },

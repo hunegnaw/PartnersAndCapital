@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Users,
   Info,
+  Mail,
   X,
 } from "lucide-react";
 import { cn, formatTimeAgo } from "@/lib/utils";
@@ -35,6 +36,8 @@ function notificationIcon(type: string) {
     case "ADVISOR":
     case "ADVISOR_ACCESS":
       return <Users className="h-4 w-4 text-orange-500" />;
+    case "SECURE_MESSAGE":
+      return <Mail className="h-4 w-4 text-[#B07D3A]" />;
     default:
       return <Info className="h-4 w-4 text-muted-foreground" />;
   }

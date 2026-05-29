@@ -7,25 +7,35 @@ export async function GET() {
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 
-    const banners = await prisma.activityFeed.findMany({
+    const thread = await prisma.messageThread.findFirst({
       where: {
         deletedAt: null,
         showAsBanner: true,
-        OR: [
-          { isBroadcast: true },
-          { targetUserId: user.id },
-        ],
+        isBroadcast: true,
       },
-      select: {
-        id: true,
-        title: true,
-        content: true,
+      include: {
+        messages: {
+          orderBy: { createdAt: "asc" },
+          take: 1,
+          select: { body: true },
+        },
       },
       orderBy: { createdAt: "desc" },
-      take: 1,
     });
 
-    return NextResponse.json({ banner: banners[0] || null });
+    if (!thread) {
+      return NextResponse.json({ banner: null });
+    }
+
+    const content = thread.bannerContent || thread.messages[0]?.body || thread.subject;
+
+    return NextResponse.json({
+      banner: {
+        id: thread.id,
+        title: thread.subject,
+        content,
+      },
+    });
   } catch (error) {
     console.error("Error fetching banners:", error);
     return NextResponse.json(
