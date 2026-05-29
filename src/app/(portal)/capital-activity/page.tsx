@@ -21,7 +21,6 @@ import {
 import {
   ArrowUpRight,
   ArrowDownLeft,
-  TrendingUp,
   Wallet,
 } from "lucide-react";
 import { formatCurrency, formatDateOnly, cn } from "@/lib/utils";
