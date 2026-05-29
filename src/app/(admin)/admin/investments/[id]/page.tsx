@@ -81,6 +81,7 @@ interface ClientPosition {
   currentValue: number
   cashDistributed: number
   adminApr: number | null
+  irr: number | null
   investmentDate: string
   user: {
     id: string

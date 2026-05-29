@@ -32,6 +32,7 @@ interface EditClientInvestmentDialogProps {
     currentValue: number
     cashDistributed: number
     adminApr: number | null
+    irr: number | null
     investmentDate: string
     user: { name: string; email: string }
   } | null
@@ -48,6 +49,7 @@ export function EditClientInvestmentDialog({
   const [amountInvested, setAmountInvested] = useState("")
   const [currentValue, setCurrentValue] = useState("")
   const [adminApr, setAdminApr] = useState("")
+  const [irr, setIrr] = useState("")
   const [investmentDate, setInvestmentDate] = useState("")
   const [status, setStatus] = useState("ACTIVE")
   const [loading, setLoading] = useState(false)
@@ -59,6 +61,7 @@ export function EditClientInvestmentDialog({
         setAmountInvested(String(position.amountInvested))
         setCurrentValue(String(position.currentValue))
         setAdminApr(position.adminApr != null ? String(position.adminApr) : "")
+        setIrr(position.irr != null ? String(position.irr) : "")
         setInvestmentDate(
           position.investmentDate
             ? position.investmentDate.slice(0, 10)
@@ -83,6 +86,8 @@ export function EditClientInvestmentDialog({
         status,
       }
       if (adminApr) body.adminApr = parseFloat(adminApr)
+      if (irr) body.irr = parseFloat(irr)
+      else body.irr = null
       if (investmentDate) body.investmentDate = investmentDate
 
       const res = await fetch(
@@ -166,6 +171,19 @@ export function EditClientInvestmentDialog({
                 onChange={(e) => setAdminApr(e.target.value)}
                 placeholder="8.50"
               />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="eci-irr">IRR (%)</Label>
+              <Input
+                id="eci-irr"
+                type="number"
+                step="0.0001"
+                value={irr}
+                onChange={(e) => setIrr(e.target.value)}
+                placeholder="0.1250"
+              />
+              <p className="text-xs text-muted-foreground">Decimal format (e.g. 0.12 = 12%). Used for Avg Net Return on homepage.</p>
             </div>
 
             <div className="grid gap-2">
