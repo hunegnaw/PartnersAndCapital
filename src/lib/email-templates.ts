@@ -138,7 +138,6 @@ export function passwordResetEmail({
 interface TicketReplyEmailParams {
   userName: string;
   ticketSubject: string;
-  replyPreview: string;
   ticketUrl: string;
   logoUrl?: string | null;
 }
@@ -146,7 +145,6 @@ interface TicketReplyEmailParams {
 export function ticketReplyEmail({
   userName,
   ticketSubject,
-  replyPreview,
   ticketUrl,
   logoUrl,
 }: TicketReplyEmailParams): string {
@@ -154,13 +152,54 @@ export function ticketReplyEmail({
     <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">New Reply on Your Ticket</h1>
     <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Hello ${userName},</p>
     <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">There&rsquo;s a new reply on your support ticket: <strong style="color: #1a1a18;">${ticketSubject}</strong></p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px 0;">
-      <tr>
-        <td style="background-color: #f5f5f3; border-left: 3px solid #1A2640; padding: 16px 20px; border-radius: 0 4px 4px 0;">
-          <p style="margin: 0; font-size: 14px; color: #5f5e5a; line-height: 1.6; font-style: italic;">${replyPreview}</p>
-        </td>
-      </tr>
-    </table>
+    <p style="margin: 0 0 16px 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">For your security, message content is not included in email notifications.</p>
+    ${emailButton("View Ticket", ticketUrl)}`;
+
+  return emailWrapper(content, logoUrl);
+}
+
+interface TicketSubmittedEmailParams {
+  userName: string;
+  ticketSubject: string;
+  ticketUrl: string;
+  logoUrl?: string | null;
+}
+
+export function ticketSubmittedEmail({
+  userName,
+  ticketSubject,
+  ticketUrl,
+  logoUrl,
+}: TicketSubmittedEmailParams): string {
+  const content = `
+    <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">Support Ticket Received</h1>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Hello ${userName},</p>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Your support ticket has been received: <strong style="color: #1a1a18;">${ticketSubject}</strong></p>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Our team will review your request and respond as soon as possible. You can check the status of your ticket at any time from your portal.</p>
+    ${emailButton("View Your Ticket", ticketUrl)}`;
+
+  return emailWrapper(content, logoUrl);
+}
+
+interface TicketAdminNotifyEmailParams {
+  adminName: string;
+  clientName: string;
+  ticketSubject: string;
+  ticketUrl: string;
+  logoUrl?: string | null;
+}
+
+export function ticketAdminNotifyEmail({
+  adminName,
+  clientName,
+  ticketSubject,
+  ticketUrl,
+  logoUrl,
+}: TicketAdminNotifyEmailParams): string {
+  const content = `
+    <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">New Support Ticket</h1>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Hello ${adminName},</p>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;"><strong style="color: #1a1a18;">${clientName}</strong> has submitted a new support ticket: <strong style="color: #1a1a18;">${ticketSubject}</strong></p>
     ${emailButton("View Ticket", ticketUrl)}`;
 
   return emailWrapper(content, logoUrl);

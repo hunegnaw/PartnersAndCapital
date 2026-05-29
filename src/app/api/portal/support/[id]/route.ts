@@ -88,7 +88,6 @@ export async function POST(
       select: { id: true, email: true, name: true },
     });
     if (admins.length > 0) {
-      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
       await createBulkNotifications(
         admins.map((a) => a.id),
         {
@@ -98,22 +97,21 @@ export async function POST(
           link: "/admin/support",
         }
       );
-      // Email each admin
-      const logoUrl = await getEmailLogoUrl();
-      for (const admin of admins) {
-        await sendEmail({
-          to: admin.email,
-          subject: `Client replied to: ${ticket.subject}`,
-          html: ticketReplyEmail({
-            userName: admin.name || "Admin",
-            ticketSubject: ticket.subject,
-            replyPreview: message.slice(0, 200),
-            ticketUrl: `${baseUrl}/admin/support`,
-            logoUrl,
-          }),
-        });
-      }
     }
+
+    // Email david@partnersandcapital.com about client reply
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const logoUrl = await getEmailLogoUrl();
+    sendEmail({
+      to: "david@partnersandcapital.com",
+      subject: `Client replied to: ${ticket.subject}`,
+      html: ticketReplyEmail({
+        userName: "David",
+        ticketSubject: ticket.subject,
+        ticketUrl: `${baseUrl}/admin/support`,
+        logoUrl,
+      }),
+    }).catch(() => {});
 
     return NextResponse.json(reply, { status: 201 });
   } catch (error) {

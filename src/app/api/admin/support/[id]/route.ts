@@ -127,17 +127,28 @@ export async function POST(
         link: "/support",
       });
       const logoUrl = await getEmailLogoUrl();
-      await sendEmail({
+      sendEmail({
         to: ticket.user.email,
         subject: `New reply on: ${ticket.subject}`,
         html: ticketReplyEmail({
           userName: ticket.user.name || "Investor",
           ticketSubject: ticket.subject,
-          replyPreview: message.slice(0, 200),
           ticketUrl: `${baseUrl}/support`,
           logoUrl,
         }),
-      });
+      }).catch(() => {});
+
+      // Also notify david
+      sendEmail({
+        to: "david@partnersandcapital.com",
+        subject: `Reply sent on: ${ticket.subject}`,
+        html: ticketReplyEmail({
+          userName: "David",
+          ticketSubject: ticket.subject,
+          ticketUrl: `${baseUrl}/admin/support`,
+          logoUrl,
+        }),
+      }).catch(() => {});
     }
 
     return NextResponse.json(reply, { status: 201 });

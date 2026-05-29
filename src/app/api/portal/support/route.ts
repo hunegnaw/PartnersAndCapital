@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createBulkNotifications } from "@/lib/notifications";
+import { sendEmail } from "@/lib/email";
+import { ticketSubmittedEmail, ticketAdminNotifyEmail, getEmailLogoUrl } from "@/lib/email-templates";
 import { getEffectiveUserId, requireNotImpersonating } from "@/lib/impersonation";
 
 export async function GET() {
@@ -56,10 +58,33 @@ export async function POST(request: Request) {
       },
     });
 
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const logoUrl = await getEmailLogoUrl();
+
+    // Get the submitting user's info for emails
+    const submitter = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { name: true, email: true },
+    });
+
+    // Send confirmation email to the client
+    if (submitter) {
+      sendEmail({
+        to: submitter.email,
+        subject: `Support Ticket Received - ${subject}`,
+        html: ticketSubmittedEmail({
+          userName: submitter.name || "Investor",
+          ticketSubject: subject,
+          ticketUrl: `${baseUrl}/support`,
+          logoUrl,
+        }),
+      }).catch(() => {});
+    }
+
     // Notify all admins about new ticket
     const admins = await prisma.user.findMany({
       where: { role: { in: ["SUPER_ADMIN", "ADMIN"] }, deletedAt: null },
-      select: { id: true },
+      select: { id: true, name: true, email: true },
     });
     if (admins.length > 0) {
       await createBulkNotifications(
@@ -72,6 +97,19 @@ export async function POST(request: Request) {
         }
       );
     }
+
+    // Email david@partnersandcapital.com about new ticket
+    sendEmail({
+      to: "david@partnersandcapital.com",
+      subject: `New Support Ticket - ${subject}`,
+      html: ticketAdminNotifyEmail({
+        adminName: "David",
+        clientName: submitter?.name || "A client",
+        ticketSubject: subject,
+        ticketUrl: `${baseUrl}/admin/support`,
+        logoUrl,
+      }),
+    }).catch(() => {});
 
     return NextResponse.json(ticket, { status: 201 });
   } catch (error) {
