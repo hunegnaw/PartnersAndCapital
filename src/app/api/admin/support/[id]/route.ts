@@ -137,18 +137,6 @@ export async function POST(
           logoUrl,
         }),
       }).catch(() => {});
-
-      // Also notify david
-      sendEmail({
-        to: "david@partnersandcapital.com",
-        subject: `Reply sent on: ${ticket.subject}`,
-        html: ticketReplyEmail({
-          userName: "David",
-          ticketSubject: ticket.subject,
-          ticketUrl: `${baseUrl}/admin/support`,
-          logoUrl,
-        }),
-      }).catch(() => {});
     }
 
     return NextResponse.json(reply, { status: 201 });
