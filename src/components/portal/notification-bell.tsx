@@ -11,6 +11,7 @@ import {
   Mail,
   X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { cn, formatTimeAgo } from "@/lib/utils";
 
 interface Notification {
@@ -18,6 +19,7 @@ interface Notification {
   type: string;
   title: string;
   message: string;
+  link: string | null;
   read: boolean;
   createdAt: string;
 }
@@ -44,6 +46,7 @@ function notificationIcon(type: string) {
 }
 
 export function NotificationBell() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -130,8 +133,12 @@ export function NotificationBell() {
       if (!notification.read) {
         markAsRead([notification.id]);
       }
+      if (notification.link) {
+        setOpen(false);
+        router.push(notification.link);
+      }
     },
-    [markAsRead]
+    [markAsRead, router]
   );
 
   const handleMarkAllRead = useCallback(() => {

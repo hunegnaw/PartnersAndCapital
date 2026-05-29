@@ -94,7 +94,6 @@ export default function AdminSecureCommunicationsPage() {
   const [composeBody, setComposeBody] = useState("")
   const [composeBroadcast, setComposeBroadcast] = useState(false)
   const [composeShowBanner, setComposeShowBanner] = useState(false)
-  const [composeBannerContent, setComposeBannerContent] = useState("")
   const [composeParticipantId, setComposeParticipantId] = useState("")
   const [users, setUsers] = useState<UserOption[]>([])
   const [submitting, setSubmitting] = useState(false)
@@ -160,7 +159,6 @@ export default function AdminSecureCommunicationsPage() {
     setComposeBody("")
     setComposeBroadcast(false)
     setComposeShowBanner(false)
-    setComposeBannerContent("")
     setComposeParticipantId("")
     setFormError(null)
     setComposeOpen(true)
@@ -178,9 +176,6 @@ export default function AdminSecureCommunicationsPage() {
       }
       if (composeBroadcast) {
         payload.showAsBanner = composeShowBanner
-        if (composeShowBanner && composeBannerContent) {
-          payload.bannerContent = composeBannerContent
-        }
       } else {
         payload.participantId = composeParticipantId
       }
@@ -519,18 +514,6 @@ export default function AdminSecureCommunicationsPage() {
                       Show as banner on client portal
                     </Label>
                   </div>
-
-                  {composeShowBanner && (
-                    <div className="grid gap-2">
-                      <Label htmlFor="msg-banner-content">Banner text (optional override)</Label>
-                      <Input
-                        id="msg-banner-content"
-                        value={composeBannerContent}
-                        onChange={(e) => setComposeBannerContent(e.target.value)}
-                        placeholder="Leave empty to use the message body"
-                      />
-                    </div>
-                  )}
                 </>
               )}
             </div>
