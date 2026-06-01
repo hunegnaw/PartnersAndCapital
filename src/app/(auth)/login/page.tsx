@@ -652,9 +652,8 @@ function LoginContent() {
                     className="mt-0.5 h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A] shrink-0"
                   />
                   <span className="text-xs text-[#5f5e5a] leading-relaxed">
-                    I agree to receive account updates, investment notifications, and verification
-                    codes via SMS from Partners + Capital, LLC. Message frequency varies (up to
-                    5 msgs/month). Message and data rates may apply. Reply STOP to opt out, HELP
+                    I agree to receive verification
+                    codes via SMS from Partners + Capital, LLC. Message frequency varies. Message and data rates may apply. Reply STOP to opt out, HELP
                     for help. View our{" "}
                     <a
                       href="/privacy-policy"
