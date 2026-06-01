@@ -653,7 +653,7 @@ function LoginContent() {
                   />
                   <span className="text-xs text-[#5f5e5a] leading-relaxed">
                     I agree to receive verification
-                    codes via SMS from Partners + Capital, LLC. Message frequency varies. Message and data rates may apply. Reply STOP to opt out, HELP
+                    codes via SMS from Partners + Capital, LLC from number (614) 968-7024. Message frequency varies. Message and data rates may apply. Reply STOP to opt out, HELP
                     for help. View our{" "}
                     <a
                       href="/privacy-policy"
