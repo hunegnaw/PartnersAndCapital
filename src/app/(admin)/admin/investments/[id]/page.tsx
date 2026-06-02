@@ -54,6 +54,7 @@ import {
   TrendingUp,
   Trash2,
   DollarSign,
+  Loader2,
 } from "lucide-react"
 
 interface DistributionRecord {
@@ -206,6 +207,9 @@ export default function AdminInvestmentDetailPage({
   const [editPositionTarget, setEditPositionTarget] = useState<ClientPosition | null>(null)
   const [editDistributionOpen, setEditDistributionOpen] = useState(false)
   const [editDistributionTarget, setEditDistributionTarget] = useState<DistributionRecord | null>(null)
+  const [selectedDistributions, setSelectedDistributions] = useState<Set<string>>(new Set())
+  const [deleteDistributionsOpen, setDeleteDistributionsOpen] = useState(false)
+  const [deletingDistributions, setDeletingDistributions] = useState(false)
   const [editContributionOpen, setEditContributionOpen] = useState(false)
   const [editContributionTarget, setEditContributionTarget] = useState<ContributionRecord | null>(null)
 
@@ -829,7 +833,19 @@ export default function AdminInvestmentDetailPage({
             </Card>
           )}
 
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center">
+            <div>
+              {selectedDistributions.size > 0 && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => setDeleteDistributionsOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete Selected ({selectedDistributions.size})
+                </Button>
+              )}
+            </div>
             <Button size="sm" variant="outline" onClick={() => setBulkDistributionOpen(true)}>
               <Upload className="h-4 w-4" />
               Bulk Upload
@@ -842,6 +858,20 @@ export default function AdminInvestmentDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                        checked={allDistributions.length > 0 && selectedDistributions.size === allDistributions.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedDistributions(new Set(allDistributions.map((d) => d.id)))
+                          } else {
+                            setSelectedDistributions(new Set())
+                          }
+                        }}
+                      />
+                    </TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Client</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
@@ -854,14 +884,30 @@ export default function AdminInvestmentDetailPage({
                 <TableBody>
                   {allDistributions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                         <DollarSign className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
                         <p>No distributions recorded yet.</p>
                       </TableCell>
                     </TableRow>
                   ) : (
                     allDistributions.map((d) => (
-                      <TableRow key={d.id}>
+                      <TableRow key={d.id} className={selectedDistributions.has(d.id) ? "bg-[#FDF5E8]/50" : ""}>
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                            checked={selectedDistributions.has(d.id)}
+                            onChange={(e) => {
+                              const next = new Set(selectedDistributions)
+                              if (e.target.checked) {
+                                next.add(d.id)
+                              } else {
+                                next.delete(d.id)
+                              }
+                              setSelectedDistributions(next)
+                            }}
+                          />
+                        </TableCell>
                         <TableCell>{formatDateOnly(d.date)}</TableCell>
                         <TableCell className="font-medium">{d.clientName}</TableCell>
                         <TableCell className="text-right font-medium">
@@ -1236,6 +1282,36 @@ export default function AdminInvestmentDetailPage({
         confirmLabel="Remove"
         onConfirm={handleDeletePosition}
         loading={deletingPosition}
+      />
+
+      <ConfirmDialog
+        open={deleteDistributionsOpen}
+        onOpenChange={setDeleteDistributionsOpen}
+        title="Delete Distributions"
+        description={`Are you sure you want to delete ${selectedDistributions.size} distribution${selectedDistributions.size !== 1 ? "s" : ""}? This will subtract the amounts from each client's cash distributed total. This action can be reversed.`}
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          setDeletingDistributions(true)
+          try {
+            const res = await fetch("/api/admin/distributions", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ids: Array.from(selectedDistributions) }),
+            })
+            if (!res.ok) {
+              const data = await res.json().catch(() => ({}))
+              throw new Error(data.error || "Delete failed")
+            }
+            setSelectedDistributions(new Set())
+            setDeleteDistributionsOpen(false)
+            fetchInvestment()
+          } catch (err) {
+            console.error("Error deleting distributions:", err)
+          } finally {
+            setDeletingDistributions(false)
+          }
+        }}
+        loading={deletingDistributions}
       />
     </div>
   )

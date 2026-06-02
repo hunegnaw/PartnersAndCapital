@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { createAuditLog } from "@/lib/audit";
 import { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
@@ -59,6 +60,72 @@ export async function GET(request: Request) {
     return NextResponse.json({ distributions, total, page, pageSize, investments });
   } catch (error) {
     console.error("Error listing distributions:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const user = await requireAdmin();
+    if (user instanceof NextResponse) return user;
+
+    const body = await request.json();
+    const { ids } = body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        { error: "ids array is required" },
+        { status: 400 }
+      );
+    }
+
+    const distributions = await prisma.distribution.findMany({
+      where: { id: { in: ids }, deletedAt: null },
+      select: { id: true, amount: true, clientInvestmentId: true },
+    });
+
+    if (distributions.length === 0) {
+      return NextResponse.json(
+        { error: "No distributions found" },
+        { status: 404 }
+      );
+    }
+
+    const decrementsByPosition = new Map<string, number>();
+    for (const d of distributions) {
+      const current = decrementsByPosition.get(d.clientInvestmentId) || 0;
+      decrementsByPosition.set(d.clientInvestmentId, current + Number(d.amount));
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.distribution.updateMany({
+        where: { id: { in: distributions.map((d) => d.id) } },
+        data: { deletedAt: new Date() },
+      });
+
+      for (const [ciId, totalAmount] of decrementsByPosition) {
+        await tx.clientInvestment.update({
+          where: { id: ciId },
+          data: { cashDistributed: { decrement: totalAmount } },
+        });
+      }
+    });
+
+    await createAuditLog({
+      userId: user.id,
+      action: "BULK_DELETE_DISTRIBUTIONS",
+      targetType: "Distribution",
+      targetId: distributions.map((d) => d.id).join(","),
+      details: { count: distributions.length, ids: distributions.map((d) => d.id) },
+      request,
+    });
+
+    return NextResponse.json({ deleted: distributions.length });
+  } catch (error) {
+    console.error("Error deleting distributions:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
