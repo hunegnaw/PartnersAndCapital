@@ -540,8 +540,8 @@ export default function AdminInvestmentDetailPage({
 
   // Build distribution chart data (monthly bars + cumulative lines)
   const distributionChartData = (() => {
-    const allContributions = investment.clientInvestments.flatMap((ci) => ci.contributions)
-    const allDists = investment.clientInvestments.flatMap((ci) => ci.distributions)
+    const allContributions = relevantPositions.flatMap((ci) => ci.contributions)
+    const allDists = relevantPositions.flatMap((ci) => ci.distributions)
 
     const months = new Map<string, { monthlyDistribution: number; contributions: number }>()
 
@@ -1072,10 +1072,12 @@ export default function AdminInvestmentDetailPage({
                 </Button>
               )}
             </div>
-            <Button size="sm" variant="outline" onClick={() => setBulkDistributionOpen(true)}>
-              <Upload className="h-4 w-4" />
-              Bulk Upload
-            </Button>
+            {!isClientScoped && (
+              <Button size="sm" variant="outline" onClick={() => setBulkDistributionOpen(true)}>
+                <Upload className="h-4 w-4" />
+                Bulk Upload
+              </Button>
+            )}
           </div>
 
           {/* Distributions Table */}
@@ -1099,7 +1101,7 @@ export default function AdminInvestmentDetailPage({
                       />
                     </TableHead>
                     <SortableHead label="Date" sortKey="date" sort={distSort} onSort={setDistSort} />
-                    <SortableHead label="Client" sortKey="client" sort={distSort} onSort={setDistSort} />
+                    {!isClientScoped && <SortableHead label="Client" sortKey="client" sort={distSort} onSort={setDistSort} />}
                     <SortableHead label="Amount" sortKey="amount" sort={distSort} onSort={setDistSort} className="text-right" />
                     <SortableHead label="Type" sortKey="type" sort={distSort} onSort={setDistSort} />
                     <TableHead>Notes</TableHead>
@@ -1110,7 +1112,7 @@ export default function AdminInvestmentDetailPage({
                 <TableBody>
                   {allDistributions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                      <TableCell colSpan={isClientScoped ? 7 : 8} className="text-center py-12 text-muted-foreground">
                         <DollarSign className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
                         <p>No distributions recorded yet.</p>
                       </TableCell>
@@ -1135,7 +1137,7 @@ export default function AdminInvestmentDetailPage({
                           />
                         </TableCell>
                         <TableCell>{formatDateOnly(d.date)}</TableCell>
-                        <TableCell className="font-medium">{d.clientName}</TableCell>
+                        {!isClientScoped && <TableCell className="font-medium">{d.clientName}</TableCell>}
                         <TableCell className="text-right font-medium">
                           {formatCurrency(Number(d.amount))}
                         </TableCell>
