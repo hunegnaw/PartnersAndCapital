@@ -229,7 +229,7 @@ The blog (called "Partner Thoughts" publicly) provides article publishing with c
 
 ### Admin Blog Management
 
-**Post List** (`/admin/blog`): Search, filter by status (published/draft) and category, paginated table with title, category, status, view count, published date, and view (opens in new tab)/edit/delete actions.
+**Post List** (`/admin/blog`): Search, filter by status (published/draft) and category, paginated table with title, category, status, view count, published date, and view (opens in new tab)/edit/delete actions. Supports bulk delete via the DELETE endpoint (soft-deletes all specified posts). The GET endpoint accepts an `includeDeleted=true` query parameter to include soft-deleted posts in results.
 
 **Create/Edit Post** (`/admin/blog/new`, `/admin/blog/[id]/edit`): Two-column editor with:
 - **Main area:** Title (auto-generates slug), excerpt, Tiptap rich text editor with full toolbar (bold, italic, underline, strikethrough, headings, lists, alignment, colors, links, images via media picker, blockquotes, code blocks, tables, undo/redo, HTML source toggle)
@@ -257,7 +257,7 @@ Blog posts support multiple categories. The category selector uses checkboxes (t
 
 | Route | Methods | Auth |
 |-------|---------|------|
-| `/api/admin/blog` | GET, POST | Admin |
+| `/api/admin/blog` | GET, POST, DELETE | Admin |
 | `/api/admin/blog/[id]` | GET, PATCH, DELETE | Admin |
 | `/api/admin/blog/categories` | GET, POST | Admin |
 | `/api/admin/blog/categories/[id]` | PATCH, DELETE | Admin |
