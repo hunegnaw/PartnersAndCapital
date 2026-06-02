@@ -82,6 +82,7 @@ export function DatePicker({
       <PopoverContent
         align="start"
         sideOffset={6}
+        collisionAvoidance={{ side: "none", align: "shift" }}
         className="w-auto p-0 bg-white border border-[#dfdedd] shadow-lg shadow-[#1A2640]/8 rounded-xl"
       >
         <DayPicker
