@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/api-auth";
+import { requireAdmin, requireSuperAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { saveUploadedFile } from "@/lib/upload";
@@ -19,11 +19,12 @@ export async function GET(request: Request) {
     const year = searchParams.get("year") || "";
     const userId = searchParams.get("userId") || "";
     const investmentId = searchParams.get("investmentId") || "";
+    const includeDeleted = searchParams.get("includeDeleted") === "true";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") || "20")));
 
     const where: Prisma.DocumentWhereInput = {
-      deletedAt: null,
+      ...(includeDeleted ? {} : { deletedAt: null }),
       ...(search
         ? {
             OR: [
@@ -160,6 +161,57 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: message },
       { status: error instanceof Error && message.includes("not allowed") ? 400 : 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const user = await requireSuperAdmin();
+    if (user instanceof NextResponse) return user;
+
+    const body = await request.json();
+    const { ids } = body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        { error: "ids array is required" },
+        { status: 400 }
+      );
+    }
+
+    const documents = await prisma.document.findMany({
+      where: { id: { in: ids }, deletedAt: null },
+      select: { id: true, name: true, fileName: true },
+    });
+
+    if (documents.length === 0) {
+      return NextResponse.json(
+        { error: "No documents found" },
+        { status: 404 }
+      );
+    }
+
+    await prisma.document.updateMany({
+      where: { id: { in: documents.map((d) => d.id) } },
+      data: { deletedAt: new Date() },
+    });
+
+    await createAuditLog({
+      userId: user.id,
+      action: "BULK_DELETE_DOCUMENTS",
+      targetType: "Document",
+      targetId: documents.map((d) => d.id).join(","),
+      details: { count: documents.length, ids: documents.map((d) => d.id) },
+      request,
+    });
+
+    return NextResponse.json({ deleted: documents.length });
+  } catch (error) {
+    console.error("Error deleting documents:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
     );
   }
 }
