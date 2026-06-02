@@ -9,6 +9,16 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import {
   Table,
   TableBody,
   TableCell,
@@ -58,6 +68,7 @@ interface PageRecord {
   metaTitle: string | null
   metaDescription: string | null
   updatedAt: string
+  deletedAt: string | null
   _count: {
     blocks: number
   }
@@ -80,10 +91,14 @@ function SortableRow({
   page,
   deleting,
   onDelete,
+  selected,
+  onToggleSelect,
 }: {
   page: PageRecord
   deleting: string | null
   onDelete: (id: string) => void
+  selected: boolean
+  onToggleSelect: (id: string) => void
 }) {
   const {
     attributes,
@@ -97,11 +112,23 @@ function SortableRow({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.5 : page.deletedAt ? 0.5 : 1,
   }
 
   return (
-    <TableRow ref={setNodeRef} style={style}>
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      className={selected ? "bg-[#FDF5E8]/50" : page.deletedAt ? "opacity-50" : ""}
+    >
+      <TableCell className="w-8">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={() => onToggleSelect(page.id)}
+          className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+        />
+      </TableCell>
       <TableCell className="w-8">
         <button
           type="button"
@@ -181,6 +208,10 @@ export default function AdminPagesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [selectedPages, setSelectedPages] = useState<Set<string>>(new Set())
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [showDeleted, setShowDeleted] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -195,6 +226,7 @@ export default function AdminPagesPage() {
     try {
       const params = new URLSearchParams()
       if (search) params.set("search", search)
+      if (showDeleted) params.set("includeDeleted", "true")
 
       const res = await fetch(`/api/admin/pages?${params}`)
       if (!res.ok) throw new Error("Failed to fetch pages")
@@ -205,7 +237,7 @@ export default function AdminPagesPage() {
     } finally {
       setLoading(false)
     }
-  }, [search])
+  }, [search, showDeleted])
 
   useEffect(() => {
     Promise.resolve().then(() => fetchPages())
@@ -262,6 +294,43 @@ export default function AdminPagesPage() {
     }
   }
 
+  function toggleSelectPage(id: string) {
+    setSelectedPages((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    if (selectedPages.size === pages.length) {
+      setSelectedPages(new Set())
+    } else {
+      setSelectedPages(new Set(pages.map((p) => p.id)))
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (bulkDeleting || selectedPages.size === 0) return
+    setBulkDeleting(true)
+    try {
+      const res = await fetch("/api/admin/pages", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedPages) }),
+      })
+      if (!res.ok) throw new Error("Failed to delete selected pages")
+      setSelectedPages(new Set())
+      setBulkDeleteOpen(false)
+      fetchPages()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete selected pages")
+    } finally {
+      setBulkDeleting(false)
+    }
+  }
+
   return (
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
@@ -286,8 +355,8 @@ export default function AdminPagesPage() {
         </Alert>
       )}
 
-      {/* Search */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      {/* Search + Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 items-center">
         <form onSubmit={handleSearch} className="flex-1">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -299,6 +368,28 @@ export default function AdminPagesPage() {
             />
           </div>
         </form>
+
+        <div className="flex items-center gap-2">
+          <Switch
+            id="show-deleted-pages"
+            checked={showDeleted}
+            onCheckedChange={(checked) => setShowDeleted(checked)}
+          />
+          <Label htmlFor="show-deleted-pages" className="text-sm whitespace-nowrap">
+            Show Deleted
+          </Label>
+        </div>
+
+        {selectedPages.size > 0 && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setBulkDeleteOpen(true)}
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Delete Selected ({selectedPages.size})
+          </Button>
+        )}
       </div>
 
       {/* Table */}
@@ -312,6 +403,14 @@ export default function AdminPagesPage() {
           <Table>
             <TableHeader className="bg-[#1A2640]">
               <TableRow className="border-b-0 hover:bg-[#1A2640]">
+                <TableHead className="w-8">
+                  <input
+                    type="checkbox"
+                    checked={pages.length > 0 && selectedPages.size === pages.length}
+                    onChange={toggleSelectAll}
+                    className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                  />
+                </TableHead>
                 <TableHead className="w-8 text-white/80"></TableHead>
                 <TableHead className="text-white">Title</TableHead>
                 <TableHead className="text-white">Slug</TableHead>
@@ -330,6 +429,7 @@ export default function AdminPagesPage() {
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-4 w-4" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-36" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
@@ -344,7 +444,7 @@ export default function AdminPagesPage() {
                 ))
               ) : pages.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={12} className="text-center py-12 text-muted-foreground">
                     {search
                       ? "No pages match your search."
                       : "No pages yet. Create your first page to get started."}
@@ -366,6 +466,8 @@ export default function AdminPagesPage() {
                         page={page}
                         deleting={deleting}
                         onDelete={handleDelete}
+                        selected={selectedPages.has(page.id)}
+                        onToggleSelect={toggleSelectPage}
                       />
                     ))}
                   </SortableContext>
@@ -375,6 +477,34 @@ export default function AdminPagesPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete {selectedPages.size} page{selectedPages.size !== 1 ? "s" : ""}?</DialogTitle>
+            <DialogDescription>
+              This will soft-delete the selected page{selectedPages.size !== 1 ? "s" : ""}. They can be viewed later using the &quot;Show Deleted&quot; toggle.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setBulkDeleteOpen(false)}
+              disabled={bulkDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleting}
+            >
+              {bulkDeleting ? "Deleting..." : `Delete ${selectedPages.size} page${selectedPages.size !== 1 ? "s" : ""}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

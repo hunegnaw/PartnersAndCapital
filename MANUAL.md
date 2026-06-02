@@ -300,7 +300,10 @@ The page builder allows admins to create and edit CMS pages using drag-and-drop 
 
 ### Admin Page Editor
 
-**Page List** (`/admin/pages`): Table showing drag handle, title, slug, status (Draft/Published/Archived), homepage indicator, nav indicator, nav order, blog indicator, block count, last updated, and view (opens in new tab)/edit/delete actions. Pages are sorted by nav order ascending. Drag and drop rows to reorder pages -- the new order is saved automatically and reflected in the public site navigation.
+**Page List** (`/admin/pages`): Table showing checkbox, drag handle, title, slug, status (Draft/Published/Archived), homepage indicator, nav indicator, nav order, blog indicator, block count, last updated, and view (opens in new tab)/edit/delete actions. Pages are sorted by nav order ascending. Drag and drop rows to reorder pages -- the new order is saved automatically and reflected in the public site navigation. Features:
+
+- **Checkbox selection:** Select-all checkbox in the header and per-row checkboxes. Selected rows are highlighted with a gold tint background. A "Delete Selected (N)" destructive button appears when rows are selected, with a confirmation dialog before bulk soft-deleting.
+- **Show Deleted toggle:** A switch next to the search bar that includes soft-deleted pages in the list. Deleted pages appear with reduced opacity (50%).
 
 **Create/Edit Page** (`/admin/pages/new`, `/admin/pages/[id]/edit`): Two-column layout with:
 - **Main area:** Title, slug, and block editor with drag-and-drop reordering (@dnd-kit). Add blocks via a picker dialog showing all 18 block types. Each block expands/collapses to show its editor form.
