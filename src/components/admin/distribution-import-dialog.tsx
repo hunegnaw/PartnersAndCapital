@@ -114,12 +114,41 @@ export function DistributionImportDialog({
     return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`
   }
 
+  function parseCsvLine(line: string): string[] {
+    const fields: string[] = []
+    let current = ""
+    let inQuotes = false
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i]
+      if (inQuotes) {
+        if (ch === '"' && line[i + 1] === '"') {
+          current += '"'
+          i++
+        } else if (ch === '"') {
+          inQuotes = false
+        } else {
+          current += ch
+        }
+      } else {
+        if (ch === '"') {
+          inQuotes = true
+        } else if (ch === ",") {
+          fields.push(current.trim())
+          current = ""
+        } else {
+          current += ch
+        }
+      }
+    }
+    fields.push(current.trim())
+    return fields
+  }
+
   function parseCsv(text: string) {
-    const lines = text.trim().split("\n")
+    const lines = text.trim().split(/\r?\n/)
     if (lines.length < 2) return []
 
-    const headerLine = lines[0].toLowerCase()
-    const headers = headerLine.split(",").map((h) => h.trim())
+    const headers = parseCsvLine(lines[0]).map((h) => h.toLowerCase())
 
     const emailIdx = headers.findIndex((h) => h === "email" || h === "client email")
     const amountIdx = headers.findIndex((h) => h === "amount" || h === "distribution amount" || h === "distribution_amount")
@@ -132,7 +161,7 @@ export function DistributionImportDialog({
 
     const rows = []
     for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split(",").map((c) => c.trim())
+      const cols = parseCsvLine(lines[i])
       if (cols.length <= 1 && !cols[0]) continue
       rows.push({
         email: cols[emailIdx] || "",
