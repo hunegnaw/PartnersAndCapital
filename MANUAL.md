@@ -414,6 +414,9 @@ The media library manages public images and videos used across blog posts and CM
 
 - **Upload:** Drag-and-drop or file picker. Images up to 10MB, videos up to 100MB.
 - **Browse:** Grid of thumbnails with search and type filter (Images/Videos/All). Paginated.
+- **Checkbox selection:** Each grid item has a checkbox in the top-left corner. Selected items show a gold ring highlight. Clicking the checkbox does not open the detail view.
+- **Bulk delete:** When one or more items are selected, a "Delete Selected (N)" button appears in the header. Clicking it opens a confirmation dialog, then soft-deletes all selected items via `DELETE /api/admin/media` with `{ ids: [...] }`.
+- **Show Deleted toggle:** A switch next to the type filter controls whether soft-deleted items appear in results. When enabled, deleted items render with reduced opacity (50%). The toggle resets page and clears selection.
 - **Rename:** Hover over any media item in the picker to see a pencil icon. Click it to rename the file. The file is renamed on disk with an SEO-friendly slug and the database path is updated.
 - **Edit:** Click any media item to update alt text and caption.
 - **Delete:** Soft delete (sets deletedAt, removes file from disk).

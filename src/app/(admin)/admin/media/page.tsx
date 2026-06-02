@@ -8,6 +8,15 @@ import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Switch } from "@/components/ui/switch"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { formatDate } from "@/lib/utils"
 import {
   Search,
@@ -33,6 +42,7 @@ interface MediaItem {
   height: number | null
   fileSize: number
   createdAt: string
+  deletedAt: string | null
 }
 
 function formatFileSize(bytes: number): string {
@@ -64,6 +74,14 @@ export default function AdminMediaPage() {
   const [showUpload, setShowUpload] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Bulk selection state
+  const [selectedMedia, setSelectedMedia] = useState<Set<string>>(new Set())
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+
+  // Show deleted toggle
+  const [showDeleted, setShowDeleted] = useState(false)
+
   // Detail overlay state
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null)
   const [editAlt, setEditAlt] = useState("")
@@ -81,6 +99,7 @@ export default function AdminMediaPage() {
       })
       if (search) params.set("search", search)
       if (typeFilter && typeFilter !== "all") params.set("type", typeFilter)
+      if (showDeleted) params.set("includeDeleted", "true")
 
       const res = await fetch(`/api/admin/media?${params}`)
       if (!res.ok) throw new Error("Failed to fetch media")
@@ -92,7 +111,7 @@ export default function AdminMediaPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, search, typeFilter])
+  }, [page, pageSize, search, typeFilter, showDeleted])
 
   useEffect(() => {
     Promise.resolve().then(() => fetchMedia())
@@ -211,6 +230,38 @@ export default function AdminMediaPage() {
     }
   }
 
+  function toggleMediaSelection(id: string) {
+    setSelectedMedia((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  async function handleBulkDelete() {
+    if (selectedMedia.size === 0) return
+    setBulkDeleting(true)
+    try {
+      const res = await fetch("/api/admin/media", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedMedia) }),
+      })
+      if (!res.ok) throw new Error("Failed to delete selected media")
+      setSelectedMedia(new Set())
+      setBulkDeleteOpen(false)
+      fetchMedia()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete selected media")
+    } finally {
+      setBulkDeleting(false)
+    }
+  }
+
   const totalPages = Math.ceil(total / pageSize)
 
   return (
@@ -222,13 +273,24 @@ export default function AdminMediaPage() {
             Upload and manage images and videos for your pages.
           </p>
         </div>
-        <Button
-          onClick={() => setShowUpload(true)}
-          className="bg-[#B07D3A] hover:bg-[#7A5520] text-white"
-        >
-          <Upload className="h-4 w-4" />
-          Upload
-        </Button>
+        <div className="flex items-center gap-2">
+          {selectedMedia.size > 0 && (
+            <Button
+              variant="destructive"
+              onClick={() => setBulkDeleteOpen(true)}
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Selected ({selectedMedia.size})
+            </Button>
+          )}
+          <Button
+            onClick={() => setShowUpload(true)}
+            className="bg-[#B07D3A] hover:bg-[#7A5520] text-white"
+          >
+            <Upload className="h-4 w-4" />
+            Upload
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -265,6 +327,21 @@ export default function AdminMediaPage() {
             <TabsTrigger value="video">Videos</TabsTrigger>
           </TabsList>
         </Tabs>
+
+        <div className="flex items-center gap-2">
+          <Switch
+            id="show-deleted"
+            checked={showDeleted}
+            onCheckedChange={(checked) => {
+              setShowDeleted(checked)
+              setPage(1)
+              setSelectedMedia(new Set())
+            }}
+          />
+          <Label htmlFor="show-deleted" className="text-sm cursor-pointer">
+            Show Deleted
+          </Label>
+        </div>
       </div>
 
       {/* Media Grid */}
@@ -294,8 +371,15 @@ export default function AdminMediaPage() {
                 key={item.id}
                 type="button"
                 onClick={() => openDetail(item)}
-                className="group relative aspect-square rounded-lg border border-gray-200 overflow-hidden bg-gray-50 hover:ring-2 hover:ring-[#B07D3A] transition-all focus:outline-none focus:ring-2 focus:ring-[#B07D3A]"
+                className={`group relative aspect-square rounded-lg border border-gray-200 overflow-hidden bg-gray-50 hover:ring-2 hover:ring-[#B07D3A] transition-all focus:outline-none focus:ring-2 focus:ring-[#B07D3A]${selectedMedia.has(item.id) ? " ring-2 ring-[#B07D3A]" : ""}${item.deletedAt ? " opacity-50" : ""}`}
               >
+                <input
+                  type="checkbox"
+                  checked={selectedMedia.has(item.id)}
+                  onChange={() => toggleMediaSelection(item.id)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute top-2 left-2 z-10 h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                />
                 {isImage(item.mimeType) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -416,6 +500,38 @@ export default function AdminMediaPage() {
           </div>
         </div>
       )}
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog
+        open={bulkDeleteOpen}
+        onOpenChange={(open) => { if (!open && !bulkDeleting) setBulkDeleteOpen(false) }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Selected Media</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedMedia.size} selected file{selectedMedia.size !== 1 ? "s" : ""}? This action uses soft delete.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setBulkDeleteOpen(false)}
+              disabled={bulkDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleting}
+            >
+              {bulkDeleting && <Loader2 className="h-4 w-4 animate-spin" />}
+              {bulkDeleting ? "Deleting..." : `Delete ${selectedMedia.size} File${selectedMedia.size !== 1 ? "s" : ""}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Detail Overlay */}
       {selectedItem && (
