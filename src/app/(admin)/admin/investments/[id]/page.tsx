@@ -699,14 +699,18 @@ export default function AdminInvestmentDetailPage({
             <DollarSign className="h-4 w-4 mr-1.5" />
             Distributions ({allDistributions.length})
           </TabsTrigger>
-          <TabsTrigger value="valuations">
-            <TrendingUp className="h-4 w-4 mr-1.5" />
-            Valuations ({valuations.length})
-          </TabsTrigger>
-          <TabsTrigger value="dealroom">
-            <MessageSquare className="h-4 w-4 mr-1.5" />
-            Deal Room ({investment.dealRoomUpdates.length})
-          </TabsTrigger>
+          {!isClientScoped && (
+            <TabsTrigger value="valuations">
+              <TrendingUp className="h-4 w-4 mr-1.5" />
+              Valuations ({valuations.length})
+            </TabsTrigger>
+          )}
+          {!isClientScoped && (
+            <TabsTrigger value="dealroom">
+              <MessageSquare className="h-4 w-4 mr-1.5" />
+              Deal Room ({investment.dealRoomUpdates.length})
+            </TabsTrigger>
+          )}
           <TabsTrigger value="documents">
             <FileText className="h-4 w-4 mr-1.5" />
             Documents ({displayDocuments.length})
