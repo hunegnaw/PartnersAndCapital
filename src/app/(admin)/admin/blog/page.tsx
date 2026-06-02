@@ -8,6 +8,16 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
@@ -75,6 +85,7 @@ interface BlogPost {
   sortOrder: number
   publishedAt: string | null
   createdAt: string
+  deletedAt: string | null
   categories: BlogPostCategoryJoin[]
 }
 
@@ -82,10 +93,14 @@ function SortableRow({
   post,
   deleting,
   onDelete,
+  isSelected,
+  onToggleSelect,
 }: {
   post: BlogPost
   deleting: string | null
   onDelete: (id: string) => void
+  isSelected: boolean
+  onToggleSelect: (id: string) => void
 }) {
   const {
     attributes,
@@ -102,8 +117,22 @@ function SortableRow({
     opacity: isDragging ? 0.5 : 1,
   }
 
+  const isDeleted = !!post.deletedAt
+
   return (
-    <TableRow ref={setNodeRef} style={style}>
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      className={`${isSelected ? "bg-[#FDF5E8]/50" : ""} ${isDeleted ? "opacity-50" : ""}`}
+    >
+      <TableCell className="w-8">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={() => onToggleSelect(post.id)}
+          className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+        />
+      </TableCell>
       <TableCell className="w-8">
         <button
           type="button"
@@ -203,6 +232,10 @@ export default function AdminBlogPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set())
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [showDeleted, setShowDeleted] = useState(false)
 
   const totalPages = Math.ceil(total / pageSize)
 
@@ -223,6 +256,7 @@ export default function AdminBlogPage() {
       })
       if (search) params.set("search", search)
       if (statusFilter) params.set("status", statusFilter)
+      if (showDeleted) params.set("includeDeleted", "true")
 
       const res = await fetch(`/api/admin/blog?${params}`)
       if (!res.ok) throw new Error("Failed to fetch blog posts")
@@ -234,7 +268,7 @@ export default function AdminBlogPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, search, statusFilter])
+  }, [page, pageSize, search, statusFilter, showDeleted])
 
   useEffect(() => {
     Promise.resolve().then(() => fetchPosts())
@@ -289,6 +323,46 @@ export default function AdminBlogPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save post order")
       fetchPosts()
+    }
+  }
+
+  function handleToggleSelect(id: string) {
+    setSelectedPosts((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  function handleSelectAll() {
+    if (selectedPosts.size === posts.length) {
+      setSelectedPosts(new Set())
+    } else {
+      setSelectedPosts(new Set(posts.map((p) => p.id)))
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (selectedPosts.size === 0) return
+    setBulkDeleting(true)
+    try {
+      const res = await fetch("/api/admin/blog", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedPosts) }),
+      })
+      if (!res.ok) throw new Error("Failed to delete selected posts")
+      setSelectedPosts(new Set())
+      setBulkDeleteOpen(false)
+      fetchPosts()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete selected posts")
+    } finally {
+      setBulkDeleting(false)
     }
   }
 
@@ -347,6 +421,32 @@ export default function AdminBlogPage() {
             <SelectItem value="draft">Draft</SelectItem>
           </SelectContent>
         </Select>
+
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={showDeleted}
+            onCheckedChange={(checked) => {
+              setShowDeleted(checked)
+              setPage(1)
+            }}
+            id="show-deleted"
+          />
+          <Label htmlFor="show-deleted" className="text-sm whitespace-nowrap cursor-pointer">
+            Show Deleted
+          </Label>
+        </div>
+
+        {selectedPosts.size > 0 && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setBulkDeleteOpen(true)}
+            className="whitespace-nowrap"
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Delete Selected ({selectedPosts.size})
+          </Button>
+        )}
       </div>
 
       {/* Table */}
@@ -360,6 +460,14 @@ export default function AdminBlogPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-8">
+                  <input
+                    type="checkbox"
+                    checked={posts.length > 0 && selectedPosts.size === posts.length}
+                    onChange={handleSelectAll}
+                    className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                  />
+                </TableHead>
                 <TableHead className="w-8"></TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Category</TableHead>
@@ -374,6 +482,7 @@ export default function AdminBlogPage() {
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-4 w-4" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
@@ -384,7 +493,7 @@ export default function AdminBlogPage() {
                 ))
               ) : posts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                     {search
                       ? "No blog posts match your search."
                       : "No blog posts yet. Create your first post to get started."}
@@ -406,6 +515,8 @@ export default function AdminBlogPage() {
                         post={post}
                         deleting={deleting}
                         onDelete={handleDelete}
+                        isSelected={selectedPosts.has(post.id)}
+                        onToggleSelect={handleToggleSelect}
                       />
                     ))}
                   </SortableContext>
@@ -444,6 +555,35 @@ export default function AdminBlogPage() {
           </div>
         </div>
       )}
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Selected Posts</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedPosts.size} selected post
+              {selectedPosts.size !== 1 ? "s" : ""}? This action can be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setBulkDeleteOpen(false)}
+              disabled={bulkDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleting}
+            >
+              {bulkDeleting ? "Deleting..." : `Delete ${selectedPosts.size} Post${selectedPosts.size !== 1 ? "s" : ""}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
