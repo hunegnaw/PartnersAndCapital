@@ -157,3 +157,63 @@ export async function POST(
     );
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await requireAdmin();
+    if (user instanceof NextResponse) return user;
+
+    const { id } = await params;
+    const body = await request.json();
+    const { ids } = body as { ids: string[] };
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        { error: "ids array is required" },
+        { status: 400 }
+      );
+    }
+
+    const investment = await prisma.investment.findFirst({
+      where: { id, deletedAt: null },
+    });
+
+    if (!investment) {
+      return NextResponse.json(
+        { error: "Investment not found" },
+        { status: 404 }
+      );
+    }
+
+    const result = await prisma.investmentValuation.updateMany({
+      where: {
+        id: { in: ids },
+        investmentId: id,
+        deletedAt: null,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+
+    await createAuditLog({
+      userId: user.id,
+      action: "BULK_DELETE_VALUATIONS",
+      targetType: "InvestmentValuation",
+      targetId: id,
+      details: { investmentId: id, valuationIds: ids, deleted: result.count },
+      request,
+    });
+
+    return NextResponse.json({ deleted: result.count });
+  } catch (error) {
+    console.error("Error deleting valuations:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
