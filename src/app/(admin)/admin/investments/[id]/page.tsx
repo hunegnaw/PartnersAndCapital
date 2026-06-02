@@ -55,6 +55,9 @@ import {
   Trash2,
   DollarSign,
   Loader2,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react"
 
 interface DistributionRecord {
@@ -148,6 +151,65 @@ interface InvestmentDetail {
   documents: InvestmentDocument[]
 }
 
+type SortDir = "asc" | "desc"
+type SortState<T extends string> = { key: T; dir: SortDir } | null
+
+function toggleSort<T extends string>(current: SortState<T>, key: T): SortState<T> {
+  if (current?.key === key) {
+    return current.dir === "asc" ? { key, dir: "desc" } : null
+  }
+  return { key, dir: "asc" }
+}
+
+function SortableHead<T extends string>({
+  label,
+  sortKey,
+  sort,
+  onSort,
+  className,
+}: {
+  label: string
+  sortKey: T
+  sort: SortState<T>
+  onSort: (s: SortState<T>) => void
+  className?: string
+}) {
+  const active = sort?.key === sortKey
+  return (
+    <TableHead className={className}>
+      <button
+        type="button"
+        className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+        onClick={() => onSort(toggleSort(sort, sortKey))}
+      >
+        {label}
+        {active ? (
+          sort.dir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-30" />
+        )}
+      </button>
+    </TableHead>
+  )
+}
+
+function sortItems<T>(items: T[], sort: SortState<string>, getters: Record<string, (item: T) => string | number | null>): T[] {
+  if (!sort) return items
+  const getter = getters[sort.key]
+  if (!getter) return items
+  return [...items].sort((a, b) => {
+    const va = getter(a)
+    const vb = getter(b)
+    if (va == null && vb == null) return 0
+    if (va == null) return 1
+    if (vb == null) return -1
+    if (typeof va === "string" && typeof vb === "string") {
+      return sort.dir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va)
+    }
+    return sort.dir === "asc" ? (va as number) - (vb as number) : (vb as number) - (va as number)
+  })
+}
+
 const statusVariant = (status: string) => {
   switch (status) {
     case "ACTIVE":
@@ -210,6 +272,12 @@ export default function AdminInvestmentDetailPage({
   const [selectedDistributions, setSelectedDistributions] = useState<Set<string>>(new Set())
   const [deleteDistributionsOpen, setDeleteDistributionsOpen] = useState(false)
   const [deletingDistributions, setDeletingDistributions] = useState(false)
+
+  // Sort state for tables
+  const [clientSort, setClientSort] = useState<SortState<string>>(null)
+  const [distSort, setDistSort] = useState<SortState<string>>({ key: "date", dir: "desc" })
+  const [valSort, setValSort] = useState<SortState<string>>({ key: "date", dir: "desc" })
+  const [docSort, setDocSort] = useState<SortState<string>>(null)
   const [editContributionOpen, setEditContributionOpen] = useState(false)
   const [editContributionTarget, setEditContributionTarget] = useState<ContributionRecord | null>(null)
 
@@ -400,13 +468,45 @@ export default function AdminInvestmentDetailPage({
     }))
 
   // Aggregate all distributions across all client positions
-  const allDistributions = investment.clientInvestments.flatMap((ci) =>
+  const allDistributionsRaw = investment.clientInvestments.flatMap((ci) =>
     ci.distributions.map((d) => ({
       ...d,
       clientName: ci.user.name || ci.user.email,
       clientId: ci.userId,
     }))
-  ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  )
+  const allDistributions = sortItems(allDistributionsRaw, distSort || { key: "date", dir: "desc" }, {
+    date: (d) => new Date(d.date).getTime(),
+    client: (d) => d.clientName,
+    amount: (d) => Number(d.amount),
+    type: (d) => d.type,
+    status: (d) => d.status,
+  })
+
+  // Sorted client positions
+  const sortedPositions = sortItems(investment.clientInvestments, clientSort, {
+    client: (ci) => ci.user.name || ci.user.email,
+    invested: (ci) => Number(ci.amountInvested),
+    currentValue: (ci) => Number(ci.currentValue),
+    cashDistributed: (ci) => Number(ci.cashDistributed),
+    apr: (ci) => ci.adminApr != null ? Number(ci.adminApr) : null,
+    date: (ci) => new Date(ci.investmentDate).getTime(),
+  })
+
+  // Sorted valuations
+  const sortedValuations = sortItems(valuations, valSort || { key: "date", dir: "desc" }, {
+    date: (v) => new Date(v.date).getTime(),
+    totalValue: (v) => Number(v.totalValue),
+    enteredBy: (v) => v.createdBy?.name || v.createdBy?.email || "",
+  })
+
+  // Sorted documents
+  const sortedDocuments = sortItems(displayDocuments, docSort, {
+    name: (d) => d.name,
+    type: (d) => d.type,
+    size: (d) => d.fileSize,
+    uploaded: (d) => new Date(d.createdAt).getTime(),
+  })
 
   // Build distribution chart data (monthly bars + cumulative lines)
   const distributionChartData = (() => {
@@ -651,24 +751,24 @@ export default function AdminInvestmentDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Client</TableHead>
-                    <TableHead className="text-right">Invested</TableHead>
-                    <TableHead className="text-right">Current Value</TableHead>
-                    <TableHead className="text-right">Cash Distributed</TableHead>
-                    <TableHead className="text-right">APR</TableHead>
-                    <TableHead>Date</TableHead>
+                    <SortableHead label="Client" sortKey="client" sort={clientSort} onSort={setClientSort} />
+                    <SortableHead label="Invested" sortKey="invested" sort={clientSort} onSort={setClientSort} className="text-right" />
+                    <SortableHead label="Current Value" sortKey="currentValue" sort={clientSort} onSort={setClientSort} className="text-right" />
+                    <SortableHead label="Cash Distributed" sortKey="cashDistributed" sort={clientSort} onSort={setClientSort} className="text-right" />
+                    <SortableHead label="APR" sortKey="apr" sort={clientSort} onSort={setClientSort} className="text-right" />
+                    <SortableHead label="Date" sortKey="date" sort={clientSort} onSort={setClientSort} />
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {investment.clientInvestments.length === 0 ? (
+                  {sortedPositions.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                         No client positions yet. Add a client to this investment.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    investment.clientInvestments.map((ci) => (
+                    sortedPositions.map((ci) => (
                       <TableRow
                         key={ci.id}
                         className="cursor-pointer"
@@ -872,12 +972,12 @@ export default function AdminInvestmentDetailPage({
                         }}
                       />
                     </TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead>Type</TableHead>
+                    <SortableHead label="Date" sortKey="date" sort={distSort} onSort={setDistSort} />
+                    <SortableHead label="Client" sortKey="client" sort={distSort} onSort={setDistSort} />
+                    <SortableHead label="Amount" sortKey="amount" sort={distSort} onSort={setDistSort} className="text-right" />
+                    <SortableHead label="Type" sortKey="type" sort={distSort} onSort={setDistSort} />
                     <TableHead>Notes</TableHead>
-                    <TableHead>Status</TableHead>
+                    <SortableHead label="Status" sortKey="status" sort={distSort} onSort={setDistSort} />
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1013,10 +1113,10 @@ export default function AdminInvestmentDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Total Value</TableHead>
+                    <SortableHead label="Date" sortKey="date" sort={valSort} onSort={setValSort} />
+                    <SortableHead label="Total Value" sortKey="totalValue" sort={valSort} onSort={setValSort} className="text-right" />
                     <TableHead>Notes</TableHead>
-                    <TableHead>Entered By</TableHead>
+                    <SortableHead label="Entered By" sortKey="enteredBy" sort={valSort} onSort={setValSort} />
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1027,7 +1127,7 @@ export default function AdminInvestmentDetailPage({
                         Loading valuations...
                       </TableCell>
                     </TableRow>
-                  ) : valuations.length === 0 ? (
+                  ) : sortedValuations.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                         <TrendingUp className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
@@ -1035,7 +1135,7 @@ export default function AdminInvestmentDetailPage({
                       </TableCell>
                     </TableRow>
                   ) : (
-                    valuations.map((v) => (
+                    sortedValuations.map((v) => (
                       <TableRow key={v.id}>
                         <TableCell>{formatDateOnly(v.date)}</TableCell>
                         <TableCell className="text-right font-medium">
@@ -1123,22 +1223,22 @@ export default function AdminInvestmentDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Uploaded</TableHead>
+                    <SortableHead label="Name" sortKey="name" sort={docSort} onSort={setDocSort} />
+                    <SortableHead label="Type" sortKey="type" sort={docSort} onSort={setDocSort} />
+                    <SortableHead label="Size" sortKey="size" sort={docSort} onSort={setDocSort} />
+                    <SortableHead label="Uploaded" sortKey="uploaded" sort={docSort} onSort={setDocSort} />
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {displayDocuments.length === 0 ? (
+                  {sortedDocuments.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                         No documents attached to this investment.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    displayDocuments.map((doc) => (
+                    sortedDocuments.map((doc) => (
                       <TableRow key={doc.id}>
                         <TableCell className="font-medium">{doc.name}</TableCell>
                         <TableCell>
