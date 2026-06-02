@@ -13,11 +13,12 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "all";
     const categoryId = searchParams.get("categoryId") || "";
+    const includeDeleted = searchParams.get("includeDeleted") === "true";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") || "20")));
 
     const where: Prisma.BlogPostWhereInput = {
-      deletedAt: null,
+      ...(includeDeleted ? {} : { deletedAt: null }),
       ...(status === "published" ? { isPublished: true } : {}),
       ...(status === "draft" ? { isPublished: false } : {}),
       ...(categoryId
@@ -182,6 +183,48 @@ export async function POST(request: Request) {
     return NextResponse.json(post, { status: 201 });
   } catch (error) {
     console.error("Error creating blog post:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const user = await requireAdmin();
+    if (user instanceof NextResponse) return user;
+
+    const body = await request.json();
+    const { ids } = body as { ids: string[] };
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        { error: "ids array is required" },
+        { status: 400 }
+      );
+    }
+
+    const result = await prisma.blogPost.updateMany({
+      where: {
+        id: { in: ids },
+        deletedAt: null,
+      },
+      data: { deletedAt: new Date() },
+    });
+
+    createAuditLog({
+      userId: user.id,
+      action: "BULK_DELETE_BLOG_POSTS",
+      targetType: "BlogPost",
+      targetId: ids.join(","),
+      details: { ids, deleted: result.count },
+      request,
+    });
+
+    return NextResponse.json({ deleted: result.count });
+  } catch (error) {
+    console.error("Error bulk deleting blog posts:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

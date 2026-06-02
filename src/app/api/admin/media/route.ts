@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1");
   const pageSize = parseInt(searchParams.get("pageSize") || "24");
 
-  const where: Record<string, unknown> = { deletedAt: null };
+  const includeDeleted = searchParams.get("includeDeleted") === "true";
+  const where: Record<string, unknown> = includeDeleted ? {} : { deletedAt: null };
   if (search) {
     where.OR = [
       { fileName: { contains: search } },
@@ -82,6 +83,39 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(media, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Upload failed";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const admin = await requireAdmin();
+  if (admin instanceof NextResponse) return admin;
+
+  try {
+    const { ids } = (await request.json()) as { ids: string[] };
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        { error: "ids must be a non-empty array" },
+        { status: 400 }
+      );
+    }
+
+    const result = await prisma.media.updateMany({
+      where: { id: { in: ids }, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+
+    createAuditLog({
+      userId: admin.id,
+      action: "BULK_DELETE_MEDIA",
+      targetType: "MEDIA",
+      details: { ids, count: result.count },
+      request,
+    });
+
+    return NextResponse.json({ deleted: result.count });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Delete failed";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

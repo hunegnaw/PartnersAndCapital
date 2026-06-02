@@ -12,11 +12,12 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
+    const includeDeleted = searchParams.get("includeDeleted") === "true";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") || "20")));
 
     const where: Prisma.PageWhereInput = {
-      deletedAt: null,
+      ...(includeDeleted ? {} : { deletedAt: null }),
       ...(search
         ? { title: { contains: search } }
         : {}),
@@ -41,6 +42,44 @@ export async function GET(request: Request) {
     return NextResponse.json({ pages, total, page, pageSize });
   } catch (error) {
     console.error("Error listing pages:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const user = await requireAdmin();
+    if (user instanceof NextResponse) return user;
+
+    const body = await request.json();
+    const { ids } = body as { ids: string[] };
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        { error: "ids must be a non-empty array" },
+        { status: 400 }
+      );
+    }
+
+    const result = await prisma.page.updateMany({
+      where: { id: { in: ids }, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+
+    await createAuditLog({
+      userId: user.id,
+      action: "BULK_DELETE_PAGES",
+      targetType: "Page",
+      details: { ids, deleted: result.count },
+      request,
+    });
+
+    return NextResponse.json({ deleted: result.count });
+  } catch (error) {
+    console.error("Error bulk deleting pages:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

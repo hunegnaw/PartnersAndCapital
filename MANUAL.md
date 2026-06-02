@@ -386,9 +386,13 @@ Blog posts also use the same shared `PageHero` component with title and image on
 
 | Route | Methods | Auth |
 |-------|---------|------|
-| `/api/admin/pages` | GET, POST | Admin |
+| `/api/admin/pages` | GET, POST, DELETE | Admin |
 | `/api/admin/pages/[id]` | GET, PATCH, DELETE | Admin |
 | `/api/admin/pages/reorder` | PATCH | Admin |
+
+**GET `/api/admin/pages`** supports an `includeDeleted=true` query parameter. When set, the `deletedAt: null` filter is removed so soft-deleted pages are returned alongside active ones. Each page object includes its `deletedAt` timestamp.
+
+**DELETE `/api/admin/pages`** accepts `{ ids: string[] }` in the request body. It soft-deletes all matching pages (sets `deletedAt` to the current timestamp) and returns `{ deleted: number }`. An audit log entry with action `BULK_DELETE_PAGES` is created.
 
 ---
 
@@ -419,8 +423,12 @@ A reusable dialog component (`MediaPicker`) that can be opened from any admin fo
 
 | Route | Methods | Auth |
 |-------|---------|------|
-| `/api/admin/media` | GET, POST | Admin |
+| `/api/admin/media` | GET, POST, DELETE | Admin |
 | `/api/admin/media/[id]` | GET, PATCH, DELETE | Admin |
+
+**GET `/api/admin/media`** supports an `includeDeleted=true` query parameter. When set, soft-deleted media items are included in the results (the `deletedAt` timestamp is returned for each item). By default, deleted items are excluded.
+
+**DELETE `/api/admin/media`** accepts `{ ids: string[] }` in the request body and soft-deletes all matching media items (sets `deletedAt`). Returns `{ deleted: number }` with the count of items deleted. Logged as `BULK_DELETE_MEDIA` in the audit trail.
 
 ### Contact Form & Newsletter
 
