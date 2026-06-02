@@ -13,11 +13,12 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
     const type = searchParams.get("type") || "";
     const investmentId = searchParams.get("investmentId") || "";
+    const includeDeleted = searchParams.get("includeDeleted") === "true";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") || "20")));
 
     const where: Prisma.DistributionWhereInput = {
-      deletedAt: null,
+      ...(includeDeleted ? {} : { deletedAt: null }),
       ...(type ? { type: type as Prisma.EnumDistributionTypeFilter["equals"] } : {}),
       ...(investmentId
         ? { clientInvestment: { investmentId } }
