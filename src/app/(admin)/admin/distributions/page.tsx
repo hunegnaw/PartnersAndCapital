@@ -43,7 +43,9 @@ import {
   ChevronRight,
   Loader2,
   Pencil,
+  Upload,
 } from "lucide-react"
+import { DistributionImportDialog } from "@/components/admin/distribution-import-dialog"
 
 interface DistributionUser {
   id: string
@@ -143,6 +145,11 @@ export default function AdminDistributionsPage() {
   // Edit dialog state
   const [editOpen, setEditOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Distribution | null>(null)
+
+  // Bulk upload state
+  const [bulkSelectOpen, setBulkSelectOpen] = useState(false)
+  const [bulkInvestmentId, setBulkInvestmentId] = useState("")
+  const [bulkImportOpen, setBulkImportOpen] = useState(false)
 
   const fetchDistributions = useCallback(async () => {
     setLoading(true)
@@ -278,10 +285,16 @@ export default function AdminDistributionsPage() {
             View and manage distribution payments across all investments.
           </p>
         </div>
-        <Button onClick={openDialog}>
-          <Plus className="h-4 w-4" />
-          Record Distribution
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => { setBulkInvestmentId(""); setBulkSelectOpen(true) }}>
+            <Upload className="h-4 w-4" />
+            Bulk Upload
+          </Button>
+          <Button onClick={openDialog}>
+            <Plus className="h-4 w-4" />
+            Record Distribution
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -470,6 +483,55 @@ export default function AdminDistributionsPage() {
           if (!open) setEditTarget(null)
         }}
         distribution={editTarget}
+        onSuccess={fetchDistributions}
+      />
+
+      {/* Bulk Upload: Select Investment Dialog */}
+      <Dialog open={bulkSelectOpen} onOpenChange={setBulkSelectOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Bulk Upload Distributions</DialogTitle>
+            <DialogDescription>
+              Select the investment this distribution CSV pertains to.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2 py-2">
+            <Label>Investment</Label>
+            <Select value={bulkInvestmentId} onValueChange={(v) => setBulkInvestmentId(v ?? "")}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select an investment..." />
+              </SelectTrigger>
+              <SelectContent>
+                {investments.map((inv) => (
+                  <SelectItem key={inv.id} value={inv.id}>
+                    {inv.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkSelectOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!bulkInvestmentId}
+              onClick={() => {
+                setBulkSelectOpen(false)
+                setBulkImportOpen(true)
+              }}
+            >
+              Continue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Upload: Import Dialog */}
+      <DistributionImportDialog
+        open={bulkImportOpen}
+        onOpenChange={setBulkImportOpen}
+        investmentId={bulkInvestmentId}
         onSuccess={fetchDistributions}
       />
 
