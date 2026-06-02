@@ -56,6 +56,7 @@ import {
   Download,
   Trash2,
   Upload,
+  ShieldCheck,
 } from "lucide-react"
 
 interface ClientInvestment {
@@ -153,6 +154,7 @@ export default function AdminClientDetailPage({
   const [investmentError, setInvestmentError] = useState<string | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deletingClient, setDeletingClient] = useState(false)
+  const [approvingKyc, setApprovingKyc] = useState(false)
 
   const fetchClient = useCallback(async () => {
     setLoading(true)
@@ -315,7 +317,7 @@ export default function AdminClientDetailPage({
           </Button>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">{client.name}</h1>
-            {client.verification && (
+            {client.verification ? (
               <Badge
                 variant={
                   client.verification.status === "APPROVED"
@@ -329,6 +331,35 @@ export default function AdminClientDetailPage({
               >
                 KYC: {client.verification.status.replace("_", " ")}
               </Badge>
+            ) : (
+              <Badge variant="outline">KYC: NOT STARTED</Badge>
+            )}
+            {(!client.verification || client.verification.status !== "APPROVED") && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={approvingKyc}
+                onClick={async () => {
+                  setApprovingKyc(true)
+                  try {
+                    const res = await fetch(`/api/admin/clients/${id}/approve-kyc`, {
+                      method: "POST",
+                    })
+                    if (!res.ok) {
+                      const data = await res.json().catch(() => ({}))
+                      throw new Error(data.error || "Failed to approve KYC")
+                    }
+                    fetchClient()
+                  } catch (err) {
+                    console.error("Error approving KYC:", err)
+                  } finally {
+                    setApprovingKyc(false)
+                  }
+                }}
+              >
+                {approvingKyc ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                Approve KYC
+              </Button>
             )}
           </div>
           <p className="text-muted-foreground mt-1">Client account details</p>
