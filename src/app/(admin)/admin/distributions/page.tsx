@@ -44,6 +44,7 @@ import {
   Loader2,
   Pencil,
   Upload,
+  Trash2,
 } from "lucide-react"
 import { DistributionImportDialog } from "@/components/admin/distribution-import-dialog"
 
@@ -71,6 +72,7 @@ interface Distribution {
   type: string
   description: string | null
   status: string
+  deletedAt: string | null
   user: DistributionUser
   clientInvestment: DistributionClientInvestment
 }
@@ -126,6 +128,14 @@ export default function AdminDistributionsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Selection & bulk delete state
+  const [selectedDists, setSelectedDists] = useState<Set<string>>(new Set())
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+
+  // Show deleted toggle
+  const [showDeleted, setShowDeleted] = useState(false)
+
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogStep, setDialogStep] = useState<1 | 2>(1)
@@ -162,6 +172,7 @@ export default function AdminDistributionsPage() {
       if (search) params.set("search", search)
       if (typeFilter) params.set("type", typeFilter)
       if (investmentFilter) params.set("investmentId", investmentFilter)
+      if (showDeleted) params.set("includeDeleted", "true")
 
       const res = await fetch(`/api/admin/distributions?${params}`)
       if (!res.ok) throw new Error("Failed to fetch distributions")
@@ -174,7 +185,7 @@ export default function AdminDistributionsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, search, typeFilter, investmentFilter])
+  }, [page, pageSize, search, typeFilter, investmentFilter, showDeleted])
 
   useEffect(() => {
     Promise.resolve().then(() => {
@@ -286,6 +297,12 @@ export default function AdminDistributionsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {selectedDists.size > 0 && (
+            <Button variant="destructive" size="sm" onClick={() => setBulkDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4" />
+              Delete Selected ({selectedDists.size})
+            </Button>
+          )}
           <Button variant="outline" onClick={() => { setBulkInvestmentId(""); setBulkSelectOpen(true) }}>
             <Upload className="h-4 w-4" />
             Bulk Upload
@@ -356,6 +373,16 @@ export default function AdminDistributionsPage() {
             ))}
           </SelectContent>
         </Select>
+
+        <label className="flex items-center gap-2 text-sm whitespace-nowrap">
+          <input
+            type="checkbox"
+            checked={showDeleted}
+            onChange={(e) => { setShowDeleted(e.target.checked); setPage(1) }}
+            className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+          />
+          Show deleted
+        </label>
       </div>
 
       {/* Table */}
@@ -369,6 +396,20 @@ export default function AdminDistributionsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                    checked={distributions.length > 0 && selectedDists.size === distributions.length}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedDists(new Set(distributions.map((d) => d.id)))
+                      } else {
+                        setSelectedDists(new Set())
+                      }
+                    }}
+                  />
+                </TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>Investment</TableHead>
@@ -383,6 +424,7 @@ export default function AdminDistributionsPage() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-36" /></TableCell>
@@ -390,11 +432,12 @@ export default function AdminDistributionsPage() {
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-28" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                    <TableCell />
                   </TableRow>
                 ))
               ) : distributions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                     {search || typeFilter || investmentFilter
                       ? "No distributions match your filters."
                       : "No distributions yet. Record your first distribution to get started."}
@@ -402,7 +445,26 @@ export default function AdminDistributionsPage() {
                 </TableRow>
               ) : (
                 distributions.map((dist) => (
-                  <TableRow key={dist.id}>
+                  <TableRow
+                    key={dist.id}
+                    className={`${selectedDists.has(dist.id) ? "bg-[#FDF5E8]/50" : ""} ${dist.deletedAt ? "opacity-50" : ""}`}
+                  >
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                        checked={selectedDists.has(dist.id)}
+                        onChange={(e) => {
+                          const next = new Set(selectedDists)
+                          if (e.target.checked) {
+                            next.add(dist.id)
+                          } else {
+                            next.delete(dist.id)
+                          }
+                          setSelectedDists(next)
+                        }}
+                      />
+                    </TableCell>
                     <TableCell className="whitespace-nowrap">
                       {formatDateOnly(dist.date)}
                     </TableCell>
@@ -534,6 +596,49 @@ export default function AdminDistributionsPage() {
         investmentId={bulkInvestmentId}
         onSuccess={fetchDistributions}
       />
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete Distributions</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedDists.size} distribution{selectedDists.size !== 1 ? "s" : ""}? This action can be undone by an administrator.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkDeleteOpen(false)} disabled={bulkDeleting}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={bulkDeleting}
+              onClick={async () => {
+                setBulkDeleting(true)
+                try {
+                  const res = await fetch("/api/admin/distributions", {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ids: Array.from(selectedDists) }),
+                  })
+                  if (!res.ok) throw new Error("Failed to delete distributions")
+                  setSelectedDists(new Set())
+                  setBulkDeleteOpen(false)
+                  fetchDistributions()
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Failed to delete distributions")
+                  setBulkDeleteOpen(false)
+                } finally {
+                  setBulkDeleting(false)
+                }
+              }}
+            >
+              {bulkDeleting && <Loader2 className="h-4 w-4 animate-spin" />}
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Record Distribution Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
