@@ -84,10 +84,10 @@ async function handleBulkImport(
   adminId: string,
   investmentId: string,
   investmentName: string,
-  body: { rows: Array<{ email?: string; userId?: string; amount: number | string; date: string; type?: string; description?: string }> },
+  body: { silent?: boolean; rows: Array<{ email?: string; userId?: string; amount: number | string; date: string; type?: string; description?: string }> },
   request: Request
 ) {
-  const { rows } = body;
+  const { rows, silent } = body;
   if (!Array.isArray(rows) || rows.length === 0) {
     return NextResponse.json(
       { error: "rows array is required and must not be empty" },
@@ -185,26 +185,27 @@ async function handleBulkImport(
 
     created.push(dist.id);
 
-    // Notify client
-    await createNotification({
-      userId: position.userId,
-      type: "DISTRIBUTION_RECEIVED",
-      title: "Distribution received",
-      message: `A distribution of $${row.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} has been recorded for ${investmentName}`,
-      link: `/investments/${position.id}`,
-    });
+    if (!silent) {
+      await createNotification({
+        userId: position.userId,
+        type: "DISTRIBUTION_RECEIVED",
+        title: "Distribution received",
+        message: `A distribution of $${row.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} has been recorded for ${investmentName}`,
+        link: `/investments/${position.id}`,
+      });
 
-    await sendEmail({
-      to: position.user.email,
-      subject: `Distribution recorded for ${investmentName}`,
-      html: distributionNoticeEmail({
-        userName: position.user.name || "Investor",
-        investmentName,
-        amount: `$${row.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
-        portalUrl: `${baseUrl}/investments/${position.id}`,
-        logoUrl,
-      }),
-    });
+      await sendEmail({
+        to: position.user.email,
+        subject: `Distribution recorded for ${investmentName}`,
+        html: distributionNoticeEmail({
+          userName: position.user.name || "Investor",
+          investmentName,
+          amount: `$${row.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+          portalUrl: `${baseUrl}/investments/${position.id}`,
+          logoUrl,
+        }),
+      });
+    }
   }
 
   await createAuditLog({

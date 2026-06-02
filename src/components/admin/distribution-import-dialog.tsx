@@ -13,15 +13,35 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DatePicker } from "@/components/ui/date-picker"
-import { Loader2, Upload, DollarSign } from "lucide-react"
+import { Loader2, Upload, DollarSign, AlertTriangle, CheckCircle2, XCircle } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
 
 interface DistributionImportDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   investmentId: string
   onSuccess: () => void
+}
+
+interface PreviewRow {
+  email: string
+  amount: number
+  date: string
+  description: string
+  matched: boolean
+  clientName?: string
+  clientInvestmentId?: string
+  error?: string
 }
 
 export function DistributionImportDialog({
@@ -38,6 +58,11 @@ export function DistributionImportDialog({
   const [csvError, setCsvError] = useState<string | null>(null)
   const [csvResult, setCsvResult] = useState<{ created: number; skipped: string[]; errors: string[] } | null>(null)
 
+  // Preview state
+  const [previewRows, setPreviewRows] = useState<PreviewRow[] | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [positions, setPositions] = useState<Array<{ id: string; userId: string; userEmail: string; userName: string }>>([])
+
   // Pro-rata state
   const [totalAmount, setTotalAmount] = useState("")
   const [proRataDate, setProRataDate] = useState("")
@@ -52,14 +77,42 @@ export function DistributionImportDialog({
         setCsvText("")
         setCsvError(null)
         setCsvResult(null)
+        setPreviewRows(null)
         setTotalAmount("")
         setProRataDate("")
         setProRataDescription("")
         setProRataError(null)
         setProRataResult(null)
       })
+      // Fetch positions for client matching
+      fetch(`/api/admin/investments/${investmentId}/clients`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setPositions(
+              data.map((p: { id: string; userId: string; user: { email: string; name: string } }) => ({
+                id: p.id,
+                userId: p.userId,
+                userEmail: p.user.email.toLowerCase(),
+                userName: p.user.name || p.user.email,
+              }))
+            )
+          }
+        })
+        .catch(() => {})
     }
-  }, [open])
+  }, [open, investmentId])
+
+  function parseMmDdYyyy(dateStr: string): string | null {
+    const match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+    if (!match) return null
+    const [, mm, dd, yyyy] = match
+    const m = parseInt(mm, 10)
+    const d = parseInt(dd, 10)
+    const y = parseInt(yyyy, 10)
+    if (m < 1 || m > 12 || d < 1 || d > 31 || y < 1900) return null
+    return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`
+  }
 
   function parseCsv(text: string) {
     const lines = text.trim().split("\n")
@@ -74,13 +127,13 @@ export function DistributionImportDialog({
     const notesIdx = headers.findIndex((h) => h === "notes" || h === "description")
 
     if (emailIdx === -1 || amountIdx === -1 || dateIdx === -1) {
-      return null // invalid headers
+      return null
     }
 
     const rows = []
     for (let i = 1; i < lines.length; i++) {
       const cols = lines[i].split(",").map((c) => c.trim())
-      if (cols.length <= 1 && !cols[0]) continue // skip empty lines
+      if (cols.length <= 1 && !cols[0]) continue
       rows.push({
         email: cols[emailIdx] || "",
         amount: cols[amountIdx] || "",
@@ -91,18 +144,62 @@ export function DistributionImportDialog({
     return rows
   }
 
-  async function handleCsvSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  function handlePreview() {
     setCsvError(null)
     setCsvResult(null)
 
     const rows = parseCsv(csvText)
     if (rows === null) {
-      setCsvError("CSV must have headers: email, amount, date (notes optional)")
+      setCsvError("CSV must have headers: Email, Amount, Date (Notes optional)")
       return
     }
     if (rows.length === 0) {
       setCsvError("No data rows found in CSV")
+      return
+    }
+
+    const positionByEmail = new Map(positions.map((p) => [p.userEmail, p]))
+
+    const preview: PreviewRow[] = rows.map((row) => {
+      const amt = parseFloat(row.amount.replace(/[$,]/g, ""))
+      const isoDate = parseMmDdYyyy(row.date)
+      const position = positionByEmail.get(row.email.toLowerCase())
+
+      if (!row.email) {
+        return { email: row.email, amount: 0, date: row.date, description: row.description, matched: false, error: "Missing email" }
+      }
+      if (isNaN(amt) || amt <= 0) {
+        return { email: row.email, amount: 0, date: row.date, description: row.description, matched: false, error: "Invalid amount" }
+      }
+      if (!isoDate) {
+        return { email: row.email, amount: amt, date: row.date, description: row.description, matched: false, error: "Invalid date (use MM/DD/YYYY)" }
+      }
+      if (!position) {
+        return { email: row.email, amount: amt, date: isoDate, description: row.description, matched: false, error: "No position in this investment" }
+      }
+
+      return {
+        email: row.email,
+        amount: amt,
+        date: isoDate,
+        description: row.description,
+        matched: true,
+        clientName: position.userName,
+        clientInvestmentId: position.id,
+      }
+    })
+
+    setPreviewRows(preview)
+  }
+
+  async function handleCsvSubmit() {
+    if (!previewRows) return
+    setCsvError(null)
+    setCsvResult(null)
+
+    const validRows = previewRows.filter((r) => r.matched)
+    if (validRows.length === 0) {
+      setCsvError("No valid rows to import")
       return
     }
 
@@ -111,11 +208,21 @@ export function DistributionImportDialog({
       const res = await fetch(`/api/admin/investments/${investmentId}/distributions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "csv", rows }),
+        body: JSON.stringify({
+          mode: "csv",
+          silent: true,
+          rows: validRows.map((r) => ({
+            email: r.email,
+            amount: r.amount,
+            date: r.date,
+            description: r.description || null,
+          })),
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Import failed")
       setCsvResult(data)
+      setPreviewRows(null)
       if (data.created > 0) onSuccess()
     } catch (err) {
       setCsvError(err instanceof Error ? err.message : "Import failed")
@@ -127,6 +234,9 @@ export function DistributionImportDialog({
   function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    setPreviewRows(null)
+    setCsvResult(null)
+    setCsvError(null)
     const reader = new FileReader()
     reader.onload = (ev) => {
       setCsvText((ev.target?.result as string) || "")
@@ -172,9 +282,13 @@ export function DistributionImportDialog({
     }
   }
 
+  const matchedCount = previewRows?.filter((r) => r.matched).length ?? 0
+  const skippedCount = previewRows?.filter((r) => !r.matched).length ?? 0
+  const totalImportAmount = previewRows?.filter((r) => r.matched).reduce((sum, r) => sum + r.amount, 0) ?? 0
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Bulk Distribution</DialogTitle>
           <DialogDescription>
@@ -195,7 +309,7 @@ export function DistributionImportDialog({
           </TabsList>
 
           <TabsContent value="csv">
-            <form onSubmit={handleCsvSubmit} className="space-y-4">
+            <div className="space-y-4">
               {csvError && (
                 <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                   {csvError}
@@ -204,7 +318,10 @@ export function DistributionImportDialog({
 
               {csvResult && (
                 <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
-                  <p className="font-medium">{csvResult.created} distribution(s) created</p>
+                  <p className="font-medium flex items-center gap-1.5">
+                    <CheckCircle2 className="h-4 w-4" />
+                    {csvResult.created} distribution(s) created
+                  </p>
                   {csvResult.skipped.length > 0 && (
                     <ul className="mt-1 text-xs">
                       {csvResult.skipped.map((s, i) => <li key={i}>Skipped: {s}</li>)}
@@ -218,39 +335,123 @@ export function DistributionImportDialog({
                 </div>
               )}
 
-              <div className="grid gap-2">
-                <Label>Upload CSV File</Label>
-                <Input
-                  type="file"
-                  accept=".csv,text/csv"
-                  onChange={handleFileUpload}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Required columns: email, amount, date. Optional: notes
-                </p>
-              </div>
+              {!previewRows && !csvResult && (
+                <>
+                  <div className="grid gap-2">
+                    <Label>Upload CSV File</Label>
+                    <Input
+                      type="file"
+                      accept=".csv,text/csv"
+                      onChange={handleFileUpload}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Required columns: Email, Amount, Date (MM/DD/YYYY). Optional: Notes
+                    </p>
+                  </div>
 
-              <div className="grid gap-2">
-                <Label>Or paste CSV data</Label>
-                <Textarea
-                  value={csvText}
-                  onChange={(e) => setCsvText(e.target.value)}
-                  placeholder={"email,amount,date,notes\njohn@example.com,5000,2025-06-01,Monthly distribution"}
-                  rows={6}
-                  className="font-mono text-xs"
-                />
-              </div>
+                  <div className="grid gap-2">
+                    <Label>Or paste CSV data</Label>
+                    <Textarea
+                      value={csvText}
+                      onChange={(e) => setCsvText(e.target.value)}
+                      placeholder={"Email,Amount,Date,Notes\njohn@example.com,5000,06/15/2026,Q2 distribution"}
+                      rows={6}
+                      className="font-mono text-xs"
+                    />
+                  </div>
 
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={csvLoading}>
-                  Close
-                </Button>
-                <Button type="submit" disabled={csvLoading || !csvText.trim()}>
-                  {csvLoading && <Loader2 className="animate-spin" />}
-                  Import
-                </Button>
-              </DialogFooter>
-            </form>
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                      Close
+                    </Button>
+                    <Button onClick={handlePreview} disabled={!csvText.trim()}>
+                      Preview Import
+                    </Button>
+                  </DialogFooter>
+                </>
+              )}
+
+              {previewRows && !csvResult && (
+                <>
+                  <div className="flex items-center gap-4 text-sm">
+                    <span className="flex items-center gap-1.5 text-green-700">
+                      <CheckCircle2 className="h-4 w-4" />
+                      {matchedCount} matched
+                    </span>
+                    {skippedCount > 0 && (
+                      <span className="flex items-center gap-1.5 text-amber-600">
+                        <AlertTriangle className="h-4 w-4" />
+                        {skippedCount} will be skipped
+                      </span>
+                    )}
+                    <span className="ml-auto font-medium">
+                      Total: ${totalImportAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+
+                  <div className="max-h-[340px] overflow-y-auto border rounded-lg">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-8"></TableHead>
+                          <TableHead>Client</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead className="text-right">Amount</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Notes</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {previewRows.map((row, i) => (
+                          <TableRow key={i} className={!row.matched ? "bg-amber-50/50" : ""}>
+                            <TableCell>
+                              {row.matched ? (
+                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                              ) : (
+                                <XCircle className="h-4 w-4 text-amber-500" />
+                              )}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {row.matched ? row.clientName : (
+                                <span className="text-amber-600 text-xs">{row.error}</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs">{row.email}</TableCell>
+                            <TableCell className="text-right font-medium">
+                              {row.amount > 0
+                                ? `$${row.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+                                : "--"}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {row.matched ? new Date(row.date + "T12:00:00").toLocaleDateString("en-US") : row.date}
+                            </TableCell>
+                            <TableCell className="text-xs max-w-[120px] truncate">{row.description || "--"}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setPreviewRows(null)} disabled={csvLoading}>
+                      Back
+                    </Button>
+                    <Button onClick={handleCsvSubmit} disabled={csvLoading || matchedCount === 0}>
+                      {csvLoading && <Loader2 className="animate-spin" />}
+                      Import {matchedCount} Distribution{matchedCount !== 1 ? "s" : ""}
+                    </Button>
+                  </DialogFooter>
+                </>
+              )}
+
+              {csvResult && (
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    Close
+                  </Button>
+                </DialogFooter>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="prorate">

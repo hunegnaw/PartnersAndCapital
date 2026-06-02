@@ -637,10 +637,6 @@ export default function AdminInvestmentDetailPage({
         {/* Client Positions Tab */}
         <TabsContent value="clients" className="mt-4 space-y-4">
           <div className="flex justify-end gap-2">
-            <Button size="sm" variant="outline" onClick={() => setBulkDistributionOpen(true)}>
-              <Upload className="h-4 w-4" />
-              Bulk Distribution
-            </Button>
             <Button size="sm" onClick={() => setAddClientOpen(true)}>
               <Plus className="h-4 w-4" />
               Add Client
@@ -832,6 +828,13 @@ export default function AdminInvestmentDetailPage({
               </CardContent>
             </Card>
           )}
+
+          <div className="flex justify-end">
+            <Button size="sm" variant="outline" onClick={() => setBulkDistributionOpen(true)}>
+              <Upload className="h-4 w-4" />
+              Bulk Upload
+            </Button>
+          </div>
 
           {/* Distributions Table */}
           <Card>

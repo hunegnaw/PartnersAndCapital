@@ -1381,20 +1381,24 @@ The system will:
 
 ### Bulk CSV Import
 
-1. From the **Client Positions** tab, click **Bulk Distribution**
+1. From the **Distributions** tab, click **Bulk Upload**
 2. Select the **CSV Import** tab
 3. Upload a CSV file or paste CSV data with these columns:
-   - `email` (required) — client email to match against positions
-   - `amount` (required) — distribution amount
-   - `date` (required) — payment date (YYYY-MM-DD)
-   - `notes` (optional) — description
-4. Click **Import**
+   - `Email` (required) — client email to match against positions in this investment
+   - `Amount` (required) — distribution amount (supports `$` and `,` formatting)
+   - `Date` (required) — payment date in **MM/DD/YYYY** format
+   - `Notes` (optional) — description
+4. Click **Preview Import** — the system shows a full preview table:
+   - Matched rows show a green checkmark with the client name, amount, and date
+   - Unmatched rows (email not found, invalid amount/date) show a warning with the reason
+   - A summary shows total matched, total skipped, and total dollar amount
+5. Review the preview and click **Import N Distributions** to confirm
 
-The system matches each row by client email to their position in this investment. Rows that don't match a position are skipped with a message.
+Bulk CSV imports are **silent** — no email or in-app notifications are sent to clients. Unmatched rows are skipped; only matched rows are imported.
 
 ### Pro-Rata Allocation
 
-1. From the **Client Positions** tab, click **Bulk Distribution**
+1. From the **Distributions** tab, click **Bulk Upload**
 2. Select the **Pro-Rata** tab
 3. Enter the **Total Distribution Amount** for the fund this period
 4. Select the **Date**
