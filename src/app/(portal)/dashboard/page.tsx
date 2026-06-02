@@ -464,8 +464,9 @@ export default function DashboardPage() {
                   tick={{ fontSize: 11, fill: "#1A2640" }}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(val) => `$${(val / 1000).toFixed(0)}K`}
-                  width={60}
+                  tickFormatter={(val) => val >= 1_000_000 ? `$${(val / 1_000_000).toFixed(1)}M` : `$${(val / 1000).toFixed(0)}K`}
+                  width={65}
+                  domain={[(dataMin: number) => Math.floor(dataMin * 0.95), (dataMax: number) => Math.ceil(dataMax * 1.02)]}
                 />
                 <YAxis
                   yAxisId="right"
@@ -473,8 +474,9 @@ export default function DashboardPage() {
                   tick={{ fontSize: 11, fill: "#B07D3A" }}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(val) => `$${(val / 1000).toFixed(0)}K`}
-                  width={60}
+                  tickFormatter={(val) => val >= 1_000_000 ? `$${(val / 1_000_000).toFixed(1)}M` : `$${(val / 1000).toFixed(0)}K`}
+                  width={65}
+                  domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.1)]}
                 />
                 <Tooltip
                   formatter={(value, name) => [
