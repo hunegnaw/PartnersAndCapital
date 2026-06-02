@@ -180,6 +180,11 @@ The admin landing page at `/admin` is the Client Management view. It provides:
 | `/admin/access-requests` | Review and manage access requests from prospective clients |
 | `/admin/clients/[id]`  | Client detail with "View as Client" impersonation    |
 
+- **Admin Documents Page (`/admin/documents`):** Features include:
+  - **Checkbox Selection:** Select-all checkbox in the table header and per-row checkboxes. Selected rows are highlighted with a champagne tint (`bg-[#FDF5E8]/50`).
+  - **Bulk Delete:** When one or more rows are selected and the user is SUPER_ADMIN, a "Delete Selected (N)" destructive button appears above the table. Clicking it opens a confirmation dialog before soft-deleting the selected documents via `DELETE /api/admin/documents`.
+  - **Show Deleted Toggle:** A switch next to the filter controls toggles inclusion of soft-deleted documents. Deleted rows render at 50% opacity.
+
 ### Admin Roles
 
 The system supports multiple admin access levels:

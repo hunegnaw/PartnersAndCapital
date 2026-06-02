@@ -9,6 +9,16 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Switch } from "@/components/ui/switch"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
@@ -47,6 +57,7 @@ interface DocumentRecord {
   year: number | null
   description: string | null
   createdAt: string
+  deletedAt: string | null
   user: { id: string; name: string; email: string } | null
   investment: { id: string; name: string } | null
 }
@@ -75,6 +86,14 @@ export default function AdminDocumentsPage() {
   const [error, setError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
 
+  // Bulk selection
+  const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set())
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+
+  // Show deleted
+  const [showDeleted, setShowDeleted] = useState(false)
+
   // Document types
   const [documentTypes, setDocumentTypes] = useState<DocumentTypeOption[]>([])
 
@@ -94,6 +113,7 @@ export default function AdminDocumentsPage() {
       if (typeFilter) params.set("type", typeFilter)
       if (yearFilter) params.set("year", yearFilter)
       if (initialUserId) params.set("userId", initialUserId)
+      if (showDeleted) params.set("includeDeleted", "true")
 
       const res = await fetch(`/api/admin/documents?${params}`)
       if (!res.ok) throw new Error("Failed to fetch documents")
@@ -105,7 +125,7 @@ export default function AdminDocumentsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, search, typeFilter, yearFilter, initialUserId])
+  }, [page, pageSize, search, typeFilter, yearFilter, initialUserId, showDeleted])
 
   const fetchDocumentTypes = useCallback(async () => {
     try {
@@ -173,6 +193,46 @@ export default function AdminDocumentsPage() {
     } finally {
       setDeleting(null)
     }
+  }
+
+  async function handleBulkDelete() {
+    if (bulkDeleting || selectedDocs.size === 0) return
+    setBulkDeleting(true)
+    try {
+      const res = await fetch("/api/admin/documents", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedDocs) }),
+      })
+      if (!res.ok) throw new Error("Failed to delete documents")
+      setSelectedDocs(new Set())
+      setBulkDeleteOpen(false)
+      fetchDocuments()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete documents")
+    } finally {
+      setBulkDeleting(false)
+    }
+  }
+
+  function toggleSelectAll() {
+    if (selectedDocs.size === documents.length) {
+      setSelectedDocs(new Set())
+    } else {
+      setSelectedDocs(new Set(documents.map((d) => d.id)))
+    }
+  }
+
+  function toggleSelectDoc(docId: string) {
+    setSelectedDocs((prev) => {
+      const next = new Set(prev)
+      if (next.has(docId)) {
+        next.delete(docId)
+      } else {
+        next.add(docId)
+      }
+      return next
+    })
   }
 
   // Generate year options
@@ -262,7 +322,33 @@ export default function AdminDocumentsPage() {
             ))}
           </SelectContent>
         </Select>
+
+        <div className="flex items-center gap-2">
+          <Switch
+            size="sm"
+            checked={showDeleted}
+            onCheckedChange={(checked) => {
+              setShowDeleted(checked)
+              setPage(1)
+            }}
+          />
+          <span className="text-sm text-muted-foreground whitespace-nowrap">Show Deleted</span>
+        </div>
       </div>
+
+      {/* Bulk actions */}
+      {selectedDocs.size > 0 && userRole === "SUPER_ADMIN" && (
+        <div className="flex items-center gap-3">
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setBulkDeleteOpen(true)}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete Selected ({selectedDocs.size})
+          </Button>
+        </div>
+      )}
 
       {/* Table */}
       <Card>
@@ -275,6 +361,13 @@ export default function AdminDocumentsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                    checked={documents.length > 0 && selectedDocs.size === documents.length}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead className="hidden md:table-cell">Client</TableHead>
@@ -288,6 +381,7 @@ export default function AdminDocumentsPage() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-36" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                     <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-28" /></TableCell>
@@ -299,7 +393,7 @@ export default function AdminDocumentsPage() {
                 ))
               ) : documents.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                     {search
                       ? "No documents match your search."
                       : "No documents yet. Upload your first document to get started."}
@@ -307,7 +401,17 @@ export default function AdminDocumentsPage() {
                 </TableRow>
               ) : (
                 documents.map((doc) => (
-                  <TableRow key={doc.id}>
+                  <TableRow
+                    key={doc.id}
+                    className={`${selectedDocs.has(doc.id) ? "bg-[#FDF5E8]/50" : ""} ${doc.deletedAt ? "opacity-50" : ""}`}
+                  >
+                    <TableCell>
+                      <Checkbox
+                        className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                        checked={selectedDocs.has(doc.id)}
+                        onCheckedChange={() => toggleSelectDoc(doc.id)}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{doc.name}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">
@@ -398,6 +502,25 @@ export default function AdminDocumentsPage() {
         onOpenChange={setManageTypesOpen}
         onTypesChanged={fetchDocumentTypes}
       />
+
+      <Dialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete {selectedDocs.size} document{selectedDocs.size !== 1 ? "s" : ""}?</DialogTitle>
+            <DialogDescription>
+              This will soft-delete the selected document{selectedDocs.size !== 1 ? "s" : ""}. This action cannot be easily undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkDeleteOpen(false)} disabled={bulkDeleting}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleBulkDelete} disabled={bulkDeleting}>
+              {bulkDeleting ? "Deleting..." : `Delete ${selectedDocs.size} Document${selectedDocs.size !== 1 ? "s" : ""}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
