@@ -272,6 +272,15 @@ export default function AdminInvestmentDetailPage({
   const [selectedDistributions, setSelectedDistributions] = useState<Set<string>>(new Set())
   const [deleteDistributionsOpen, setDeleteDistributionsOpen] = useState(false)
   const [deletingDistributions, setDeletingDistributions] = useState(false)
+  const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set())
+  const [deletePositionsOpen, setDeletePositionsOpen] = useState(false)
+  const [deletingPositions, setDeletingPositions] = useState(false)
+  const [selectedValuations, setSelectedValuations] = useState<Set<string>>(new Set())
+  const [deleteValuationsOpen, setDeleteValuationsOpen] = useState(false)
+  const [deletingValuations, setDeletingValuations] = useState(false)
+  const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set())
+  const [deleteDocumentsOpen, setDeleteDocumentsOpen] = useState(false)
+  const [deletingDocuments, setDeletingDocuments] = useState(false)
 
   // Sort state for tables
   const [clientSort, setClientSort] = useState<SortState<string>>(null)
@@ -740,7 +749,19 @@ export default function AdminInvestmentDetailPage({
 
         {/* Client Positions Tab */}
         <TabsContent value="clients" className="mt-4 space-y-4">
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-between items-center">
+            <div>
+              {selectedPositions.size > 0 && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => setDeletePositionsOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete Selected ({selectedPositions.size})
+                </Button>
+              )}
+            </div>
             <Button size="sm" onClick={() => setAddClientOpen(true)}>
               <Plus className="h-4 w-4" />
               Add Client
@@ -751,6 +772,20 @@ export default function AdminInvestmentDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                        checked={sortedPositions.length > 0 && selectedPositions.size === sortedPositions.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedPositions(new Set(sortedPositions.map((ci) => ci.id)))
+                          } else {
+                            setSelectedPositions(new Set())
+                          }
+                        }}
+                      />
+                    </TableHead>
                     <SortableHead label="Client" sortKey="client" sort={clientSort} onSort={setClientSort} />
                     <SortableHead label="Invested" sortKey="invested" sort={clientSort} onSort={setClientSort} className="text-right" />
                     <SortableHead label="Current Value" sortKey="currentValue" sort={clientSort} onSort={setClientSort} className="text-right" />
@@ -763,7 +798,7 @@ export default function AdminInvestmentDetailPage({
                 <TableBody>
                   {sortedPositions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                         No client positions yet. Add a client to this investment.
                       </TableCell>
                     </TableRow>
@@ -771,9 +806,26 @@ export default function AdminInvestmentDetailPage({
                     sortedPositions.map((ci) => (
                       <TableRow
                         key={ci.id}
-                        className="cursor-pointer"
+                        className={`cursor-pointer${selectedPositions.has(ci.id) ? " bg-[#FDF5E8]/50" : ""}`}
                         onClick={() => router.push(`/admin/clients/${ci.user.id}`)}
                       >
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                            checked={selectedPositions.has(ci.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => {
+                              const next = new Set(selectedPositions)
+                              if (e.target.checked) {
+                                next.add(ci.id)
+                              } else {
+                                next.delete(ci.id)
+                              }
+                              setSelectedPositions(next)
+                            }}
+                          />
+                        </TableCell>
                         <TableCell>
                           <div>
                             <p className="font-medium">{ci.user.name}</p>
@@ -1047,7 +1099,19 @@ export default function AdminInvestmentDetailPage({
 
         {/* Valuations Tab */}
         <TabsContent value="valuations" className="mt-4 space-y-4">
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center">
+            <div>
+              {selectedValuations.size > 0 && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => setDeleteValuationsOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete Selected ({selectedValuations.size})
+                </Button>
+              )}
+            </div>
             <Button size="sm" onClick={() => setAddValuationOpen(true)}>
               <Plus className="h-4 w-4" />
               Add Valuation
@@ -1113,6 +1177,20 @@ export default function AdminInvestmentDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                        checked={sortedValuations.length > 0 && selectedValuations.size === sortedValuations.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedValuations(new Set(sortedValuations.map((v) => v.id)))
+                          } else {
+                            setSelectedValuations(new Set())
+                          }
+                        }}
+                      />
+                    </TableHead>
                     <SortableHead label="Date" sortKey="date" sort={valSort} onSort={setValSort} />
                     <SortableHead label="Total Value" sortKey="totalValue" sort={valSort} onSort={setValSort} className="text-right" />
                     <TableHead>Notes</TableHead>
@@ -1123,20 +1201,36 @@ export default function AdminInvestmentDetailPage({
                 <TableBody>
                   {valuationsLoading ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
                         Loading valuations...
                       </TableCell>
                     </TableRow>
                   ) : sortedValuations.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
                         <TrendingUp className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
                         <p>No valuations yet. Add a valuation to track fund NAV.</p>
                       </TableCell>
                     </TableRow>
                   ) : (
                     sortedValuations.map((v) => (
-                      <TableRow key={v.id}>
+                      <TableRow key={v.id} className={selectedValuations.has(v.id) ? "bg-[#FDF5E8]/50" : ""}>
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                            checked={selectedValuations.has(v.id)}
+                            onChange={(e) => {
+                              const next = new Set(selectedValuations)
+                              if (e.target.checked) {
+                                next.add(v.id)
+                              } else {
+                                next.delete(v.id)
+                              }
+                              setSelectedValuations(next)
+                            }}
+                          />
+                        </TableCell>
                         <TableCell>{formatDateOnly(v.date)}</TableCell>
                         <TableCell className="text-right font-medium">
                           {formatCurrency(Number(v.totalValue))}
@@ -1212,7 +1306,19 @@ export default function AdminInvestmentDetailPage({
 
         {/* Documents Tab */}
         <TabsContent value="documents" className="mt-4 space-y-4">
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center">
+            <div>
+              {selectedDocuments.size > 0 && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => setDeleteDocumentsOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete Selected ({selectedDocuments.size})
+                </Button>
+              )}
+            </div>
             <Button size="sm" onClick={() => setDocUploadOpen(true)}>
               <Upload className="h-4 w-4" />
               Upload Document
@@ -1223,6 +1329,20 @@ export default function AdminInvestmentDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                        checked={sortedDocuments.length > 0 && selectedDocuments.size === sortedDocuments.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedDocuments(new Set(sortedDocuments.map((d) => d.id)))
+                          } else {
+                            setSelectedDocuments(new Set())
+                          }
+                        }}
+                      />
+                    </TableHead>
                     <SortableHead label="Name" sortKey="name" sort={docSort} onSort={setDocSort} />
                     <SortableHead label="Type" sortKey="type" sort={docSort} onSort={setDocSort} />
                     <SortableHead label="Size" sortKey="size" sort={docSort} onSort={setDocSort} />
@@ -1233,13 +1353,29 @@ export default function AdminInvestmentDetailPage({
                 <TableBody>
                   {sortedDocuments.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
                         No documents attached to this investment.
                       </TableCell>
                     </TableRow>
                   ) : (
                     sortedDocuments.map((doc) => (
-                      <TableRow key={doc.id}>
+                      <TableRow key={doc.id} className={selectedDocuments.has(doc.id) ? "bg-[#FDF5E8]/50" : ""}>
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                            checked={selectedDocuments.has(doc.id)}
+                            onChange={(e) => {
+                              const next = new Set(selectedDocuments)
+                              if (e.target.checked) {
+                                next.add(doc.id)
+                              } else {
+                                next.delete(doc.id)
+                              }
+                              setSelectedDocuments(next)
+                            }}
+                          />
+                        </TableCell>
                         <TableCell className="font-medium">{doc.name}</TableCell>
                         <TableCell>
                           <Badge variant="secondary">{doc.type}</Badge>
@@ -1412,6 +1548,98 @@ export default function AdminInvestmentDetailPage({
           }
         }}
         loading={deletingDistributions}
+      />
+
+      <ConfirmDialog
+        open={deletePositionsOpen}
+        onOpenChange={setDeletePositionsOpen}
+        title="Delete Positions"
+        description={`Are you sure you want to delete ${selectedPositions.size} client position${selectedPositions.size !== 1 ? "s" : ""}? Distribution and contribution records will be preserved. This action can be reversed.`}
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          setDeletingPositions(true)
+          try {
+            for (const posId of selectedPositions) {
+              const res = await fetch(
+                `/api/admin/investments/${investment.id}/clients/${posId}`,
+                { method: "DELETE" }
+              )
+              if (!res.ok) {
+                const data = await res.json().catch(() => ({}))
+                throw new Error(data.error || "Delete failed")
+              }
+            }
+            setSelectedPositions(new Set())
+            setDeletePositionsOpen(false)
+            fetchInvestment()
+          } catch (err) {
+            console.error("Error deleting positions:", err)
+          } finally {
+            setDeletingPositions(false)
+          }
+        }}
+        loading={deletingPositions}
+      />
+
+      <ConfirmDialog
+        open={deleteValuationsOpen}
+        onOpenChange={setDeleteValuationsOpen}
+        title="Delete Valuations"
+        description={`Are you sure you want to delete ${selectedValuations.size} valuation${selectedValuations.size !== 1 ? "s" : ""}? This action can be reversed.`}
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          setDeletingValuations(true)
+          try {
+            const res = await fetch(`/api/admin/investments/${investment.id}/valuations`, {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ids: Array.from(selectedValuations) }),
+            })
+            if (!res.ok) {
+              const data = await res.json().catch(() => ({}))
+              throw new Error(data.error || "Delete failed")
+            }
+            setSelectedValuations(new Set())
+            setDeleteValuationsOpen(false)
+            fetchValuations()
+            fetchInvestment()
+          } catch (err) {
+            console.error("Error deleting valuations:", err)
+          } finally {
+            setDeletingValuations(false)
+          }
+        }}
+        loading={deletingValuations}
+      />
+
+      <ConfirmDialog
+        open={deleteDocumentsOpen}
+        onOpenChange={setDeleteDocumentsOpen}
+        title="Delete Documents"
+        description={`Are you sure you want to delete ${selectedDocuments.size} document${selectedDocuments.size !== 1 ? "s" : ""}? This action can be reversed.`}
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          setDeletingDocuments(true)
+          try {
+            const res = await fetch("/api/admin/documents", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ids: Array.from(selectedDocuments) }),
+            })
+            if (!res.ok) {
+              const data = await res.json().catch(() => ({}))
+              throw new Error(data.error || "Delete failed")
+            }
+            setSelectedDocuments(new Set())
+            setDeleteDocumentsOpen(false)
+            fetchInvestment()
+          } catch (err) {
+            console.error("Error deleting documents:", err)
+          } finally {
+            setDeletingDocuments(false)
+          }
+        }}
+        loading={deletingDocuments}
       />
     </div>
   )
