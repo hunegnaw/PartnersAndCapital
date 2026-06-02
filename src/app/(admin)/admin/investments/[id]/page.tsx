@@ -483,13 +483,27 @@ export default function AdminInvestmentDetailPage({
       value: Number(v.totalValue),
     }))
 
-  // Aggregate all distributions across all client positions
-  const allDistributionsRaw = investment.clientInvestments.flatMap((ci) =>
+  // Aggregate distributions — scoped to one client when viewing from client page
+  const relevantPositions = isClientScoped
+    ? investment.clientInvestments.filter((ci) => ci.userId === scopedClientId)
+    : investment.clientInvestments
+  const allDistributionsRaw = relevantPositions.flatMap((ci) =>
     ci.distributions.map((d) => ({
       ...d,
       clientName: ci.user.name || ci.user.email,
       clientId: ci.userId,
     }))
+  )
+
+  // Aggregate contributions for scoped client
+  const allContributionsRaw = relevantPositions.flatMap((ci) =>
+    ci.contributions.map((c) => ({
+      ...c,
+      clientName: ci.user.name || ci.user.email,
+    }))
+  )
+  const allContributions = [...allContributionsRaw].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   )
   const allDistributions = sortItems(allDistributionsRaw, distSort || { key: "date", dir: "desc" }, {
     date: (d) => new Date(d.date).getTime(),
@@ -614,7 +628,7 @@ export default function AdminInvestmentDetailPage({
       </div>
 
       {/* Summary Cards */}
-      <div className={`grid gap-4 ${isClientScoped ? "md:grid-cols-3" : "md:grid-cols-5"}`}>
+      <div className={`grid gap-4 ${isClientScoped ? "md:grid-cols-4" : "md:grid-cols-5"}`}>
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">{isClientScoped ? "Invested" : "Total Invested"}</p>
@@ -627,21 +641,21 @@ export default function AdminInvestmentDetailPage({
             <p className="text-xl font-bold">{formatCurrency(totalCurrentValue)}</p>
           </CardContent>
         </Card>
-        {!isClientScoped && (
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Total Distributed</p>
-              <p className="text-xl font-bold">
-                {formatCurrency(
-                  investment.clientInvestments.reduce(
-                    (sum, ci) => sum + Number(ci.cashDistributed),
-                    0
-                  )
-                )}
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">{isClientScoped ? "Cash Distributed" : "Total Distributed"}</p>
+            <p className="text-xl font-bold">
+              {formatCurrency(
+                isClientScoped
+                  ? Number(clientPosition.cashDistributed)
+                  : investment.clientInvestments.reduce(
+                      (sum, ci) => sum + Number(ci.cashDistributed),
+                      0
+                    )
+              )}
+            </p>
+          </CardContent>
+        </Card>
         {!isClientScoped && (
           <Card>
             <CardContent className="pt-6">
@@ -673,6 +687,12 @@ export default function AdminInvestmentDetailPage({
             <TabsTrigger value="clients">
               <Users className="h-4 w-4 mr-1.5" />
               Client Positions ({investment.clientInvestments.length})
+            </TabsTrigger>
+          )}
+          {isClientScoped && (
+            <TabsTrigger value="contributions">
+              <Plus className="h-4 w-4 mr-1.5" />
+              Contributions ({allContributions.length})
             </TabsTrigger>
           )}
           <TabsTrigger value="distributions">
@@ -906,6 +926,53 @@ export default function AdminInvestmentDetailPage({
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Contributions Tab (client-scoped only) */}
+        {isClientScoped && (
+          <TabsContent value="contributions" className="mt-4 space-y-4">
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead>Notes</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {allContributions.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                          <Plus className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+                          <p>No contributions recorded yet.</p>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      allContributions.map((c) => (
+                        <TableRow key={c.id}>
+                          <TableCell>{formatDateOnly(c.date)}</TableCell>
+                          <TableCell className="text-right font-medium">
+                            {formatCurrency(Number(c.amount))}
+                          </TableCell>
+                          <TableCell className="max-w-[200px] truncate">
+                            {c.description || "--"}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={c.status === "COMPLETED" ? "default" : "secondary"}>
+                              {c.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         {/* Distributions Tab */}
         <TabsContent value="distributions" className="mt-4 space-y-4">
