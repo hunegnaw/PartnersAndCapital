@@ -112,6 +112,7 @@ interface InvestmentDocument {
   fileSize: number
   createdAt: string
   userId: string | null
+  deletedAt: string | null
 }
 
 interface Valuation {
@@ -282,6 +283,9 @@ export default function AdminInvestmentDetailPage({
   const [deleteDocumentsOpen, setDeleteDocumentsOpen] = useState(false)
   const [deletingDocuments, setDeletingDocuments] = useState(false)
 
+  // Show deleted toggles
+  const [showDeletedDocs, setShowDeletedDocs] = useState(false)
+
   // Sort state for tables
   const [clientSort, setClientSort] = useState<SortState<string>>(null)
   const [distSort, setDistSort] = useState<SortState<string>>({ key: "date", dir: "desc" })
@@ -294,7 +298,10 @@ export default function AdminInvestmentDetailPage({
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/admin/investments/${id}`)
+      const params = new URLSearchParams()
+      if (showDeletedDocs) params.set("includeDeletedDocs", "true")
+      const qs = params.toString()
+      const res = await fetch(`/api/admin/investments/${id}${qs ? `?${qs}` : ""}`)
       if (!res.ok) {
         if (res.status === 404) throw new Error("Investment not found")
         throw new Error("Failed to fetch investment")
@@ -306,7 +313,7 @@ export default function AdminInvestmentDetailPage({
     } finally {
       setLoading(false)
     }
-  }, [id])
+  }, [id, showDeletedDocs])
 
   const fetchValuations = useCallback(async () => {
     setValuationsLoading(true)
@@ -1307,7 +1314,7 @@ export default function AdminInvestmentDetailPage({
         {/* Documents Tab */}
         <TabsContent value="documents" className="mt-4 space-y-4">
           <div className="flex justify-between items-center">
-            <div>
+            <div className="flex items-center gap-3">
               {selectedDocuments.size > 0 && (
                 <Button
                   size="sm"
@@ -1318,6 +1325,15 @@ export default function AdminInvestmentDetailPage({
                   Delete Selected ({selectedDocuments.size})
                 </Button>
               )}
+              <label className="flex items-center gap-2 text-sm whitespace-nowrap">
+                <input
+                  type="checkbox"
+                  checked={showDeletedDocs}
+                  onChange={(e) => setShowDeletedDocs(e.target.checked)}
+                  className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                />
+                Show deleted
+              </label>
             </div>
             <Button size="sm" onClick={() => setDocUploadOpen(true)}>
               <Upload className="h-4 w-4" />
@@ -1359,7 +1375,7 @@ export default function AdminInvestmentDetailPage({
                     </TableRow>
                   ) : (
                     sortedDocuments.map((doc) => (
-                      <TableRow key={doc.id} className={selectedDocuments.has(doc.id) ? "bg-[#FDF5E8]/50" : ""}>
+                      <TableRow key={doc.id} className={`${selectedDocuments.has(doc.id) ? "bg-[#FDF5E8]/50" : ""} ${doc.deletedAt ? "opacity-50" : ""}`}>
                         <TableCell>
                           <input
                             type="checkbox"

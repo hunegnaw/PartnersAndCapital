@@ -12,6 +12,8 @@ export async function GET(
     if (user instanceof NextResponse) return user;
 
     const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const includeDeletedDocs = searchParams.get("includeDeletedDocs") === "true";
 
     const investment = await prisma.investment.findFirst({
       where: { id, deletedAt: null },
@@ -55,7 +57,7 @@ export async function GET(
           },
         },
         documents: {
-          where: { deletedAt: null },
+          ...(includeDeletedDocs ? {} : { where: { deletedAt: null } }),
           orderBy: { createdAt: "desc" },
         },
         dealRoomUpdates: {
