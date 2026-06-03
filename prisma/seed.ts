@@ -127,7 +127,8 @@ async function main() {
     { value: "DISTRIBUTION_NOTICE", label: "Distribution Notice", sortOrder: 7 },
     { value: "PPM", label: "PPM", sortOrder: 8 },
     { value: "INVESTOR_LETTER", label: "Investor Letter", sortOrder: 9 },
-    { value: "OTHER", label: "Other", sortOrder: 10 },
+    { value: "STATEMENT", label: "Statement", sortOrder: 10 },
+    { value: "OTHER", label: "Other", sortOrder: 11 },
   ];
 
   for (const dt of defaultDocumentTypes) {

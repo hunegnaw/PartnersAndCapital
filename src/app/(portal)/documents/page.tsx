@@ -19,7 +19,7 @@ import {
   TabsTrigger,
   TabsContent,
 } from "@/components/ui/tabs";
-import { Search, FolderOpen } from "lucide-react";
+import { Search, FolderOpen, Download, FileText, Loader2 } from "lucide-react";
 import { formatDate, formatDateOnly, cn } from "@/lib/utils";
 import TaxCenterTab from "./TaxCenterTab";
 
@@ -64,6 +64,7 @@ const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   SUBSCRIPTION_AGREEMENT: "Subscription Agreement",
   PPM: "PPM",
   INVESTOR_LETTER: "Investor Letter",
+  STATEMENT: "Statement",
   OTHER: "Other",
 };
 
@@ -177,6 +178,14 @@ export default function DocumentsPage() {
   const [taxLoading, setTaxLoading] = useState(false);
   const taxFetchedRef = useRef(false);
 
+  // Statements state
+  const [statements, setStatements] = useState<Document[]>([]);
+  const [statementsLoading, setStatementsLoading] = useState(false);
+  const [statementsYear, setStatementsYear] = useState<string>("all");
+  const [selectedStatements, setSelectedStatements] = useState<Set<string>>(new Set());
+  const [zipDownloading, setZipDownloading] = useState(false);
+  const statementsFetchedRef = useRef(false);
+
   const fetchDocuments = useCallback(async () => {
     try {
       setLoading(true);
@@ -232,6 +241,48 @@ export default function DocumentsPage() {
     }
   }, [activeTab]);
 
+  // Fetch statements when Statements tab is first opened
+  useEffect(() => {
+    if (activeTab === "statements" && !statementsFetchedRef.current) {
+      statementsFetchedRef.current = true;
+      setStatementsLoading(true);
+      fetch("/api/portal/documents?type=STATEMENT&pageSize=500")
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to load statements");
+          return res.json();
+        })
+        .then((json) => {
+          setStatements(json.documents);
+        })
+        .catch(() => {})
+        .finally(() => setStatementsLoading(false));
+    }
+  }, [activeTab]);
+
+  async function handleDownloadZip() {
+    if (selectedStatements.size === 0) return;
+    setZipDownloading(true);
+    try {
+      const res = await fetch("/api/portal/documents/download-zip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedStatements) }),
+      });
+      if (!res.ok) throw new Error("Download failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "statements.zip";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // silently fail
+    } finally {
+      setZipDownloading(false);
+    }
+  }
+
   // Debounced search
   const [searchInput, setSearchInput] = useState("");
   useEffect(() => {
@@ -250,6 +301,11 @@ export default function DocumentsPage() {
 
   const taxDocCount =
     (categoryCounts["K1"] || 0) + (categoryCounts["TAX_1099"] || 0);
+  const statementCount = categoryCounts["STATEMENT"] || 0;
+
+  const filteredStatements = statementsYear === "all"
+    ? statements
+    : statements.filter((s) => String(s.year) === statementsYear);
 
   // Compute category sidebar counts
   const sidebarCategories = [
@@ -365,6 +421,17 @@ export default function DocumentsPage() {
             {taxDocCount > 0 && (
               <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-[#1A2640] text-white text-[10px] font-semibold">
                 {taxDocCount}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger
+            value="statements"
+            className="px-4 py-2 text-sm gap-2"
+          >
+            Statements
+            {statementCount > 0 && (
+              <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-[#1A2640] text-white text-[10px] font-semibold">
+                {statementCount}
               </span>
             )}
           </TabsTrigger>
@@ -654,6 +721,119 @@ export default function DocumentsPage() {
             formatFileSize={formatFileSize}
             typeLabel={typeLabel}
           />
+        </TabsContent>
+
+        {/* Statements Tab */}
+        <TabsContent value="statements" className="mt-4">
+          {statementsLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <DocumentSkeleton key={i} />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Toolbar */}
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <Select value={statementsYear} onValueChange={(v) => setStatementsYear(v ?? "all")}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="All Years" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Years</SelectItem>
+                      {Array.from(new Set(statements.map((s) => s.year).filter(Boolean)))
+                        .sort((a, b) => (b as number) - (a as number))
+                        .map((y) => (
+                          <SelectItem key={y} value={String(y)}>
+                            {y}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedStatements.size > 0 && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleDownloadZip}
+                      disabled={zipDownloading}
+                    >
+                      {zipDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                      Download {selectedStatements.size} selected
+                    </Button>
+                  )}
+                </div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
+                    checked={filteredStatements.length > 0 && selectedStatements.size === filteredStatements.length}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedStatements(new Set(filteredStatements.map((s) => s.id)));
+                      } else {
+                        setSelectedStatements(new Set());
+                      }
+                    }}
+                  />
+                  Select all
+                </label>
+              </div>
+
+              {/* Statement List */}
+              {filteredStatements.length === 0 ? (
+                <div className="bg-white rounded-xl border border-[#dfdedd] p-12 text-center">
+                  <FileText className="h-10 w-10 mx-auto mb-3 text-[#888780]" />
+                  <p className="text-sm text-[#888780]">No statements available yet.</p>
+                  <p className="text-xs text-[#888780] mt-1">
+                    Statements will appear here as they are generated.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl border border-[#dfdedd] divide-y divide-[#eeece8]">
+                  {filteredStatements.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-3",
+                        selectedStatements.has(doc.id) && "bg-[#FDF5E8]/50"
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A] shrink-0"
+                        checked={selectedStatements.has(doc.id)}
+                        onChange={(e) => {
+                          const next = new Set(selectedStatements);
+                          if (e.target.checked) next.add(doc.id);
+                          else next.delete(doc.id);
+                          setSelectedStatements(next);
+                        }}
+                      />
+                      {fileTypeBadge(doc.mimeType)}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[#1a1a18] truncate">
+                          {doc.name}
+                        </p>
+                        <p className="text-xs text-[#888780]">
+                          {formatDateOnly(doc.createdAt)}
+                          {doc.year ? ` · ${doc.year}` : ""}
+                          {doc.fileSize ? ` · ${formatFileSize(doc.fileSize)}` : ""}
+                        </p>
+                      </div>
+                      <a
+                        href={`/api/portal/documents/${doc.id}/download`}
+                        className="shrink-0 p-2 rounded-lg hover:bg-[#eeece8] transition-colors text-[#B07D3A]"
+                        title="Download"
+                      >
+                        <Download className="h-4 w-4" />
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
