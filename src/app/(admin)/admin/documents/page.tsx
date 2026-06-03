@@ -34,6 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { PaginationControls } from "@/components/ui/pagination-controls"
 import { DocumentUploadDialog } from "@/components/admin/document-upload-dialog"
 import { ManageDocumentTypesDialog } from "@/components/admin/manage-document-types-dialog"
 import { formatDate } from "@/lib/utils"
@@ -43,8 +44,6 @@ import {
   Download,
   Trash2,
   AlertCircle,
-  ChevronLeft,
-  ChevronRight,
   Settings2,
 } from "lucide-react"
 
@@ -460,33 +459,13 @@ export default function AdminDocumentsPage() {
       </Card>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Showing {(page - 1) * pageSize + 1}--{Math.min(page * pageSize, total)} of {total}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={pageSize}
+        onPageChange={setPage}
+      />
 
       <DocumentUploadDialog
         open={uploadOpen}

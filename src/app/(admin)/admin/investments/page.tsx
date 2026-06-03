@@ -26,14 +26,13 @@ import {
 } from "@/components/ui/table"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { PaginationControls } from "@/components/ui/pagination-controls"
 import { InvestmentFormDialog } from "@/components/admin/investment-form-dialog"
 import { formatPercentage } from "@/lib/utils"
 import {
   Search,
   Plus,
   AlertCircle,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react"
 
 interface AssetClass {
@@ -329,33 +328,13 @@ export default function AdminInvestmentsPage() {
       </Card>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Showing {(page - 1) * pageSize + 1}--{Math.min(page * pageSize, total)} of {total}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={pageSize}
+        onPageChange={setPage}
+      />
 
       <InvestmentFormDialog
         open={dialogOpen}
