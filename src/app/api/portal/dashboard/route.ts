@@ -135,34 +135,27 @@ export async function GET() {
     });
 
     // Growth data: cumulative invested + cumulative distributions over time
-    // These are fixed-value investments — portfolio value = amount invested
+    // Uses amountInvested from positions (not contribution records, which may differ)
     const now = new Date();
     const investmentIds = clientInvestments.map((ci) => ci.investmentId);
 
-    const [userContributions, userDistributions] = investmentIds.length > 0
-      ? await Promise.all([
-          prisma.contribution.findMany({
-            where: {
-              userId,
-              status: "COMPLETED",
-              deletedAt: null,
-              clientInvestment: { investmentId: { in: investmentIds }, deletedAt: null },
-            },
-            select: { amount: true, date: true },
-            orderBy: { date: "asc" },
-          }),
-          prisma.distribution.findMany({
-            where: {
-              userId,
-              status: "COMPLETED",
-              deletedAt: null,
-              clientInvestment: { investmentId: { in: investmentIds }, deletedAt: null },
-            },
-            select: { amount: true, date: true },
-            orderBy: { date: "asc" },
-          }),
-        ])
-      : [[], []];
+    // Build investment events from position dates + amounts (source of truth)
+    const investmentEvents = clientInvestments
+      .map((ci) => ({ date: ci.investmentDate || ci.createdAt, amount: Number(ci.amountInvested) }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    const userDistributions = investmentIds.length > 0
+      ? await prisma.distribution.findMany({
+          where: {
+            userId,
+            status: "COMPLETED",
+            deletedAt: null,
+            clientInvestment: { investmentId: { in: investmentIds }, deletedAt: null },
+          },
+          select: { amount: true, date: true },
+          orderBy: { date: "asc" },
+        })
+      : [];
 
     const monthlyData: {
       month: string;
@@ -170,12 +163,9 @@ export async function GET() {
       cumulativeDistributions: number;
     }[] = [];
 
-    if (userContributions.length > 0) {
-      const startDate = new Date(
-        userContributions[0].date.getFullYear(),
-        userContributions[0].date.getMonth(),
-        1
-      );
+    if (investmentEvents.length > 0) {
+      const firstDate = new Date(investmentEvents[0].date);
+      const startDate = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
       const endDate = new Date(now.getFullYear(), now.getMonth(), 1);
 
       const cursor = new Date(startDate);
@@ -184,8 +174,8 @@ export async function GET() {
         const monthKey = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
 
         let cumInvested = 0;
-        for (const c of userContributions) {
-          if (c.date <= monthEnd) cumInvested += Number(c.amount);
+        for (const e of investmentEvents) {
+          if (new Date(e.date) <= monthEnd) cumInvested += e.amount;
         }
 
         let cumDist = 0;
