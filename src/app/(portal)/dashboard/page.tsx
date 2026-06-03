@@ -816,7 +816,7 @@ export default function DashboardPage() {
                         <FileText className="h-4 w-4 text-[#5f5e5a]" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-[#1a1a18]">
+                        <p className="text-sm font-medium text-[#1a1a18] truncate max-w-[250px]">
                           {doc.name}
                         </p>
                         <p className="text-xs text-[#888780]">
