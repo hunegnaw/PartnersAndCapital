@@ -335,6 +335,7 @@ export default function InvestmentDetailPage({
       <Tabs defaultValue="overview">
         <TabsList className="bg-white border border-[#dfdedd]">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="activity">Activity ({data.contributions.length + data.distributions.length})</TabsTrigger>
           <TabsTrigger value="updates">Updates</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="disclosures">Disclosures</TabsTrigger>
@@ -595,6 +596,99 @@ export default function InvestmentDetailPage({
                 </div>
               )}
             </div>
+          </div>
+        </TabsContent>
+
+        {/* Activity Tab */}
+        <TabsContent value="activity" className="mt-6 space-y-6">
+          {/* Contributions */}
+          <div className="bg-white rounded-xl border border-[#dfdedd] overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#dfdedd]">
+              <h3 className="text-sm font-semibold text-[#1a1a18] uppercase tracking-wider">
+                Contributions ({data.contributions.length})
+              </h3>
+            </div>
+            {data.contributions.length === 0 ? (
+              <div className="px-6 py-8 text-center text-sm text-[#888780]">
+                No contributions recorded.
+              </div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#dfdedd] text-[#888780]">
+                    <th className="text-left px-6 py-3 font-medium">Date</th>
+                    <th className="text-right px-6 py-3 font-medium">Amount</th>
+                    <th className="text-left px-6 py-3 font-medium">Notes</th>
+                    <th className="text-left px-6 py-3 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...data.contributions]
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .map((c) => (
+                      <tr key={c.id} className="border-b border-[#f5f5f3] last:border-0">
+                        <td className="px-6 py-3 text-[#1a1a18]">{formatDateOnly(c.date)}</td>
+                        <td className="px-6 py-3 text-right font-medium text-[#1a1a18]">
+                          {formatCurrency(Number(c.amount))}
+                        </td>
+                        <td className="px-6 py-3 text-[#5f5e5a]">{c.description || "--"}</td>
+                        <td className="px-6 py-3">
+                          <Badge variant={c.status === "COMPLETED" ? "default" : "secondary"}>
+                            {c.status}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Distributions */}
+          <div className="bg-white rounded-xl border border-[#dfdedd] overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#dfdedd]">
+              <h3 className="text-sm font-semibold text-[#1a1a18] uppercase tracking-wider">
+                Distributions ({data.distributions.length})
+              </h3>
+            </div>
+            {data.distributions.length === 0 ? (
+              <div className="px-6 py-8 text-center text-sm text-[#888780]">
+                No distributions recorded.
+              </div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#dfdedd] text-[#888780]">
+                    <th className="text-left px-6 py-3 font-medium">Date</th>
+                    <th className="text-right px-6 py-3 font-medium">Amount</th>
+                    <th className="text-left px-6 py-3 font-medium">Type</th>
+                    <th className="text-left px-6 py-3 font-medium">Notes</th>
+                    <th className="text-left px-6 py-3 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...data.distributions]
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .map((d) => (
+                      <tr key={d.id} className="border-b border-[#f5f5f3] last:border-0">
+                        <td className="px-6 py-3 text-[#1a1a18]">{formatDateOnly(d.date)}</td>
+                        <td className="px-6 py-3 text-right font-medium text-[#1a1a18]">
+                          {formatCurrency(Number(d.amount))}
+                        </td>
+                        <td className="px-6 py-3 text-[#5f5e5a]">
+                          {d.type === "CASH" ? "Cash" : d.type === "REINVESTMENT" ? "Reinvestment" : "Return of Capital"}
+                        </td>
+                        <td className="px-6 py-3 text-[#5f5e5a]">{d.description || "--"}</td>
+                        <td className="px-6 py-3">
+                          <Badge variant={d.status === "COMPLETED" ? "default" : "secondary"}>
+                            {d.status}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </TabsContent>
 
