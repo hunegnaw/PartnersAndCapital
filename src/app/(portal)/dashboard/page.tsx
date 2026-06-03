@@ -413,7 +413,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Performance Chart - Full Width */}
-      <div className="bg-white rounded-xl border border-[#dfdedd] p-6 overflow-visible">
+      <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-xs font-semibold text-[#888780] tracking-widest uppercase">
               Performance
@@ -456,11 +456,11 @@ export default function DashboardPage() {
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(val) => {
-                    if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(1)}M`;
-                    if (val >= 1_000) return `$${(val / 1_000).toFixed(0)}K`;
-                    return `$${val}`;
+                    if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
+                    if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
+                    return `${val}`;
                   }}
-                  width={80}
+                  width={45}
                   domain={[(dataMin: number) => Math.floor(dataMin * 0.98), (dataMax: number) => Math.ceil(dataMax * 1.02)]}
                   tickCount={5}
                 />
