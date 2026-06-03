@@ -478,6 +478,11 @@ export default function DashboardPage() {
                   width={65}
                   domain={[0, "auto"]}
                 />
+                <YAxis
+                  yAxisId="bars"
+                  hide
+                  domain={[0, (dataMax: number) => Math.max(dataMax * 2.5, 1)]}
+                />
                 <Tooltip
                   formatter={(value, name) => [
                     formatCurrency(Number(value ?? 0)),
@@ -510,18 +515,20 @@ export default function DashboardPage() {
                   wrapperStyle={{ fontSize: "12px" }}
                 />
                 <Bar
-                  yAxisId="right"
+                  yAxisId="bars"
                   dataKey="monthlyContribution"
                   fill="#1A2640"
-                  opacity={0.3}
-                  radius={[2, 2, 0, 0]}
+                  opacity={0.45}
+                  radius={[3, 3, 0, 0]}
+                  barSize={12}
                 />
                 <Bar
-                  yAxisId="right"
+                  yAxisId="bars"
                   dataKey="monthlyDistribution"
                   fill="#B07D3A"
-                  opacity={0.3}
-                  radius={[2, 2, 0, 0]}
+                  opacity={0.45}
+                  radius={[3, 3, 0, 0]}
+                  barSize={12}
                 />
                 <Line
                   yAxisId="left"
