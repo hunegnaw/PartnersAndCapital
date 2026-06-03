@@ -21,6 +21,7 @@ export async function GET(
         id,
         userId,
         deletedAt: null,
+        investment: { deletedAt: null },
       },
       select: {
         investmentId: true,

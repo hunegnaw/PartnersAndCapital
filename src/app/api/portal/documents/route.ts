@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 
     // Get user's investment IDs for scoping
     const clientInvestments = await prisma.clientInvestment.findMany({
-      where: { userId, deletedAt: null },
+      where: { userId, deletedAt: null, investment: { deletedAt: null } },
       select: {
         investmentId: true,
         investment: { select: { id: true, name: true } },

@@ -19,6 +19,7 @@ export async function GET(
         id,
         userId,
         deletedAt: null,
+        investment: { deletedAt: null },
       },
       include: {
         investment: {

@@ -12,7 +12,7 @@ export async function GET() {
 
     // Get all client investments for scoping
     const clientInvestmentIds = await prisma.clientInvestment.findMany({
-      where: { userId, deletedAt: null },
+      where: { userId, deletedAt: null, investment: { deletedAt: null } },
       select: { id: true },
     });
     const ciIds = clientInvestmentIds.map((ci) => ci.id);
