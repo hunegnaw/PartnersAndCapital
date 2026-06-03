@@ -29,23 +29,15 @@ export async function GET() {
       },
     });
 
-    // KPIs
+    // KPIs — portfolio value = amount invested (fixed-value investments)
     const totalInvested = clientInvestments.reduce(
       (sum, ci) => sum + Number(ci.amountInvested),
       0
     );
-    const currentValue = clientInvestments.reduce(
-      (sum, ci) => sum + Number(ci.currentValue),
-      0
-    );
+    const currentValue = totalInvested;
     const activeInvestments = clientInvestments.filter(
       (ci) => ci.status === "ACTIVE"
     ).length;
-    const totalGain = currentValue - totalInvested;
-    const totalReturnPct =
-      totalInvested > 0
-        ? Math.round((totalGain / totalInvested) * 10000) / 100
-        : 0;
 
     // Total completed distributions (only from active investments)
     const distributions = await prisma.distribution.findMany({
@@ -60,6 +52,13 @@ export async function GET() {
       (sum, d) => sum + Number(d.amount),
       0
     );
+
+    // Net return = distributions / invested (these are fixed-value investments)
+    const totalGain = totalDistributions;
+    const totalReturnPct =
+      totalInvested > 0
+        ? Math.round((totalDistributions / totalInvested) * 10000) / 100
+        : 0;
 
     // Weighted average IRR
     let weightedIrr = 0;
@@ -135,22 +134,35 @@ export async function GET() {
       };
     });
 
-    // Growth data: reconstruct historical portfolio value from valuations
+    // Growth data: cumulative invested + cumulative distributions over time
+    // These are fixed-value investments — portfolio value = amount invested
     const now = new Date();
     const investmentIds = clientInvestments.map((ci) => ci.investmentId);
 
-    const earliestContribution = investmentIds.length > 0
-      ? await prisma.contribution.findFirst({
-          where: {
-            userId,
-            status: "COMPLETED",
-            deletedAt: null,
-            clientInvestment: { investmentId: { in: investmentIds }, deletedAt: null },
-          },
-          orderBy: { date: "asc" },
-          select: { date: true },
-        })
-      : null;
+    const [userContributions, userDistributions] = investmentIds.length > 0
+      ? await Promise.all([
+          prisma.contribution.findMany({
+            where: {
+              userId,
+              status: "COMPLETED",
+              deletedAt: null,
+              clientInvestment: { investmentId: { in: investmentIds }, deletedAt: null },
+            },
+            select: { amount: true, date: true },
+            orderBy: { date: "asc" },
+          }),
+          prisma.distribution.findMany({
+            where: {
+              userId,
+              status: "COMPLETED",
+              deletedAt: null,
+              clientInvestment: { investmentId: { in: investmentIds }, deletedAt: null },
+            },
+            select: { amount: true, date: true },
+            orderBy: { date: "asc" },
+          }),
+        ])
+      : [[], []];
 
     const monthlyData: {
       month: string;
@@ -158,57 +170,10 @@ export async function GET() {
       cumulativeDistributions: number;
     }[] = [];
 
-    if (earliestContribution && investmentIds.length > 0) {
-      const [allContributions, allValuations, userDistributions] = await Promise.all([
-        prisma.contribution.findMany({
-          where: {
-            clientInvestment: { investmentId: { in: investmentIds }, deletedAt: null },
-            status: "COMPLETED",
-            deletedAt: null,
-          },
-          select: {
-            userId: true,
-            amount: true,
-            date: true,
-            clientInvestment: { select: { investmentId: true } },
-          },
-          orderBy: { date: "asc" },
-        }),
-        prisma.investmentValuation.findMany({
-          where: { investmentId: { in: investmentIds }, deletedAt: null },
-          select: { investmentId: true, date: true, totalValue: true },
-          orderBy: { date: "asc" },
-        }),
-        prisma.distribution.findMany({
-          where: {
-            userId,
-            status: "COMPLETED",
-            deletedAt: null,
-            clientInvestment: { investmentId: { in: investmentIds }, deletedAt: null },
-          },
-          select: { amount: true, date: true },
-          orderBy: { date: "asc" },
-        }),
-      ]);
-
-      // Index contributions and valuations by investment
-      const contribsByInv = new Map<string, Array<{ userId: string; amount: number; date: Date }>>();
-      for (const c of allContributions) {
-        const invId = c.clientInvestment.investmentId;
-        if (!contribsByInv.has(invId)) contribsByInv.set(invId, []);
-        contribsByInv.get(invId)!.push({ userId: c.userId, amount: Number(c.amount), date: c.date });
-      }
-
-      const valsByInv = new Map<string, Array<{ date: Date; totalValue: number }>>();
-      for (const v of allValuations) {
-        if (!valsByInv.has(v.investmentId)) valsByInv.set(v.investmentId, []);
-        valsByInv.get(v.investmentId)!.push({ date: v.date, totalValue: Number(v.totalValue) });
-      }
-
-      // Build month-by-month from earliest contribution to now
+    if (userContributions.length > 0) {
       const startDate = new Date(
-        earliestContribution.date.getFullYear(),
-        earliestContribution.date.getMonth(),
+        userContributions[0].date.getFullYear(),
+        userContributions[0].date.getMonth(),
         1
       );
       const endDate = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -218,41 +183,11 @@ export async function GET() {
         const monthEnd = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0, 23, 59, 59, 999);
         const monthKey = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
 
-        let portfolioValue = 0;
-
-        for (const invId of investmentIds) {
-          const contribs = contribsByInv.get(invId) || [];
-          const valuations = valsByInv.get(invId) || [];
-
-          // User's cumulative contributions up to this month
-          let userCum = 0;
-          for (const c of contribs) {
-            if (c.date <= monthEnd && c.userId === userId) userCum += c.amount;
-          }
-          if (userCum === 0) continue;
-
-          // All clients' cumulative contributions up to this month
-          let totalCum = 0;
-          for (const c of contribs) {
-            if (c.date <= monthEnd) totalCum += c.amount;
-          }
-
-          // Latest valuation on or before this month
-          let fundValue: number | null = null;
-          for (let i = valuations.length - 1; i >= 0; i--) {
-            if (valuations[i].date <= monthEnd) {
-              fundValue = valuations[i].totalValue;
-              break;
-            }
-          }
-
-          // No valuation yet = use total contributions as fund value (no appreciation)
-          const effectiveFundValue = fundValue !== null ? fundValue : totalCum;
-          const share = totalCum > 0 ? userCum / totalCum : 0;
-          portfolioValue += effectiveFundValue * share;
+        let cumInvested = 0;
+        for (const c of userContributions) {
+          if (c.date <= monthEnd) cumInvested += Number(c.amount);
         }
 
-        // Cumulative distributions up to this month
         let cumDist = 0;
         for (const d of userDistributions) {
           if (d.date <= monthEnd) cumDist += Number(d.amount);
@@ -260,17 +195,11 @@ export async function GET() {
 
         monthlyData.push({
           month: monthKey,
-          netValue: Math.round(portfolioValue * 100) / 100,
+          netValue: Math.round(cumInvested * 100) / 100,
           cumulativeDistributions: Math.round(cumDist * 100) / 100,
         });
 
         cursor.setMonth(cursor.getMonth() + 1);
-      }
-
-      // Pin final month to actual current values for consistency with KPI cards
-      if (monthlyData.length > 0) {
-        monthlyData[monthlyData.length - 1].netValue = currentValue;
-        monthlyData[monthlyData.length - 1].cumulativeDistributions = totalDistributions;
       }
     }
 

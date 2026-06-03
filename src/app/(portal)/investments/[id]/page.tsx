@@ -239,7 +239,8 @@ export default function InvestmentDetailPage({
     );
   }
 
-  const gain = data.currentValue - data.amountInvested;
+  const totalCashDistributed = data.distributions.reduce((sum: number, d: { amount: number }) => sum + Number(d.amount), 0);
+  const returnPct = data.amountInvested > 0 ? Math.round((totalCashDistributed / data.amountInvested) * 10000) / 100 : 0;
   const distributionCount = data.distributions.length;
   const targetHoldMonths = data.investment.targetHoldPeriod
     ? parseInt(data.investment.targetHoldPeriod) * 12
@@ -360,16 +361,7 @@ export default function InvestmentDetailPage({
               Current Value
             </p>
             <p className="text-xl font-bold text-[#1a1a18]">
-              {formatCurrency(data.currentValue)}
-            </p>
-            <p
-              className={cn(
-                "text-xs mt-0.5",
-                gain >= 0 ? "text-green-600" : "text-red-600"
-              )}
-            >
-              {gain >= 0 ? "+" : ""}
-              {formatCurrency(gain)}
+              {formatCurrency(data.amountInvested)}
             </p>
           </div>
 
@@ -377,13 +369,8 @@ export default function InvestmentDetailPage({
             <p className="text-[10px] font-semibold text-[#888780] tracking-widest uppercase mb-1">
               Total Return
             </p>
-            <p
-              className={cn(
-                "text-xl font-bold",
-                data.returnPercentage >= 0 ? "text-green-600" : "text-red-600"
-              )}
-            >
-              +{Number(data.returnPercentage).toFixed(1)}%
+            <p className="text-xl font-bold text-green-600">
+              +{returnPct.toFixed(1)}%
             </p>
             <p className="text-xs text-[#888780] mt-0.5">
               Net IRR: {data.irr != null ? `${Number(data.irr).toFixed(1)}%` : "N/A"}

@@ -4,39 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { Prisma } from "@prisma/client";
 
-async function cascadeValuation(investmentId: string, totalValue: Prisma.Decimal) {
-  const clientInvestments = await prisma.clientInvestment.findMany({
-    where: { investmentId, deletedAt: null, status: "ACTIVE" },
-  });
-
-  if (clientInvestments.length === 0) return;
-
-  const totalInvested = clientInvestments.reduce(
-    (sum, ci) => sum.add(ci.amountInvested),
-    new Prisma.Decimal(0)
-  );
-
-  if (totalInvested.equals(0)) return;
-
-  const updates = clientInvestments.map((ci) => {
-    const share = ci.amountInvested.div(totalInvested);
-    const currentValue = totalValue.mul(share);
-    const totalReturn = currentValue.sub(ci.amountInvested);
-    const returnPct = ci.amountInvested.equals(0)
-      ? new Prisma.Decimal(0)
-      : totalReturn.div(ci.amountInvested).mul(100);
-
-    return prisma.clientInvestment.update({
-      where: { id: ci.id },
-      data: {
-        currentValue,
-        totalReturn,
-        returnPercentage: returnPct,
-      },
-    });
-  });
-
-  await Promise.all(updates);
+// Valuations record the fund's total capacity/limit — they do NOT change
+// client position values. These are fixed-value investments where returns
+// come from distributions, not appreciation.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function cascadeValuation(_investmentId: string, _totalValue: Prisma.Decimal) {
+  // No-op: client position currentValue = amountInvested (fixed)
 }
 
 export async function GET(
