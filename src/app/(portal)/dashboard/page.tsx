@@ -437,7 +437,7 @@ export default function DashboardPage() {
           </div>
           {filteredGrowth.length > 0 ? (
             <ResponsiveContainer width="100%" height={280}>
-              <ComposedChart data={filteredGrowth} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+              <ComposedChart data={filteredGrowth} margin={{ top: 5, right: 5, left: 15, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#eeece8" />
                 <XAxis
                   dataKey="month"
