@@ -14,6 +14,8 @@ export async function GET(request: Request) {
     const type = searchParams.get("type") || "";
     const investmentId = searchParams.get("investmentId") || "";
     const includeDeleted = searchParams.get("includeDeleted") === "true";
+    const sortBy = searchParams.get("sortBy") || "date";
+    const sortDir = searchParams.get("sortDir") === "asc" ? "asc" : "desc";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") || "20")));
 
@@ -46,7 +48,12 @@ export async function GET(request: Request) {
             },
           },
         },
-        orderBy: { date: "desc" },
+        orderBy: sortBy === "client" ? { user: { name: sortDir } }
+          : sortBy === "investment" ? { clientInvestment: { investment: { name: sortDir } } }
+          : sortBy === "amount" ? { amount: sortDir }
+          : sortBy === "type" ? { type: sortDir }
+          : sortBy === "status" ? { status: sortDir }
+          : { date: sortDir },
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),

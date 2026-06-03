@@ -45,6 +45,9 @@ import {
   Pencil,
   Upload,
   Trash2,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react"
 import { DistributionImportDialog } from "@/components/admin/distribution-import-dialog"
 
@@ -116,6 +119,46 @@ const statusVariant = (status: string) => {
   }
 }
 
+function SortHead({
+  label,
+  sortKey,
+  currentSort,
+  currentDir,
+  onSort,
+  className,
+}: {
+  label: string
+  sortKey: string
+  currentSort: string
+  currentDir: "asc" | "desc"
+  onSort: (key: string, dir: "asc" | "desc") => void
+  className?: string
+}) {
+  const active = currentSort === sortKey
+  return (
+    <TableHead className={className}>
+      <button
+        type="button"
+        className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+        onClick={() => {
+          if (active) {
+            onSort(sortKey, currentDir === "asc" ? "desc" : "asc")
+          } else {
+            onSort(sortKey, "asc")
+          }
+        }}
+      >
+        {label}
+        {active ? (
+          currentDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-30" />
+        )}
+      </button>
+    </TableHead>
+  )
+}
+
 export default function AdminDistributionsPage() {
   const [distributions, setDistributions] = useState<Distribution[]>([])
   const [investments, setInvestments] = useState<InvestmentOption[]>([])
@@ -135,6 +178,10 @@ export default function AdminDistributionsPage() {
 
   // Show deleted toggle
   const [showDeleted, setShowDeleted] = useState(false)
+
+  // Sort state
+  const [sortBy, setSortBy] = useState("date")
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
 
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -173,6 +220,8 @@ export default function AdminDistributionsPage() {
       if (typeFilter) params.set("type", typeFilter)
       if (investmentFilter) params.set("investmentId", investmentFilter)
       if (showDeleted) params.set("includeDeleted", "true")
+      params.set("sortBy", sortBy)
+      params.set("sortDir", sortDir)
 
       const res = await fetch(`/api/admin/distributions?${params}`)
       if (!res.ok) throw new Error("Failed to fetch distributions")
@@ -185,7 +234,7 @@ export default function AdminDistributionsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, search, typeFilter, investmentFilter, showDeleted])
+  }, [page, pageSize, search, typeFilter, investmentFilter, showDeleted, sortBy, sortDir])
 
   useEffect(() => {
     Promise.resolve().then(() => {
@@ -410,13 +459,13 @@ export default function AdminDistributionsPage() {
                     }}
                   />
                 </TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Investment</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Type</TableHead>
+                <SortHead label="Date" sortKey="date" currentSort={sortBy} currentDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
+                <SortHead label="Client" sortKey="client" currentSort={sortBy} currentDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
+                <SortHead label="Investment" sortKey="investment" currentSort={sortBy} currentDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
+                <SortHead label="Amount" sortKey="amount" currentSort={sortBy} currentDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} className="text-right" />
+                <SortHead label="Type" sortKey="type" currentSort={sortBy} currentDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
                 <TableHead className="hidden md:table-cell">Notes</TableHead>
-                <TableHead>Status</TableHead>
+                <SortHead label="Status" sortKey="status" currentSort={sortBy} currentDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
