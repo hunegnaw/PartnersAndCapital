@@ -54,7 +54,6 @@ import {
   TrendingUp,
   Trash2,
   DollarSign,
-  Loader2,
   ArrowUp,
   ArrowDown,
   ArrowUpDown,

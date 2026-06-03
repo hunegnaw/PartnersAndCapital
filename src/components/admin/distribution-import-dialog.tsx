@@ -24,7 +24,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 
 interface DistributionImportDialogProps {
   open: boolean
@@ -60,7 +59,6 @@ export function DistributionImportDialog({
 
   // Preview state
   const [previewRows, setPreviewRows] = useState<PreviewRow[] | null>(null)
-  const [previewLoading, setPreviewLoading] = useState(false)
   const [positions, setPositions] = useState<Array<{ id: string; userId: string; userEmail: string; userName: string }>>([])
 
   // Pro-rata state
