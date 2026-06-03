@@ -413,7 +413,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Performance Chart - Full Width */}
-      <div className="bg-white rounded-xl border border-[#dfdedd] p-6">
+      <div className="bg-white rounded-xl border border-[#dfdedd] p-6 overflow-visible">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-xs font-semibold text-[#888780] tracking-widest uppercase">
               Performance
@@ -437,7 +437,7 @@ export default function DashboardPage() {
           </div>
           {filteredGrowth.length > 0 ? (
             <ResponsiveContainer width="100%" height={280}>
-              <ComposedChart data={filteredGrowth} margin={{ top: 5, right: 5, left: 15, bottom: 5 }}>
+              <ComposedChart data={filteredGrowth} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#eeece8" />
                 <XAxis
                   dataKey="month"
@@ -460,7 +460,7 @@ export default function DashboardPage() {
                     if (val >= 1_000) return `$${(val / 1_000).toFixed(0)}K`;
                     return `$${val}`;
                   }}
-                  width={70}
+                  width={80}
                   domain={[(dataMin: number) => Math.floor(dataMin * 0.98), (dataMax: number) => Math.ceil(dataMax * 1.02)]}
                   tickCount={5}
                 />
