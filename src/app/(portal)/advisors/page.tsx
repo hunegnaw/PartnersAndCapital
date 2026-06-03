@@ -135,6 +135,15 @@ export default function AdvisorsPage() {
   const [inviteError, setInviteError] = useState("");
   const [inviteSuccess, setInviteSuccess] = useState("");
 
+  // Edit dialog state
+  const [editAdvisor, setEditAdvisor] = useState<Advisor | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editFirm, setEditFirm] = useState("");
+  const [editType, setEditType] = useState("");
+  const [editPermission, setEditPermission] = useState("");
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState("");
+
   // Revoke dialog state
   const [revokeAdvisor, setRevokeAdvisor] = useState<Advisor | null>(null);
   const [revokeLoading, setRevokeLoading] = useState(false);
@@ -549,6 +558,14 @@ export default function AdvisorsPage() {
                             variant="outline"
                             size="sm"
                             className="border-[#dfdedd] text-xs"
+                            onClick={() => {
+                              setEditAdvisor(advisor);
+                              setEditName(advisor.name);
+                              setEditFirm(advisor.firm || "");
+                              setEditType(advisor.advisorType);
+                              setEditPermission(advisor.accesses[0]?.permissionLevel || "DASHBOARD_ONLY");
+                              setEditError("");
+                            }}
                           >
                             Edit
                           </Button>
@@ -620,6 +637,129 @@ export default function AdvisorsPage() {
           )}
         </div>
       </div>
+
+      {/* Edit Advisor Dialog */}
+      <Dialog
+        open={!!editAdvisor}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditAdvisor(null);
+            setEditError("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Advisor</DialogTitle>
+            <DialogDescription>
+              Update advisor details and permissions.
+            </DialogDescription>
+          </DialogHeader>
+
+          {editError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{editError}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="grid gap-4 py-2">
+            <div className="grid gap-2">
+              <Label>Name</Label>
+              <Input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Advisor name"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Firm</Label>
+              <Input
+                value={editFirm}
+                onChange={(e) => setEditFirm(e.target.value)}
+                placeholder="Firm name (optional)"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Type</Label>
+              <Select value={editType} onValueChange={(v) => setEditType(v ?? "")}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ADVISOR_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Permissions</Label>
+              <RadioGroup value={editPermission} onValueChange={setEditPermission}>
+                {PERMISSION_LEVELS.map((level) => (
+                  <div key={level.value} className="flex items-start gap-3 py-1.5">
+                    <RadioGroupItem value={level.value} id={`edit-perm-${level.value}`} className="mt-0.5" />
+                    <div>
+                      <Label htmlFor={`edit-perm-${level.value}`} className="text-sm font-medium cursor-pointer">
+                        {level.label}
+                      </Label>
+                      <p className="text-xs text-[#888780]">{level.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditAdvisor(null);
+                setEditError("");
+              }}
+              disabled={editLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={editLoading || !editName.trim()}
+              onClick={async () => {
+                setEditLoading(true);
+                setEditError("");
+                try {
+                  const res = await fetch(`/api/portal/advisors/${editAdvisor!.id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      name: editName.trim(),
+                      firm: editFirm.trim() || null,
+                      advisorType: editType,
+                      permissionLevel: editPermission,
+                    }),
+                  });
+                  if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    throw new Error(data.error || "Failed to update advisor");
+                  }
+                  setEditAdvisor(null);
+                  fetchAdvisors();
+                } catch (err) {
+                  setEditError(err instanceof Error ? err.message : "An error occurred");
+                } finally {
+                  setEditLoading(false);
+                }
+              }}
+            >
+              {editLoading && <Loader2 className="animate-spin" />}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Revoke Confirmation Dialog */}
       <Dialog
