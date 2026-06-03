@@ -460,7 +460,7 @@ export default function DashboardPage() {
                     if (val >= 1_000) return `$${(val / 1_000).toFixed(0)}K`;
                     return `$${val}`;
                   }}
-                  width={55}
+                  width={70}
                   domain={[(dataMin: number) => Math.floor(dataMin * 0.98), (dataMax: number) => Math.ceil(dataMax * 1.02)]}
                   tickCount={5}
                 />
