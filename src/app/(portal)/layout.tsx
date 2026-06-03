@@ -128,7 +128,7 @@ export default async function PortalLayout({
     : "U";
 
   return (
-    <div className="flex min-h-screen flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="flex min-h-screen flex-col" style={{ fontFamily: "'Inter', sans-serif", "--radius": "5px" } as React.CSSProperties}>
       <UnreadMessagesModal />
       <ActivityBanner />
       {impersonation && impersonatedClient && (
