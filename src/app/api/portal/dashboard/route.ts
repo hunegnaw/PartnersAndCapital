@@ -21,7 +21,7 @@ export async function GET() {
 
     // Get user's active client investments with asset class info
     const clientInvestments = await prisma.clientInvestment.findMany({
-      where: { userId, deletedAt: null },
+      where: { userId, deletedAt: null, investment: { deletedAt: null } },
       include: {
         investment: {
           include: { assetClass: true },
@@ -47,12 +47,13 @@ export async function GET() {
         ? Math.round((totalGain / totalInvested) * 10000) / 100
         : 0;
 
-    // Total completed distributions
+    // Total completed distributions (only from active investments)
     const distributions = await prisma.distribution.findMany({
       where: {
         userId,
         status: "COMPLETED",
         deletedAt: null,
+        clientInvestment: { deletedAt: null, investment: { deletedAt: null } },
       },
     });
     const totalDistributions = distributions.reduce(
@@ -138,11 +139,18 @@ export async function GET() {
     const now = new Date();
     const investmentIds = clientInvestments.map((ci) => ci.investmentId);
 
-    const earliestContribution = await prisma.contribution.findFirst({
-      where: { userId, status: "COMPLETED", deletedAt: null },
-      orderBy: { date: "asc" },
-      select: { date: true },
-    });
+    const earliestContribution = investmentIds.length > 0
+      ? await prisma.contribution.findFirst({
+          where: {
+            userId,
+            status: "COMPLETED",
+            deletedAt: null,
+            clientInvestment: { investmentId: { in: investmentIds }, deletedAt: null },
+          },
+          orderBy: { date: "asc" },
+          select: { date: true },
+        })
+      : null;
 
     const monthlyData: {
       month: string;
@@ -172,7 +180,12 @@ export async function GET() {
           orderBy: { date: "asc" },
         }),
         prisma.distribution.findMany({
-          where: { userId, status: "COMPLETED", deletedAt: null },
+          where: {
+            userId,
+            status: "COMPLETED",
+            deletedAt: null,
+            clientInvestment: { investmentId: { in: investmentIds }, deletedAt: null },
+          },
           select: { amount: true, date: true },
           orderBy: { date: "asc" },
         }),
