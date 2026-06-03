@@ -456,11 +456,11 @@ export default function DashboardPage() {
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(val) => {
-                    if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(2)}M`;
+                    if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(1)}M`;
                     if (val >= 1_000) return `$${(val / 1_000).toFixed(0)}K`;
                     return `$${val}`;
                   }}
-                  width={75}
+                  width={55}
                   domain={[(dataMin: number) => Math.floor(dataMin * 0.98), (dataMax: number) => Math.ceil(dataMax * 1.02)]}
                   tickCount={5}
                 />
