@@ -11,11 +11,11 @@ export async function GET() {
     const { userId } = await getEffectiveUserId();
 
     // Get all client investments for scoping
-    const clientInvestmentIds = await prisma.clientInvestment.findMany({
+    const clientInvestments = await prisma.clientInvestment.findMany({
       where: { userId, deletedAt: null, investment: { deletedAt: null } },
-      select: { id: true },
+      select: { id: true, amountInvested: true },
     });
-    const ciIds = clientInvestmentIds.map((ci) => ci.id);
+    const ciIds = clientInvestments.map((ci) => ci.id);
 
     const [contributions, distributions] = await Promise.all([
       prisma.contribution.findMany({
@@ -54,8 +54,9 @@ export async function GET() {
       }),
     ]);
 
-    const totalContributions = contributions.reduce(
-      (sum, c) => sum + Number(c.amount),
+    // Use amountInvested from positions (source of truth, not contribution records)
+    const totalContributions = clientInvestments.reduce(
+      (sum, ci) => sum + Number(ci.amountInvested),
       0
     );
     const totalDistributions = distributions.reduce(
