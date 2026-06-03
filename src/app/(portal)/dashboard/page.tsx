@@ -518,17 +518,15 @@ export default function DashboardPage() {
                   yAxisId="bars"
                   dataKey="monthlyContribution"
                   fill="#1A2640"
-                  opacity={0.45}
                   radius={[3, 3, 0, 0]}
-                  barSize={12}
+                  barSize={14}
                 />
                 <Bar
                   yAxisId="bars"
                   dataKey="monthlyDistribution"
                   fill="#B07D3A"
-                  opacity={0.45}
                   radius={[3, 3, 0, 0]}
-                  barSize={12}
+                  barSize={14}
                 />
                 <Line
                   yAxisId="left"
