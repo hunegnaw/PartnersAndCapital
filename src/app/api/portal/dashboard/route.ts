@@ -161,6 +161,8 @@ export async function GET() {
       month: string;
       netValue: number;
       cumulativeDistributions: number;
+      monthlyDistribution: number;
+      monthlyContribution: number;
     }[] = [];
 
     if (investmentEvents.length > 0) {
@@ -170,23 +172,31 @@ export async function GET() {
 
       const cursor = new Date(startDate);
       while (cursor <= endDate) {
+        const monthStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
         const monthEnd = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0, 23, 59, 59, 999);
         const monthKey = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
 
         let cumInvested = 0;
+        let monthContrib = 0;
         for (const e of investmentEvents) {
-          if (new Date(e.date) <= monthEnd) cumInvested += e.amount;
+          const eDate = new Date(e.date);
+          if (eDate <= monthEnd) cumInvested += e.amount;
+          if (eDate >= monthStart && eDate <= monthEnd) monthContrib += e.amount;
         }
 
         let cumDist = 0;
+        let monthDist = 0;
         for (const d of userDistributions) {
           if (d.date <= monthEnd) cumDist += Number(d.amount);
+          if (d.date >= monthStart && d.date <= monthEnd) monthDist += Number(d.amount);
         }
 
         monthlyData.push({
           month: monthKey,
           netValue: Math.round(cumInvested * 100) / 100,
           cumulativeDistributions: Math.round(cumDist * 100) / 100,
+          monthlyDistribution: Math.round(monthDist * 100) / 100,
+          monthlyContribution: Math.round(monthContrib * 100) / 100,
         });
 
         cursor.setMonth(cursor.getMonth() + 1);

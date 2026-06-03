@@ -6,8 +6,9 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ResponsiveContainer,
-  LineChart,
+  ComposedChart,
   Line,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
@@ -15,6 +16,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  Legend,
 } from "recharts";
 import {
   DollarSign,
@@ -48,7 +50,7 @@ interface DashboardData {
     percentage: number;
     color: string;
   }[];
-  growth: { month: string; netValue: number; cumulativeDistributions: number }[];
+  growth: { month: string; netValue: number; cumulativeDistributions: number; monthlyDistribution: number; monthlyContribution: number }[];
   recentInvestments: {
     id: string;
     investment: { name: string; assetClass: { name: string } };
@@ -433,20 +435,9 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
-          {/* Legend */}
-          <div className="flex items-center gap-5 mb-4">
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-0.5 bg-[#1A2640] rounded-full" />
-              <span className="text-xs text-[#888780]">Portfolio Value</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-0.5 bg-[#B07D3A] rounded-full" />
-              <span className="text-xs text-[#888780]">Cash Distributed</span>
-            </div>
-          </div>
           {filteredGrowth.length > 0 ? (
-            <ResponsiveContainer width="100%" height={240}>
-              <LineChart data={filteredGrowth}>
+            <ResponsiveContainer width="100%" height={280}>
+              <ComposedChart data={filteredGrowth}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#eeece8" />
                 <XAxis
                   dataKey="month"
@@ -464,9 +455,14 @@ export default function DashboardPage() {
                   tick={{ fontSize: 11, fill: "#1A2640" }}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(val) => val >= 1_000_000 ? `$${(val / 1_000_000).toFixed(1)}M` : `$${(val / 1000).toFixed(0)}K`}
-                  width={65}
-                  domain={[(dataMin: number) => Math.floor(dataMin * 0.95), (dataMax: number) => Math.ceil(dataMax * 1.02)]}
+                  tickFormatter={(val) => {
+                    if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(2)}M`;
+                    if (val >= 1_000) return `$${(val / 1_000).toFixed(0)}K`;
+                    return `$${val}`;
+                  }}
+                  width={75}
+                  domain={[(dataMin: number) => Math.floor(dataMin * 0.98), (dataMax: number) => Math.ceil(dataMax * 1.02)]}
+                  tickCount={5}
                 />
                 <YAxis
                   yAxisId="right"
@@ -474,14 +470,21 @@ export default function DashboardPage() {
                   tick={{ fontSize: 11, fill: "#B07D3A" }}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(val) => val >= 1_000_000 ? `$${(val / 1_000_000).toFixed(1)}M` : `$${(val / 1000).toFixed(0)}K`}
+                  tickFormatter={(val) => {
+                    if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(1)}M`;
+                    if (val >= 1_000) return `$${(val / 1_000).toFixed(0)}K`;
+                    return `$${val}`;
+                  }}
                   width={65}
-                  domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.1)]}
+                  domain={[0, "auto"]}
                 />
                 <Tooltip
                   formatter={(value, name) => [
                     formatCurrency(Number(value ?? 0)),
-                    name === "netValue" ? "Portfolio Value" : "Cash Distributed",
+                    name === "netValue" ? "Portfolio Value"
+                      : name === "cumulativeDistributions" ? "Cash Distributed"
+                      : name === "monthlyContribution" ? "Contribution"
+                      : "Distribution",
                   ]}
                   labelFormatter={(label) => {
                     const parts = label.split("-");
@@ -494,6 +497,31 @@ export default function DashboardPage() {
                     borderRadius: "8px",
                     fontSize: "13px",
                   }}
+                />
+                <Legend
+                  verticalAlign="top"
+                  height={32}
+                  formatter={(value: string) =>
+                    value === "netValue" ? "Portfolio Value"
+                      : value === "cumulativeDistributions" ? "Cash Distributed"
+                      : value === "monthlyContribution" ? "Contribution"
+                      : "Distribution"
+                  }
+                  wrapperStyle={{ fontSize: "12px" }}
+                />
+                <Bar
+                  yAxisId="right"
+                  dataKey="monthlyContribution"
+                  fill="#1A2640"
+                  opacity={0.3}
+                  radius={[2, 2, 0, 0]}
+                />
+                <Bar
+                  yAxisId="right"
+                  dataKey="monthlyDistribution"
+                  fill="#B07D3A"
+                  opacity={0.3}
+                  radius={[2, 2, 0, 0]}
                 />
                 <Line
                   yAxisId="left"
@@ -513,7 +541,7 @@ export default function DashboardPage() {
                   dot={false}
                   activeDot={{ r: 4, fill: "#B07D3A" }}
                 />
-              </LineChart>
+              </ComposedChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-48 text-sm text-[#888780]">
