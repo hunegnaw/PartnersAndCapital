@@ -37,10 +37,8 @@ export default async function PortalLayout({
 
   const impersonation = await getImpersonationContext();
 
-  // If 2FA setup is required by policy, redirect to settings
-  if (session.user.requiresTwoFactorSetup) {
-    redirect("/settings");
-  }
+  // 2FA setup requirement is handled by the login page redirect — not here,
+  // because redirecting from the layout to /settings (which is inside the layout) loops.
 
   // Verification gate: redirect unverified clients to /verify
   if (session.user.role === "CLIENT" && !impersonation) {

@@ -21,10 +21,7 @@ export default async function AdminLayout({
     redirect("/dashboard");
   }
 
-  // If 2FA setup is required by policy, redirect to settings
-  if (session.user.requiresTwoFactorSetup) {
-    redirect("/settings");
-  }
+  // 2FA setup requirement is handled by the login page redirect.
 
   const [org, adminUser] = await Promise.all([
     getOrganization(),

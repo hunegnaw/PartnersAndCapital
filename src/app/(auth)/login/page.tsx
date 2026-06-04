@@ -189,6 +189,9 @@ function LoginContent() {
         const session = await getSession();
         if (session?.user?.twoFactorRequired && !session?.user?.twoFactorVerified) {
           setStep("2fa");
+        } else if (session?.user?.requiresTwoFactorSetup) {
+          router.push("/settings");
+          router.refresh();
         } else {
           const role = session?.user?.role;
           if (role === "ADMIN" || role === "SUPER_ADMIN") {
