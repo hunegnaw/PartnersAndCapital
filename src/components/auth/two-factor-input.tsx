@@ -179,10 +179,9 @@ export function TwoFactorInput({
             onKeyDown={(e) => handleKeyDown(index, e)}
             onFocus={() => handleFocus(index)}
             className={cn(
-              "h-12 w-10 rounded-lg border border-input bg-transparent text-center text-lg font-semibold tabular-nums transition-colors outline-none",
-              "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
-              "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
-              "dark:bg-input/30"
+              "h-12 w-10 rounded-lg border border-[#dfdedd] bg-white text-center text-lg font-semibold tabular-nums transition-colors outline-none text-[#1a1a18]",
+              "focus-visible:border-[#B07D3A] focus-visible:ring-2 focus-visible:ring-[#B07D3A]/20",
+              "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
             )}
             aria-label={`Digit ${index + 1} of ${CODE_LENGTH}`}
           />
