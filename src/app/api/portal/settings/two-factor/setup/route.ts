@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
       // Generate current code and send via SMS
       const code = generateTOTPCode(secret);
-      const sent = await sendSMS(phone, `Your verification code is: ${code}`);
+      const sent = await sendSMS(phone, `Partners + Capital: Your verification code is ${code}`);
 
       if (!sent) {
         return NextResponse.json(
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     }
 
     const code = generateTOTPCode(twoFactorSecret.secret);
-    const sent = await sendSMS(fullUser.phone, `Your verification code is: ${code}`);
+    const sent = await sendSMS(fullUser.phone, `Partners + Capital: Your verification code is ${code}`);
 
     if (!sent) {
       return NextResponse.json(

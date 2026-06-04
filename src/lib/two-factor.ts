@@ -63,5 +63,5 @@ export async function sendTwoFactorCode(userId: string): Promise<boolean> {
   }
 
   const code = generateTOTPCode(twoFactorSecret.secret);
-  return sendSMS(user.phone, `Your verification code is: ${code}`);
+  return sendSMS(user.phone, `Partners + Capital: Your verification code is ${code}`);
 }

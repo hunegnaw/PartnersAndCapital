@@ -18,6 +18,13 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { TwoFactorSetup } from "@/components/settings/two-factor-setup";
 import { TwoFactorManage } from "@/components/settings/two-factor-manage";
 import {
@@ -73,6 +80,7 @@ export default function SettingsPage() {
   const [orgPolicy, setOrgPolicy] = useState<OrgPolicy>({ twoFactorPolicy: "optional" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [show2faModal, setShow2faModal] = useState(false);
 
   // Profile form state
   const [name, setName] = useState("");
@@ -127,6 +135,12 @@ export default function SettingsPage() {
   useEffect(() => {
     Promise.resolve().then(() => fetchProfile());
   }, [fetchProfile]);
+
+  useEffect(() => {
+    if (!loading && profile && orgPolicy.twoFactorPolicy === "mandatory" && !profile.twoFactorEnabled) {
+      setShow2faModal(true);
+    }
+  }, [loading, profile, orgPolicy]);
 
   const handleProfileSave = useCallback(async () => {
     setProfileSaving(true);
@@ -525,6 +539,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* Two-Factor Authentication Section */}
+      <div id="two-factor-section" />
       {orgPolicy.twoFactorPolicy !== "disabled" && (
         <>
           <Separator />
@@ -549,6 +564,25 @@ export default function SettingsPage() {
           )}
         </>
       )}
+
+      <Dialog open={show2faModal} onOpenChange={setShow2faModal}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Two-Factor Authentication Required</DialogTitle>
+            <DialogDescription>
+              Partners + Capital requires all accounts to enable two-factor authentication for your security. Please set up 2FA below to continue using your portal.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button onClick={() => {
+              setShow2faModal(false);
+              document.getElementById("two-factor-section")?.scrollIntoView({ behavior: "smooth" });
+            }}>
+              Set Up 2FA Now
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
