@@ -184,22 +184,22 @@ function LoginContent() {
       });
 
       if (result?.error) {
-        if (result.error.includes("2FA_REQUIRED") || result.error.includes("two-factor") || result.error.includes("2FA")) {
-          setStep("2fa");
-        } else {
-          setError(result.error === "CredentialsSignin" ? "Invalid email or password" : result.error);
-        }
+        setError(result.error === "CredentialsSignin" ? "Invalid email or password" : result.error);
       } else {
         const session = await getSession();
-        const role = session?.user?.role;
-        if (role === "ADMIN" || role === "SUPER_ADMIN") {
-          router.push("/admin");
-        } else if (role === "ADVISOR") {
-          router.push("/advisor/dashboard");
+        if (session?.user?.twoFactorRequired && !session?.user?.twoFactorVerified) {
+          setStep("2fa");
         } else {
-          router.push("/dashboard");
+          const role = session?.user?.role;
+          if (role === "ADMIN" || role === "SUPER_ADMIN") {
+            router.push("/admin");
+          } else if (role === "ADVISOR") {
+            router.push("/advisor/dashboard");
+          } else {
+            router.push("/dashboard");
+          }
+          router.refresh();
         }
-        router.refresh();
       }
     } catch {
       setError("An unexpected error occurred");
