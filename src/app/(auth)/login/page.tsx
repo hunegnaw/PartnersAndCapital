@@ -341,18 +341,54 @@ function LoginContent() {
             ) : (
               <div>
                 <label className="text-xs text-[#5f5e5a] mb-1.5 block">Verification code</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  value={twoFactorCode}
-                  onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  disabled={loading}
-                  autoFocus
-                  placeholder="000000"
-                  className="w-full px-3 py-2.5 text-[18px] font-mono tracking-[0.5em] text-center border border-[#dfdedd] rounded-md bg-white text-[#1a1a18] focus:outline-none focus:border-[#B07D3A] focus:ring-2 focus:ring-[#B07D3A]/20 disabled:opacity-50"
-                />
+                <div className="flex items-center justify-center gap-2">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <input
+                      key={i}
+                      id={`2fa-digit-${i}`}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={twoFactorCode[i] || ""}
+                      autoFocus={i === 0}
+                      disabled={loading}
+                      onChange={(e) => {
+                        const digit = e.target.value.replace(/\D/g, "").slice(-1);
+                        const chars = twoFactorCode.split("");
+                        while (chars.length < 6) chars.push("");
+                        chars[i] = digit;
+                        setTwoFactorCode(chars.join("").replace(/\s/g, ""));
+                        if (digit && i < 5) {
+                          document.getElementById(`2fa-digit-${i + 1}`)?.focus();
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Backspace" && !twoFactorCode[i] && i > 0) {
+                          document.getElementById(`2fa-digit-${i - 1}`)?.focus();
+                        }
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+                        setTwoFactorCode(pasted);
+                        const focusIdx = Math.min(pasted.length, 5);
+                        document.getElementById(`2fa-digit-${focusIdx}`)?.focus();
+                      }}
+                      style={{
+                        width: "44px",
+                        height: "52px",
+                        border: "1px solid #dfdedd",
+                        borderRadius: "8px",
+                        backgroundColor: "#ffffff",
+                        color: "#1a1a18",
+                        fontSize: "20px",
+                        fontWeight: 600,
+                        textAlign: "center" as const,
+                        outline: "none",
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
