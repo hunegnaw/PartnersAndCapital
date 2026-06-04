@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -27,74 +27,7 @@ interface StatsData {
   investmentCount: number;
 }
 
-function TwoFactorInput({
-  value,
-  onChange,
-  disabled,
-}: {
-  value: string;
-  onChange: (code: string) => void;
-  disabled?: boolean;
-}) {
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const digits = value.padEnd(6, "").split("").slice(0, 6);
 
-  const handleChange = useCallback(
-    (index: number, char: string) => {
-      if (!/^\d?$/.test(char)) return;
-      const newDigits = [...digits];
-      newDigits[index] = char;
-      const newCode = newDigits.join("");
-      onChange(newCode.replace(/\s/g, ""));
-      if (char && index < 5) {
-        inputRefs.current[index + 1]?.focus();
-      }
-    },
-    [digits, onChange]
-  );
-
-  const handleKeyDown = useCallback(
-    (index: number, e: React.KeyboardEvent) => {
-      if (e.key === "Backspace" && !digits[index] && index > 0) {
-        inputRefs.current[index - 1]?.focus();
-      }
-    },
-    [digits]
-  );
-
-  const handlePaste = useCallback(
-    (e: React.ClipboardEvent) => {
-      e.preventDefault();
-      const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-      if (pasted) {
-        onChange(pasted);
-        const focusIndex = Math.min(pasted.length, 5);
-        inputRefs.current[focusIndex]?.focus();
-      }
-    },
-    [onChange]
-  );
-
-  return (
-    <div className="flex gap-2" onPaste={handlePaste}>
-      {digits.map((digit, i) => (
-        <input
-          key={i}
-          ref={(el) => { inputRefs.current[i] = el; }}
-          type="text"
-          inputMode="numeric"
-          maxLength={1}
-          value={digit || ""}
-          onChange={(e) => handleChange(i, e.target.value)}
-          onKeyDown={(e) => handleKeyDown(i, e)}
-          disabled={disabled}
-          autoFocus={i === 0}
-          className="w-10 h-11 text-center text-base font-medium border border-[#dfdedd] rounded-md bg-[#fafaf8] text-[#1a1a18] focus:outline-none focus:border-[#B07D3A] disabled:opacity-50"
-        />
-      ))}
-    </div>
-  );
-}
 
 function StepIndicator({ step }: { step: number }) {
   return (

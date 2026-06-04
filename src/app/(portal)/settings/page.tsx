@@ -80,7 +80,6 @@ export default function SettingsPage() {
   const [orgPolicy, setOrgPolicy] = useState<OrgPolicy>({ twoFactorPolicy: "optional" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [show2faModal, setShow2faModal] = useState(false);
 
   // Profile form state
   const [name, setName] = useState("");
@@ -136,11 +135,8 @@ export default function SettingsPage() {
     Promise.resolve().then(() => fetchProfile());
   }, [fetchProfile]);
 
-  useEffect(() => {
-    if (!loading && profile && orgPolicy.twoFactorPolicy === "mandatory" && !profile.twoFactorEnabled) {
-      setShow2faModal(true);
-    }
-  }, [loading, profile, orgPolicy]);
+  const show2faModal = !loading && !!profile && orgPolicy.twoFactorPolicy === "mandatory" && !profile.twoFactorEnabled;
+  const [dismissed2faModal, setDismissed2faModal] = useState(false);
 
   const handleProfileSave = useCallback(async () => {
     setProfileSaving(true);
@@ -565,7 +561,7 @@ export default function SettingsPage() {
         </>
       )}
 
-      <Dialog open={show2faModal} onOpenChange={setShow2faModal}>
+      <Dialog open={show2faModal && !dismissed2faModal} onOpenChange={() => setDismissed2faModal(true)}>
         <DialogContent showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>Two-Factor Authentication Required</DialogTitle>
@@ -575,7 +571,7 @@ export default function SettingsPage() {
           </DialogHeader>
           <div className="flex justify-end">
             <Button onClick={() => {
-              setShow2faModal(false);
+              setDismissed2faModal(true);
               document.getElementById("two-factor-section")?.scrollIntoView({ behavior: "smooth" });
             }}>
               Set Up 2FA Now
