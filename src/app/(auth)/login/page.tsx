@@ -341,10 +341,17 @@ function LoginContent() {
             ) : (
               <div>
                 <label className="text-xs text-[#5f5e5a] mb-1.5 block">Verification code</label>
-                <TwoFactorInput
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
                   value={twoFactorCode}
-                  onChange={setTwoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   disabled={loading}
+                  autoFocus
+                  placeholder="000000"
+                  className="w-full px-3 py-2.5 text-[18px] font-mono tracking-[0.5em] text-center border border-[#dfdedd] rounded-md bg-white text-[#1a1a18] focus:outline-none focus:border-[#B07D3A] focus:ring-2 focus:ring-[#B07D3A]/20 disabled:opacity-50"
                 />
               </div>
             )}
