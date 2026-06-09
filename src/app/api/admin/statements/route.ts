@@ -45,12 +45,12 @@ export async function GET(request: Request) {
     const counts = await prisma.statement.groupBy({
       by: ["status"],
       where: { deletedAt: null },
-      _count: true,
+      _count: { _all: true },
     });
 
     const statusCounts: Record<string, number> = {};
     for (const c of counts) {
-      statusCounts[c.status] = c._count;
+      statusCounts[c.status] = c._count._all;
     }
 
     return NextResponse.json({
