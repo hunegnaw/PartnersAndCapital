@@ -110,7 +110,7 @@ export default function AdminStatementsPage() {
   }, [page, statusFilter])
 
   useEffect(() => {
-    fetchStatements()
+    Promise.resolve().then(fetchStatements)
   }, [fetchStatements])
 
   useEffect(() => {

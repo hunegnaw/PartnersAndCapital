@@ -351,10 +351,6 @@ export async function collectStatementData(
       ? Math.round((totalDistributions / totalInvested) * 10000) / 100
       : 0;
 
-  const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-  ];
   const statementDate = `${periodEnd.getMonth() + 1}/${periodEnd.getDate()}/${periodEnd.getFullYear()}`;
 
   return {

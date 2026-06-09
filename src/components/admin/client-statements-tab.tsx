@@ -83,7 +83,7 @@ export function ClientStatementsTab({ clientId, clientName }: { clientId: string
     }
   }, [clientId])
 
-  useEffect(() => { fetchStatements() }, [fetchStatements])
+  useEffect(() => { Promise.resolve().then(fetchStatements) }, [fetchStatements])
 
   async function handleGenerate() {
     setGenerating(true)

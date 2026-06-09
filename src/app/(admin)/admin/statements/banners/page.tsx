@@ -16,13 +16,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   AlertCircle,
   Loader2,
   Plus,
@@ -74,6 +67,7 @@ function BannerPreview({ title, description, imageUrl, buttonText, gradientFrom,
       }}
     >
       {imageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={imageUrl}
           alt=""
@@ -168,7 +162,7 @@ export default function AdminBannersPage() {
     }
   }, [])
 
-  useEffect(() => { fetchBanners() }, [fetchBanners])
+  useEffect(() => { Promise.resolve().then(fetchBanners) }, [fetchBanners])
 
   useEffect(() => {
     async function loadClients() {
