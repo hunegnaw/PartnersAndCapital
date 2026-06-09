@@ -200,6 +200,7 @@ prepare_package() {
     [ -f ecosystem.config.js ] && cp ecosystem.config.js "$LOCAL_PACKAGE/"
     [ -f prisma.config.ts ] && cp prisma.config.ts "$LOCAL_PACKAGE/"
     [ -d "prisma" ] && cp -r prisma "$LOCAL_PACKAGE/"
+    [ -d "fonts" ] && cp -r fonts "$LOCAL_PACKAGE/"
 
     success "Package prepared"
 }
