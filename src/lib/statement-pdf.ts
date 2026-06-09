@@ -247,7 +247,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         if (banner.buttonText) {
           doc.save().roundedRect(MARGIN + 20, bannerY + 50, 80, 16, 3).fill(GOLD).restore();
           doc.font("InterBold").fontSize(8).fillColor("#FFFFFF")
-            .text(banner.buttonText, MARGIN + 24, bannerY + 53, { width: 72, lineBreak: false });
+            .text(banner.buttonText, MARGIN + 24, bannerY + 53, { width: 72, lineBreak: false, link: banner.buttonUrl || undefined });
         }
         doc.y = bannerY + 78;
       }
