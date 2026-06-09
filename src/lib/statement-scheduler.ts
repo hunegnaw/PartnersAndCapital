@@ -52,8 +52,7 @@ export function startStatementScheduler() {
         `[Statement Scheduler] Generated ${result.success}/${result.total} statements (${result.failed} failed)`
       );
 
-      const admins = await prisma.user.findMany({
-        where: { role: { in: ["ADMIN", "SUPER_ADMIN"] }, deletedAt: null },
+      const org = await prisma.organization.findFirst({
         select: { email: true, name: true },
       });
 
@@ -63,13 +62,13 @@ export function startStatementScheduler() {
       const month = previousMonth.getMonth() + 1;
       const year = previousMonth.getFullYear();
 
-      for (const admin of admins) {
+      if (org?.email) {
         try {
           await sendEmail({
-            to: admin.email,
+            to: org.email,
             subject: `${result.success} Client Statements Generated — Pending Approval`,
             html: statementsGeneratedEmail({
-              adminName: admin.name || "Admin",
+              adminName: org.name || "Admin",
               count: result.success,
               periodLabel,
               reviewUrl: `${baseUrl}/admin/statements?status=GENERATED&year=${year}&month=${month}`,
@@ -77,7 +76,7 @@ export function startStatementScheduler() {
             }),
           });
         } catch {
-          console.error(`[Statement Scheduler] Failed to notify ${admin.email}`);
+          console.error(`[Statement Scheduler] Failed to notify ${org.email}`);
         }
       }
     } catch (error) {

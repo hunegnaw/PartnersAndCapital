@@ -54,8 +54,7 @@ export async function POST(request: Request) {
 
     const result = await generateBatchStatements(userIds, periodStart, periodEnd, admin.id, request);
 
-    const admins = await prisma.user.findMany({
-      where: { role: { in: ["ADMIN", "SUPER_ADMIN"] }, deletedAt: null },
+    const org = await prisma.organization.findFirst({
       select: { email: true, name: true },
     });
 
@@ -67,13 +66,13 @@ export async function POST(request: Request) {
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const logoUrl = await getEmailLogoUrl();
 
-    for (const a of admins) {
+    if (org?.email) {
       try {
         await sendEmail({
-          to: a.email,
+          to: org.email,
           subject: `${result.success} Client Statements Generated — Pending Approval`,
           html: statementsGeneratedEmail({
-            adminName: a.name || "Admin",
+            adminName: org.name || "Admin",
             count: result.success,
             periodLabel,
             reviewUrl: `${baseUrl}/admin/statements?status=GENERATED&year=${year}&month=${month}`,
@@ -81,7 +80,7 @@ export async function POST(request: Request) {
           }),
         });
       } catch {
-        console.error(`Failed to send admin notification to ${a.email}`);
+        console.error(`Failed to send admin notification to ${org.email}`);
       }
     }
 
