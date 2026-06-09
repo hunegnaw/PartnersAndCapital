@@ -178,7 +178,7 @@ function drawActivityTable(
 async function renderPDF(data: StatementData): Promise<Buffer> {
   return new Promise(async (resolve, reject) => {
     try {
-      const doc = new PDFDocument({ size: "letter", margin: 0, bufferPages: true });
+      const doc = new PDFDocument({ size: "letter", margin: 0, bufferPages: true, font: FONT_REGULAR });
       doc.registerFont("Inter", FONT_REGULAR);
       doc.registerFont("InterBold", FONT_BOLD);
       doc.registerFont("Cormorant", FONT_HEADING);
