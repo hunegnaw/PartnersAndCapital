@@ -71,6 +71,7 @@ export interface StatementData {
     logoUrl: string | null;
     email: string | null;
     phone: string | null;
+    website: string | null;
     address: string | null;
   };
 }
@@ -100,6 +101,7 @@ export async function collectStatementData(
         logoUrl: true,
         email: true,
         phone: true,
+        website: true,
         address: true,
       },
     }),
@@ -382,6 +384,7 @@ export async function collectStatementData(
       legalName: org?.legalName || null,
       email: org?.email || null,
       phone: org?.phone || null,
+      website: org?.website || null,
       address: org?.address || null,
       logoUrl: org?.logoUrl || null,
     },

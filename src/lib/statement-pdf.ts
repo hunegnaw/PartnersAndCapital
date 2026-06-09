@@ -188,22 +188,32 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       doc.on("end", () => resolve(Buffer.concat(chunks)));
       doc.on("error", reject);
 
+      // ── CUSTOMER SERVICE BAR ──
+      const csInfo = [data.org.phone, data.org.email, data.org.website].filter(Boolean);
+      const csBarH = csInfo.length > 0 ? 16 : 0;
+      if (csInfo.length > 0) {
+        doc.save().rect(0, 0, PAGE_W, csBarH).fill("#F5F3EE").restore();
+        doc.font("Inter").fontSize(7).fillColor(GRAY)
+          .text(csInfo.join("  |  "), MARGIN, 4, { width: CONTENT_W, align: "right", lineBreak: false });
+      }
+
       // ── HEADER ──
-      doc.save().rect(0, 0, PAGE_W, 64).fill(NAVY).restore();
+      const headerTop = csBarH;
+      doc.save().rect(0, headerTop, PAGE_W, 64).fill(NAVY).restore();
       doc.font("Cormorant").fontSize(18).fillColor(GOLD_LIGHT)
-        .text("PARTNERS", MARGIN, 16, { continued: true, lineBreak: false })
+        .text("PARTNERS", MARGIN, headerTop + 16, { continued: true, lineBreak: false })
         .fillColor("#FFFFFF").text(" + CAPITAL", { lineBreak: false });
       doc.font("Inter").fontSize(6).fillColor("#8899BB")
-        .text("PUBLIC ACCESS TO PRIVATE MARKETS", MARGIN, 40, { lineBreak: false });
+        .text("PUBLIC ACCESS TO PRIVATE MARKETS", MARGIN, headerTop + 40, { lineBreak: false });
       doc.font("Inter").fontSize(7).fillColor("#FFFFFF")
-        .text("STATEMENT", PAGE_W - MARGIN - 120, 18, { width: 120, align: "right", lineBreak: false });
+        .text("STATEMENT", PAGE_W - MARGIN - 120, headerTop + 18, { width: 120, align: "right", lineBreak: false });
       doc.font("Cormorant").fontSize(18).fillColor("#FFFFFF")
-        .text(data.statementDate, PAGE_W - MARGIN - 120, 30, { width: 120, align: "right", lineBreak: false });
+        .text(data.statementDate, PAGE_W - MARGIN - 120, headerTop + 30, { width: 120, align: "right", lineBreak: false });
 
       // Gold line
-      doc.save().rect(0, 64, PAGE_W, 3)
+      doc.save().rect(0, headerTop + 64, PAGE_W, 3)
         .fill(GOLD).restore();
-      doc.y = 80;
+      doc.y = headerTop + 80;
 
       // ── CLIENT INFO ──
       const clientY = doc.y;
@@ -217,7 +227,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       doc.font("Cormorant").fontSize(22).fillColor(NAVY)
         .text(formatCurrency(data.totalInvested), PAGE_W - MARGIN - 160, clientY + 10, { width: 160, align: "right", lineBreak: false });
 
-      doc.y = 118;
+      doc.y = clientY + 38;
       doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
         .strokeColor(GOLD).lineWidth(2).stroke().restore();
       doc.y += 12;
