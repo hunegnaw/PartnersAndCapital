@@ -19,6 +19,10 @@ const PAGE_W = 612;
 const PAGE_H = 792;
 const MARGIN = 40;
 const CONTENT_W = PAGE_W - MARGIN * 2;
+const FONT_DIR = path.join(process.cwd(), "fonts");
+const FONT_REGULAR = path.join(FONT_DIR, "Inter-Regular.otf");
+const FONT_BOLD = path.join(FONT_DIR, "Inter-Bold.otf");
+const FONT_HEADING = path.join(FONT_DIR, "CormorantGaramond-Medium.otf");
 
 function getEncryptionKey(): Buffer {
   const key = process.env.ENCRYPTION_KEY;
@@ -104,7 +108,7 @@ function drawTableRow(
   }
   let x = MARGIN + 8;
   for (const col of cols) {
-    doc.font(opts.bold ? "Helvetica-Bold" : "Helvetica")
+    doc.font(opts.bold ? "InterBold" : "Inter")
       .fontSize(fontSize)
       .fillColor("#333333");
     if (col.align === "right") {
@@ -124,7 +128,7 @@ function drawActivityTable(
   totalAmount?: number
 ) {
   ensureSpace(doc, 60);
-  doc.font("Helvetica-Bold").fontSize(8).fillColor(GRAY)
+  doc.font("InterBold").fontSize(8).fillColor(GRAY)
     .text(title.toUpperCase(), MARGIN, doc.y, { characterSpacing: 0.5 });
   doc.moveDown(0.3);
 
@@ -139,7 +143,7 @@ function drawActivityTable(
   doc.y = headerY + 24;
 
   if (items.length === 0) {
-    doc.font("Helvetica").fontSize(9).fillColor("#999999")
+    doc.font("Inter").fontSize(9).fillColor("#999999")
       .text("No activity this period", MARGIN + 8, doc.y + 4);
     doc.y += 24;
   } else {
@@ -175,6 +179,9 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
   return new Promise(async (resolve, reject) => {
     try {
       const doc = new PDFDocument({ size: "letter", margin: 0, bufferPages: true });
+      doc.registerFont("Inter", FONT_REGULAR);
+      doc.registerFont("InterBold", FONT_BOLD);
+      doc.registerFont("Cormorant", FONT_HEADING);
       const chunks: Buffer[] = [];
       doc.on("data", (c: Buffer) => chunks.push(c));
       doc.on("end", () => resolve(Buffer.concat(chunks)));
@@ -182,15 +189,15 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
 
       // ── HEADER ──
       doc.save().rect(0, 0, PAGE_W, 64).fill(NAVY).restore();
-      doc.font("Helvetica-Bold").fontSize(16).fillColor(GOLD_LIGHT)
-        .text("PARTNERS", MARGIN, 18, { continued: true })
+      doc.font("Cormorant").fontSize(18).fillColor(GOLD_LIGHT)
+        .text("PARTNERS", MARGIN, 16, { continued: true })
         .fillColor("#FFFFFF").text(" + CAPITAL");
-      doc.font("Helvetica").fontSize(6).fillColor("#8899BB")
+      doc.font("Inter").fontSize(6).fillColor("#8899BB")
         .text("PUBLIC ACCESS TO PRIVATE MARKETS", MARGIN, 40);
-      doc.font("Helvetica").fontSize(7).fillColor("#FFFFFF")
+      doc.font("Inter").fontSize(7).fillColor("#FFFFFF")
         .text("STATEMENT", PAGE_W - MARGIN - 120, 18, { width: 120, align: "right" });
-      doc.font("Helvetica-Bold").fontSize(16).fillColor("#FFFFFF")
-        .text(data.statementDate, PAGE_W - MARGIN - 120, 32, { width: 120, align: "right" });
+      doc.font("Cormorant").fontSize(18).fillColor("#FFFFFF")
+        .text(data.statementDate, PAGE_W - MARGIN - 120, 30, { width: 120, align: "right" });
 
       // Gold line
       doc.save().rect(0, 64, PAGE_W, 3)
@@ -198,14 +205,14 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       doc.y = 80;
 
       // ── CLIENT INFO ──
-      doc.font("Helvetica").fontSize(7).fillColor("#999999")
+      doc.font("Inter").fontSize(7).fillColor("#999999")
         .text("CLIENT", MARGIN, doc.y);
-      doc.font("Helvetica-Bold").fontSize(20).fillColor(NAVY)
+      doc.font("Cormorant").fontSize(22).fillColor(NAVY)
         .text(data.clientName, MARGIN, doc.y + 12);
 
-      doc.font("Helvetica").fontSize(7).fillColor("#999999")
+      doc.font("Inter").fontSize(7).fillColor("#999999")
         .text("TOTAL AMOUNT INVESTED", PAGE_W - MARGIN - 160, 80, { width: 160, align: "right" });
-      doc.font("Helvetica-Bold").fontSize(20).fillColor(NAVY)
+      doc.font("Cormorant").fontSize(22).fillColor(NAVY)
         .text(formatCurrency(data.totalInvested), PAGE_W - MARGIN - 160, 92, { width: 160, align: "right" });
 
       doc.y = 118;
@@ -219,15 +226,15 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         const bannerY = doc.y;
         doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, 70, 4)
           .fill(banner.gradientTo).restore();
-        doc.font("Helvetica-Bold").fontSize(13).fillColor(GOLD_LIGHT)
+        doc.font("InterBold").fontSize(13).fillColor(GOLD_LIGHT)
           .text(banner.title, MARGIN + 20, bannerY + 14, { width: CONTENT_W - 40 });
         if (banner.description) {
-          doc.font("Helvetica").fontSize(9).fillColor("#FFFFFF")
+          doc.font("Inter").fontSize(9).fillColor("#FFFFFF")
             .text(banner.description, MARGIN + 20, bannerY + 32, { width: CONTENT_W - 40 });
         }
         if (banner.buttonText) {
           doc.save().roundedRect(MARGIN + 20, bannerY + 50, 80, 16, 3).fill(GOLD).restore();
-          doc.font("Helvetica-Bold").fontSize(8).fillColor("#FFFFFF")
+          doc.font("InterBold").fontSize(8).fillColor("#FFFFFF")
             .text(banner.buttonText, MARGIN + 24, bannerY + 53, { width: 72 });
         }
         doc.y = bannerY + 78;
@@ -246,9 +253,9 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
 
       let mx = MARGIN;
       for (const m of metrics) {
-        doc.font("Helvetica").fontSize(7).fillColor("#999999")
+        doc.font("Inter").fontSize(7).fillColor("#999999")
           .text(m.label.toUpperCase(), mx, summaryY, { width: 100 });
-        doc.font("Helvetica-Bold").fontSize(16).fillColor(m.color)
+        doc.font("InterBold").fontSize(16).fillColor(m.color)
           .text(m.value, mx, summaryY + 12);
         mx += 105;
       }
@@ -264,7 +271,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           doc.save()
             .roundedRect(MARGIN, doc.y, CONTENT_W, 170, 4)
             .fill(LIGHT_BG).restore();
-          doc.font("Helvetica-Bold").fontSize(7).fillColor(GRAY)
+          doc.font("InterBold").fontSize(7).fillColor(GRAY)
             .text("PORTFOLIO PERFORMANCE", MARGIN + 12, doc.y + 8);
           doc.image(chartPng, MARGIN + 6, doc.y + 22, { width: CONTENT_W - 12, height: 140 });
           doc.y += 178;
@@ -282,14 +289,14 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           .strokeColor(GOLD).lineWidth(1.5).stroke().restore();
         doc.y += 8;
 
-        doc.font("Helvetica-Bold").fontSize(14).fillColor(NAVY)
+        doc.font("Cormorant").fontSize(16).fillColor(NAVY)
           .text(inv.investmentName, MARGIN, doc.y);
-        doc.font("Helvetica").fontSize(9).fillColor("#999999")
+        doc.font("Inter").fontSize(9).fillColor("#999999")
           .text(inv.assetClassName, MARGIN, doc.y + 18);
 
-        doc.font("Helvetica").fontSize(7).fillColor("#999999")
+        doc.font("Inter").fontSize(7).fillColor("#999999")
           .text("AMOUNT INVESTED", PAGE_W - MARGIN - 140, doc.y, { width: 140, align: "right" });
-        doc.font("Helvetica-Bold").fontSize(14).fillColor(NAVY)
+        doc.font("Cormorant").fontSize(16).fillColor(NAVY)
           .text(formatCurrency(inv.amountInvested), PAGE_W - MARGIN - 140, doc.y + 12, { width: 140, align: "right" });
 
         doc.y += 36;
@@ -306,9 +313,9 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
 
         let imx = MARGIN;
         for (const m of invMetrics) {
-          doc.font("Helvetica").fontSize(6).fillColor("#999999")
+          doc.font("Inter").fontSize(6).fillColor("#999999")
             .text(m.label.toUpperCase(), imx, doc.y);
-          doc.font("Helvetica-Bold").fontSize(11).fillColor(NAVY)
+          doc.font("InterBold").fontSize(11).fillColor(NAVY)
             .text(m.value, imx, doc.y + 9);
           imx += 85;
         }
@@ -348,7 +355,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       // ── DISCLOSURES ──
       if (data.disclosures.length > 0) {
         ensureSpace(doc, 80);
-        doc.font("Helvetica-Bold").fontSize(16).fillColor(NAVY)
+        doc.font("Cormorant").fontSize(18).fillColor(NAVY)
           .text("Disclosures", MARGIN, doc.y);
         doc.y += 4;
         doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
@@ -357,10 +364,10 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
 
         for (const d of data.disclosures) {
           ensureSpace(doc, 40);
-          doc.font("Helvetica-Bold").fontSize(9).fillColor("#333333")
+          doc.font("InterBold").fontSize(9).fillColor("#333333")
             .text(d.title, MARGIN, doc.y, { width: CONTENT_W });
           doc.moveDown(0.2);
-          doc.font("Helvetica").fontSize(8).fillColor(GRAY)
+          doc.font("Inter").fontSize(8).fillColor(GRAY)
             .text(d.body, MARGIN, doc.y, { width: CONTENT_W, lineGap: 2 });
           doc.moveDown(0.6);
         }
@@ -373,14 +380,14 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         .strokeColor(BORDER).lineWidth(0.5).stroke().restore();
       doc.y += 8;
       const orgLegal = data.org.legalName || data.org.name;
-      doc.font("Helvetica").fontSize(8).fillColor("#999999")
+      doc.font("Inter").fontSize(8).fillColor("#999999")
         .text(`© ${new Date().getFullYear()} ${orgLegal}`, MARGIN, doc.y);
       doc.y += 14;
       doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
         .strokeColor(BORDER).lineWidth(0.5).stroke().restore();
       doc.y += 6;
       const footerParts = [orgLegal, data.org.email, data.org.address].filter(Boolean);
-      doc.font("Helvetica").fontSize(7).fillColor("#999999")
+      doc.font("Inter").fontSize(7).fillColor("#999999")
         .text(footerParts.join(" | "), MARGIN, doc.y, { width: CONTENT_W, align: "center" });
 
       doc.end();
