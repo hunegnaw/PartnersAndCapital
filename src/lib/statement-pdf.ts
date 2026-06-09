@@ -336,7 +336,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         doc.y = metricsY + 26;
 
         // Mini chart
-        if (inv.chartData.length > 1) {
+        if (inv.chartData.length >= 1) {
           ensureSpace(doc, 120);
           try {
             const miniData = inv.chartData.map((d) => {

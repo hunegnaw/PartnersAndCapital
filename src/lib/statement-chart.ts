@@ -124,15 +124,29 @@ function buildSvgChart(
     }
   }
 
-  // Lines
+  // Lines (smooth cubic bezier curves)
   for (const lk of lineKeys) {
-    const points: string[] = [];
+    const pts: { x: number; y: number }[] = [];
     const yFn = lk.yAxis === "right" ? yPosRight : yPosLeft;
     for (let i = 0; i < data.length; i++) {
       const val = data[i].values.find((v) => v.key === lk.key)?.value || 0;
-      points.push(`${xPos(i)},${yFn(val)}`);
+      pts.push({ x: xPos(i), y: yFn(val) });
     }
-    svg += `<polyline points="${points.join(" ")}" fill="none" stroke="${lk.color}" stroke-width="2" />`;
+    if (pts.length === 1) {
+      svg += `<circle cx="${pts[0].x}" cy="${pts[0].y}" r="3" fill="${lk.color}" />`;
+    } else if (pts.length > 1) {
+      let d = `M ${pts[0].x},${pts[0].y}`;
+      for (let i = 1; i < pts.length; i++) {
+        const prev = pts[i - 1];
+        const curr = pts[i];
+        const tension = 0.3;
+        const dx = curr.x - prev.x;
+        const cp1x = prev.x + dx * tension;
+        const cp2x = curr.x - dx * tension;
+        d += ` C ${cp1x},${prev.y} ${cp2x},${curr.y} ${curr.x},${curr.y}`;
+      }
+      svg += `<path d="${d}" fill="none" stroke="${lk.color}" stroke-width="2" stroke-linecap="round" />`;
+    }
   }
 
   svg += "</svg>";
