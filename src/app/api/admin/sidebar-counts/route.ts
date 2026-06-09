@@ -21,6 +21,7 @@ export async function GET() {
       blogPostCount,
       blogCategoryCount,
       mediaCount,
+      statementCount,
       unreadThreads,
     ] = await Promise.all([
       prisma.user.count({ where: { role: "CLIENT", deletedAt: null } }),
@@ -38,6 +39,7 @@ export async function GET() {
       prisma.blogPost.count({ where: { deletedAt: null } }),
       prisma.blogCategory.count({ where: { deletedAt: null } }),
       prisma.media.count({ where: { deletedAt: null } }),
+      prisma.statement.count({ where: { status: "GENERATED", deletedAt: null } }),
       // Count unread message threads for this admin
       prisma.messageThread.findMany({
         where: { deletedAt: null },
@@ -74,6 +76,7 @@ export async function GET() {
       blogCategoryCount,
       mediaCount,
       messageCount,
+      statementCount,
     });
   } catch (error) {
     console.error("Error fetching sidebar counts:", error);

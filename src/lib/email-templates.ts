@@ -440,3 +440,62 @@ export function welcomeEmail({
 
   return emailWrapper(content, logoUrl);
 }
+
+// ─── Statement Email Templates ──────────────────────────────────────
+
+interface StatementReadyEmailParams {
+  userName: string;
+  periodLabel: string;
+  portalUrl: string;
+  orgEmail?: string | null;
+  orgPhone?: string | null;
+  logoUrl?: string | null;
+}
+
+export function statementReadyEmail({
+  userName,
+  periodLabel,
+  portalUrl,
+  orgEmail,
+  orgPhone,
+  logoUrl,
+}: StatementReadyEmailParams): string {
+  const contactLine = [orgEmail, orgPhone].filter(Boolean).join(" or ");
+  const contactHtml = contactLine
+    ? `<p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">If you have questions about your statement, please contact us at ${contactLine}.</p>`
+    : "";
+
+  const content = `
+    <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">Your ${periodLabel} Statement is Ready</h1>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Hello ${userName},</p>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Your investment statement for ${periodLabel} is now available in your portal.</p>
+    ${emailButton("View Statement", portalUrl)}
+    ${contactHtml}`;
+
+  return emailWrapper(content, logoUrl);
+}
+
+interface StatementsGeneratedEmailParams {
+  adminName: string;
+  count: number;
+  periodLabel: string;
+  reviewUrl: string;
+  logoUrl?: string | null;
+}
+
+export function statementsGeneratedEmail({
+  adminName,
+  count,
+  periodLabel,
+  reviewUrl,
+  logoUrl,
+}: StatementsGeneratedEmailParams): string {
+  const content = `
+    <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3;">${count} Client Statement${count !== 1 ? "s" : ""} Generated</h1>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;">Hello ${adminName},</p>
+    <p style="margin: 0 0 16px 0; font-size: 15px; color: #5f5e5a; line-height: 1.6;"><strong style="color: #1a1a18;">${count}</strong> client statement${count !== 1 ? "s" : ""} for <strong style="color: #1a1a18;">${periodLabel}</strong> have been generated and are ready for your review.</p>
+    ${emailButton("Review Statements", reviewUrl)}
+    <p style="margin: 0; font-size: 13px; color: #9a9a9a; line-height: 1.5;">Statements will not be visible to clients until you approve them.</p>`;
+
+  return emailWrapper(content, logoUrl);
+}

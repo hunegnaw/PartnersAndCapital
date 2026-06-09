@@ -241,18 +241,34 @@ export default function DocumentsPage() {
     }
   }, [activeTab]);
 
-  // Fetch statements when Statements tab is first opened
+  // Fetch statements when Statements tab is first opened (merge uploaded docs + generated)
   useEffect(() => {
     if (activeTab === "statements" && !statementsFetchedRef.current) {
       statementsFetchedRef.current = true;
       setStatementsLoading(true);
-      fetch("/api/portal/documents?type=STATEMENT&pageSize=500")
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to load statements");
-          return res.json();
-        })
-        .then((json) => {
-          setStatements(json.documents);
+      Promise.all([
+        fetch("/api/portal/documents?type=STATEMENT&pageSize=500").then((r) => r.ok ? r.json() : { documents: [] }),
+        fetch("/api/portal/statements").then((r) => r.ok ? r.json() : []),
+      ])
+        .then(([docData, generatedStatements]) => {
+          const uploadedDocs: Document[] = docData.documents || [];
+          const generated: Document[] = (generatedStatements as { id: string; fileName: string; periodStart: string; fileSize: number; createdAt: string }[]).map((s) => ({
+            id: `stmt-${s.id}`,
+            name: s.fileName || "Statement",
+            type: "STATEMENT",
+            year: new Date(s.periodStart).getFullYear(),
+            description: null,
+            mimeType: "application/pdf",
+            fileSize: s.fileSize || 0,
+            advisorVisible: false,
+            investment: null,
+            createdAt: s.createdAt,
+            _statementId: s.id,
+          }));
+          const merged = [...uploadedDocs, ...generated].sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          setStatements(merged);
         })
         .catch(() => {})
         .finally(() => setStatementsLoading(false));
@@ -822,9 +838,15 @@ export default function DocumentsPage() {
                         </p>
                       </div>
                       <a
-                        href={`/api/portal/documents/${doc.id}/download`}
+                        href={
+                          doc.id.startsWith("stmt-")
+                            ? `/api/portal/statements/${doc.id.replace("stmt-", "")}/download`
+                            : `/api/portal/documents/${doc.id}/download`
+                        }
                         className="shrink-0 p-2 rounded-lg hover:bg-[#eeece8] transition-colors text-[#B07D3A]"
                         title="Download"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
                         <Download className="h-4 w-4" />
                       </a>

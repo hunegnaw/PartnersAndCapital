@@ -102,6 +102,9 @@ model User {
   threadParticipant MessageThread[]    @relation("ThreadParticipant")
   messagesSent      Message[]          @relation("MessageSender")
   messageReadReceipts MessageReadReceipt[] @relation("MessageReadReceipts")
+  statements        Statement[]
+  statementApprovals Statement[]       @relation("StatementApprover")
+  bannerAssignments StatementBannerAssignment[]
 
   @@index([email])
   @@index([role])
@@ -1101,4 +1104,103 @@ model NewsletterSubscriber {
   unsubscribedAt DateTime?
 
   @@index([email])
+}
+
+// ============================================================
+// STATEMENT MODELS
+// ============================================================
+
+enum StatementStatus {
+  GENERATED
+  APPROVED
+  REJECTED
+  SENDING
+  SENT
+}
+
+model Statement {
+  id                 String          @id @default(cuid())
+  userId             String
+  periodStart        DateTime
+  periodEnd          DateTime
+  statementDate      String
+  status             StatementStatus @default(GENERATED)
+  filePath           String?
+  fileName           String?
+  fileSize           Int?
+  generatedAt        DateTime        @default(now())
+  approvedAt         DateTime?
+  approvedBy         String?
+  sentAt             DateTime?
+  rejectionReason    String?         @db.Text
+  totalInvested      Decimal         @db.Decimal(14, 2)
+  currentValue       Decimal         @db.Decimal(14, 2)
+  totalDistributions Decimal         @db.Decimal(14, 2)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  deletedAt          DateTime?
+
+  user     User  @relation(fields: [userId], references: [id])
+  approver User? @relation("StatementApprover", fields: [approvedBy], references: [id])
+  banners  StatementBannerPlacement[]
+
+  @@unique([userId, periodStart])
+  @@index([status, periodStart])
+  @@index([userId, periodStart, deletedAt])
+}
+
+model StatementBanner {
+  id           String    @id @default(cuid())
+  title        String
+  description  String?   @db.Text
+  imageUrl     String?
+  buttonText   String?
+  buttonUrl    String?
+  gradientFrom String    @default("#1A2640")
+  gradientTo   String    @default("#1A2640")
+  isArchived   Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  assignments StatementBannerAssignment[]
+  placements  StatementBannerPlacement[]
+}
+
+model StatementBannerAssignment {
+  id        String   @id @default(cuid())
+  bannerId  String
+  userId    String?
+  month     Int
+  year      Int
+  createdAt DateTime @default(now())
+
+  banner StatementBanner @relation(fields: [bannerId], references: [id], onDelete: Cascade)
+  user   User?           @relation(fields: [userId], references: [id])
+
+  @@unique([bannerId, userId, month, year])
+  @@index([month, year])
+}
+
+model StatementBannerPlacement {
+  id          String   @id @default(cuid())
+  statementId String
+  bannerId    String
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  statement Statement       @relation(fields: [statementId], references: [id], onDelete: Cascade)
+  banner    StatementBanner @relation(fields: [bannerId], references: [id])
+
+  @@unique([statementId, bannerId])
+}
+
+model StatementDisclosure {
+  id        String   @id @default(cuid())
+  title     String
+  body      String   @db.Text
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

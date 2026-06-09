@@ -38,6 +38,7 @@ import {
 import { ClientFormDialog } from "@/components/admin/client-form-dialog"
 import { DocumentUploadDialog } from "@/components/admin/document-upload-dialog"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
+import { ClientStatementsTab } from "@/components/admin/client-statements-tab"
 import { cn, formatCurrency, formatDate, formatDateOnly } from "@/lib/utils"
 import {
   ArrowLeft,
@@ -501,6 +502,10 @@ export default function AdminClientDetailPage({
             <UserCog className="h-4 w-4 mr-1.5" />
             Advisors ({client.advisorsInvited.length})
           </TabsTrigger>
+          <TabsTrigger value="statements">
+            <FileText className="h-4 w-4 mr-1.5" />
+            Statements
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="investments" className="mt-4">
@@ -676,6 +681,10 @@ export default function AdminClientDetailPage({
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="statements" className="mt-4">
+          <ClientStatementsTab clientId={client.id} clientName={client.name} />
         </TabsContent>
       </Tabs>
 

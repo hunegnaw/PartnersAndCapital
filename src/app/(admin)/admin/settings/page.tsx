@@ -1,7 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -94,6 +100,12 @@ export default function AdminSettingsPage() {
   const [logoScrolledPickerOpen, setLogoScrolledPickerOpen] = useState(false)
   const [faviconPickerOpen, setFaviconPickerOpen] = useState(false)
 
+  // Statement disclosures
+  const [disclosures, setDisclosures] = useState<{ id: string; title: string; body: string; sortOrder: number; isActive: boolean }[]>([])
+  const [disclosuresLoading, setDisclosuresLoading] = useState(true)
+  const [newDiscTitle, setNewDiscTitle] = useState("")
+  const [newDiscBody, setNewDiscBody] = useState("")
+
   useEffect(() => {
     async function fetchSettings() {
       try {
@@ -133,6 +145,19 @@ export default function AdminSettingsPage() {
       }
     }
     fetchSettings()
+
+    async function fetchDisclosures() {
+      try {
+        const res = await fetch("/api/admin/statements/disclosures")
+        if (res.ok) {
+          const data = await res.json()
+          setDisclosures(data)
+        }
+      } catch {} finally {
+        setDisclosuresLoading(false)
+      }
+    }
+    fetchDisclosures()
   }, [])
 
   async function handleSave(e: React.FormEvent) {
@@ -233,6 +258,45 @@ export default function AdminSettingsPage() {
     }))
   }
 
+  async function addDisclosure() {
+    if (!newDiscTitle || !newDiscBody) return
+    try {
+      const res = await fetch("/api/admin/statements/disclosures", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newDiscTitle, body: newDiscBody }),
+      })
+      if (res.ok) {
+        const d = await res.json()
+        setDisclosures([...disclosures, d])
+        setNewDiscTitle("")
+        setNewDiscBody("")
+      }
+    } catch {}
+  }
+
+  async function updateDisclosure(id: string, updates: Record<string, unknown>) {
+    try {
+      const res = await fetch(`/api/admin/statements/disclosures/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setDisclosures(disclosures.map((d) => (d.id === id ? { ...d, ...updated } : d)))
+      }
+    } catch {}
+  }
+
+  async function deleteDisclosure(id: string) {
+    if (!confirm("Delete this disclosure?")) return
+    try {
+      await fetch(`/api/admin/statements/disclosures/${id}`, { method: "DELETE" })
+      setDisclosures(disclosures.filter((d) => d.id !== id))
+    } catch {}
+  }
+
   if (loading) {
     return (
       <div className="p-8 space-y-6">
@@ -271,15 +335,16 @@ export default function AdminSettingsPage() {
       )}
 
       <form onSubmit={handleSave} className="space-y-6">
+       <Accordion multiple defaultValue={[0, 2]} className="space-y-4">
         {/* Branding */}
-        <Card>
-          <CardHeader>
+        <AccordionItem value="branding" className="border rounded-lg px-6">
+          <AccordionTrigger className="py-4">
             <div className="flex items-center gap-2">
               <Palette className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-base">Branding</CardTitle>
+              <span className="text-base font-semibold">Branding</span>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          </AccordionTrigger>
+          <AccordionContent className="pb-6 space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="org-name">Organization Name *</Label>
@@ -431,18 +496,18 @@ export default function AdminSettingsPage() {
                 />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </AccordionContent>
+        </AccordionItem>
 
         {/* Typography */}
-        <Card>
-          <CardHeader>
+        <AccordionItem value="typography" className="border rounded-lg px-6">
+          <AccordionTrigger className="py-4">
             <div className="flex items-center gap-2">
               <Type className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-base">Typography</CardTitle>
+              <span className="text-base font-semibold">Typography</span>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
+          </AccordionTrigger>
+          <AccordionContent className="pb-6 space-y-6">
             {TYPOGRAPHY_CATEGORIES.map(({ key, label }) => (
               <div key={key} className="space-y-3 pb-4 border-b border-border last:border-0 last:pb-0">
                 <Label className="text-sm font-semibold">{label}</Label>
@@ -527,18 +592,18 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </AccordionContent>
+        </AccordionItem>
 
         {/* Contact */}
-        <Card>
-          <CardHeader>
+        <AccordionItem value="contact" className="border rounded-lg px-6">
+          <AccordionTrigger className="py-4">
             <div className="flex items-center gap-2">
               <Mail className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-base">Contact Information</CardTitle>
+              <span className="text-base font-semibold">Contact Information</span>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          </AccordionTrigger>
+          <AccordionContent className="pb-6 space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="org-email">Email</Label>
@@ -581,18 +646,18 @@ export default function AdminSettingsPage() {
                 />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </AccordionContent>
+        </AccordionItem>
 
         {/* Compliance */}
-        <Card>
-          <CardHeader>
+        <AccordionItem value="compliance" className="border rounded-lg px-6">
+          <AccordionTrigger className="py-4">
             <div className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-base">Compliance</CardTitle>
+              <span className="text-base font-semibold">Compliance</span>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          </AccordionTrigger>
+          <AccordionContent className="pb-6 space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="org-disclaimer">Disclaimer</Label>
               <Textarea
@@ -621,18 +686,18 @@ export default function AdminSettingsPage() {
                 placeholder="https://example.com/terms"
               />
             </div>
-          </CardContent>
-        </Card>
+          </AccordionContent>
+        </AccordionItem>
 
         {/* Security */}
-        <Card>
-          <CardHeader>
+        <AccordionItem value="security" className="border rounded-lg px-6">
+          <AccordionTrigger className="py-4">
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-base">Security</CardTitle>
+              <span className="text-base font-semibold">Security</span>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          </AccordionTrigger>
+          <AccordionContent className="pb-6 space-y-4">
             <div className="grid gap-2 max-w-sm">
               <Label>Two-Factor Authentication Policy</Label>
               <Select value={twoFactorPolicy} onValueChange={(v) => setTwoFactorPolicy(v ?? "OPTIONAL")}>
@@ -649,18 +714,18 @@ export default function AdminSettingsPage() {
                 Controls whether SMS-based two-factor authentication is required, optional, or disabled for all users.
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </AccordionContent>
+        </AccordionItem>
 
         {/* Profile Avatar */}
-        <Card>
-          <CardHeader>
+        <AccordionItem value="avatar" className="border rounded-lg px-6">
+          <AccordionTrigger className="py-4">
             <div className="flex items-center gap-2">
               <UserCircle className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-base">Profile Avatar</CardTitle>
+              <span className="text-base font-semibold">Profile Avatar</span>
             </div>
-          </CardHeader>
-          <CardContent>
+          </AccordionTrigger>
+          <AccordionContent className="pb-6">
             <div className="flex items-center gap-6">
               <div className="relative">
                 {avatarUrl ? (
@@ -718,8 +783,90 @@ export default function AdminSettingsPage() {
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Statement Disclosures */}
+        <AccordionItem value="disclosures" className="border rounded-lg px-6">
+          <AccordionTrigger className="py-4">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <span className="text-base font-semibold">Statement Disclosures</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pb-6 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Disclosures shown at the bottom of client statements. Drag to reorder. Toggle to enable/disable.
+            </p>
+            {disclosuresLoading ? (
+              <Skeleton className="h-24" />
+            ) : (
+              <>
+                {disclosures.map((d) => (
+                  <Card key={d.id} className={d.isActive ? "" : "opacity-50"}>
+                    <CardContent className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <Input
+                          value={d.title}
+                          onChange={(e) => setDisclosures(disclosures.map((x) => x.id === d.id ? { ...x, title: e.target.value } : x))}
+                          onBlur={() => updateDisclosure(d.id, { title: d.title })}
+                          className="font-semibold text-sm"
+                        />
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => updateDisclosure(d.id, { isActive: !d.isActive })}
+                            title={d.isActive ? "Disable" : "Enable"}
+                          >
+                            {d.isActive ? <Check className="h-4 w-4 text-green-600" /> : <AlertCircle className="h-4 w-4 text-muted-foreground" />}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteDisclosure(d.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </div>
+                      <Textarea
+                        value={d.body}
+                        onChange={(e) => setDisclosures(disclosures.map((x) => x.id === d.id ? { ...x, body: e.target.value } : x))}
+                        onBlur={() => updateDisclosure(d.id, { body: d.body })}
+                        rows={2}
+                        className="text-sm"
+                      />
+                    </CardContent>
+                  </Card>
+                ))}
+                <Card>
+                  <CardContent className="p-4 space-y-2">
+                    <Label className="text-sm font-semibold">Add Disclosure</Label>
+                    <Input
+                      value={newDiscTitle}
+                      onChange={(e) => setNewDiscTitle(e.target.value)}
+                      placeholder="Disclosure title..."
+                    />
+                    <Textarea
+                      value={newDiscBody}
+                      onChange={(e) => setNewDiscBody(e.target.value)}
+                      placeholder="Disclosure text..."
+                      rows={2}
+                    />
+                    <Button type="button" variant="outline" size="sm" onClick={addDisclosure} disabled={!newDiscTitle || !newDiscBody}>
+                      Add Disclosure
+                    </Button>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </AccordionContent>
+        </AccordionItem>
+
+       </Accordion>
 
         {/* Save Button */}
         <div className="flex justify-end">
