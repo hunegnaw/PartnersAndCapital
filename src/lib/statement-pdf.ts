@@ -112,9 +112,9 @@ function drawTableRow(
       .fontSize(fontSize)
       .fillColor("#333333");
     if (col.align === "right") {
-      doc.text(col.text, x, y + 6, { width: col.width - 8, align: "right" });
+      doc.text(col.text, x, y + 6, { width: col.width - 8, align: "right", lineBreak: false });
     } else {
-      doc.text(col.text, x, y + 6, { width: col.width - 8 });
+      doc.text(col.text, x, y + 6, { width: col.width - 8, lineBreak: false });
     }
     x += col.width;
   }
@@ -128,9 +128,10 @@ function drawActivityTable(
   totalAmount?: number
 ) {
   ensureSpace(doc, 60);
+  const titleY = doc.y;
   doc.font("InterBold").fontSize(8).fillColor(GRAY)
-    .text(title.toUpperCase(), MARGIN, doc.y, { characterSpacing: 0.5 });
-  doc.moveDown(0.3);
+    .text(title.toUpperCase(), MARGIN, titleY, { characterSpacing: 0.5, lineBreak: false });
+  doc.y = titleY + 14;
 
   const colW = [100, 140, 120, CONTENT_W - 360];
   const headerY = doc.y;
@@ -144,7 +145,7 @@ function drawActivityTable(
 
   if (items.length === 0) {
     doc.font("Inter").fontSize(9).fillColor("#999999")
-      .text("No activity this period", MARGIN + 8, doc.y + 4);
+      .text("No activity this period", MARGIN + 8, doc.y + 4, { lineBreak: false });
     doc.y += 24;
   } else {
     for (const item of items) {
@@ -190,14 +191,14 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       // ── HEADER ──
       doc.save().rect(0, 0, PAGE_W, 64).fill(NAVY).restore();
       doc.font("Cormorant").fontSize(18).fillColor(GOLD_LIGHT)
-        .text("PARTNERS", MARGIN, 16, { continued: true })
-        .fillColor("#FFFFFF").text(" + CAPITAL");
+        .text("PARTNERS", MARGIN, 16, { continued: true, lineBreak: false })
+        .fillColor("#FFFFFF").text(" + CAPITAL", { lineBreak: false });
       doc.font("Inter").fontSize(6).fillColor("#8899BB")
-        .text("PUBLIC ACCESS TO PRIVATE MARKETS", MARGIN, 40);
+        .text("PUBLIC ACCESS TO PRIVATE MARKETS", MARGIN, 40, { lineBreak: false });
       doc.font("Inter").fontSize(7).fillColor("#FFFFFF")
-        .text("STATEMENT", PAGE_W - MARGIN - 120, 18, { width: 120, align: "right" });
+        .text("STATEMENT", PAGE_W - MARGIN - 120, 18, { width: 120, align: "right", lineBreak: false });
       doc.font("Cormorant").fontSize(18).fillColor("#FFFFFF")
-        .text(data.statementDate, PAGE_W - MARGIN - 120, 30, { width: 120, align: "right" });
+        .text(data.statementDate, PAGE_W - MARGIN - 120, 30, { width: 120, align: "right", lineBreak: false });
 
       // Gold line
       doc.save().rect(0, 64, PAGE_W, 3)
@@ -205,15 +206,16 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       doc.y = 80;
 
       // ── CLIENT INFO ──
+      const clientY = doc.y;
       doc.font("Inter").fontSize(7).fillColor("#999999")
-        .text("CLIENT", MARGIN, doc.y);
+        .text("CLIENT", MARGIN, clientY, { lineBreak: false });
       doc.font("Cormorant").fontSize(22).fillColor(NAVY)
-        .text(data.clientName, MARGIN, doc.y + 12);
+        .text(data.clientName, MARGIN, clientY + 10, { lineBreak: false });
 
       doc.font("Inter").fontSize(7).fillColor("#999999")
-        .text("TOTAL AMOUNT INVESTED", PAGE_W - MARGIN - 160, 80, { width: 160, align: "right" });
+        .text("TOTAL AMOUNT INVESTED", PAGE_W - MARGIN - 160, clientY, { width: 160, align: "right", lineBreak: false });
       doc.font("Cormorant").fontSize(22).fillColor(NAVY)
-        .text(formatCurrency(data.totalInvested), PAGE_W - MARGIN - 160, 92, { width: 160, align: "right" });
+        .text(formatCurrency(data.totalInvested), PAGE_W - MARGIN - 160, clientY + 10, { width: 160, align: "right", lineBreak: false });
 
       doc.y = 118;
       doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
@@ -227,15 +229,15 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, 70, 4)
           .fill(banner.gradientTo).restore();
         doc.font("InterBold").fontSize(13).fillColor(GOLD_LIGHT)
-          .text(banner.title, MARGIN + 20, bannerY + 14, { width: CONTENT_W - 40 });
+          .text(banner.title, MARGIN + 20, bannerY + 14, { width: CONTENT_W - 40, lineBreak: false });
         if (banner.description) {
           doc.font("Inter").fontSize(9).fillColor("#FFFFFF")
-            .text(banner.description, MARGIN + 20, bannerY + 32, { width: CONTENT_W - 40 });
+            .text(banner.description, MARGIN + 20, bannerY + 32, { width: CONTENT_W - 40, lineBreak: false });
         }
         if (banner.buttonText) {
           doc.save().roundedRect(MARGIN + 20, bannerY + 50, 80, 16, 3).fill(GOLD).restore();
           doc.font("InterBold").fontSize(8).fillColor("#FFFFFF")
-            .text(banner.buttonText, MARGIN + 24, bannerY + 53, { width: 72 });
+            .text(banner.buttonText, MARGIN + 24, bannerY + 53, { width: 72, lineBreak: false });
         }
         doc.y = bannerY + 78;
       }
@@ -254,12 +256,12 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       let mx = MARGIN;
       for (const m of metrics) {
         doc.font("Inter").fontSize(7).fillColor("#999999")
-          .text(m.label.toUpperCase(), mx, summaryY, { width: 100 });
+          .text(m.label.toUpperCase(), mx, summaryY, { width: 100, lineBreak: false });
         doc.font("InterBold").fontSize(16).fillColor(m.color)
-          .text(m.value, mx, summaryY + 12);
+          .text(m.value, mx, summaryY + 10, { width: 100, lineBreak: false });
         mx += 105;
       }
-      doc.y = summaryY + 36;
+      doc.y = summaryY + 32;
 
       // ── COMBINED CHART ──
       if (data.combinedChartData.length > 1) {
@@ -272,7 +274,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
             .roundedRect(MARGIN, doc.y, CONTENT_W, 170, 4)
             .fill(LIGHT_BG).restore();
           doc.font("InterBold").fontSize(7).fillColor(GRAY)
-            .text("PORTFOLIO PERFORMANCE", MARGIN + 12, doc.y + 8);
+            .text("PORTFOLIO PERFORMANCE", MARGIN + 12, doc.y + 8, { lineBreak: false });
           doc.image(chartPng, MARGIN + 6, doc.y + 22, { width: CONTENT_W - 12, height: 140 });
           doc.y += 178;
         } catch {
@@ -289,17 +291,18 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           .strokeColor(GOLD).lineWidth(1.5).stroke().restore();
         doc.y += 8;
 
+        const invHeaderY = doc.y;
         doc.font("Cormorant").fontSize(16).fillColor(NAVY)
-          .text(inv.investmentName, MARGIN, doc.y);
+          .text(inv.investmentName, MARGIN, invHeaderY, { lineBreak: false });
         doc.font("Inter").fontSize(9).fillColor("#999999")
-          .text(inv.assetClassName, MARGIN, doc.y + 18);
+          .text(inv.assetClassName, MARGIN, invHeaderY + 20, { lineBreak: false });
 
         doc.font("Inter").fontSize(7).fillColor("#999999")
-          .text("AMOUNT INVESTED", PAGE_W - MARGIN - 140, doc.y, { width: 140, align: "right" });
+          .text("AMOUNT INVESTED", PAGE_W - MARGIN - 140, invHeaderY, { width: 140, align: "right", lineBreak: false });
         doc.font("Cormorant").fontSize(16).fillColor(NAVY)
-          .text(formatCurrency(inv.amountInvested), PAGE_W - MARGIN - 140, doc.y + 12, { width: 140, align: "right" });
+          .text(formatCurrency(inv.amountInvested), PAGE_W - MARGIN - 140, invHeaderY + 12, { width: 140, align: "right", lineBreak: false });
 
-        doc.y += 36;
+        doc.y = invHeaderY + 38;
 
         // Investment metrics row
         const invMetrics = [
@@ -311,15 +314,16 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         if (inv.irr != null) invMetrics.push({ label: "IRR", value: formatPct(inv.irr) });
         if (inv.apr != null) invMetrics.push({ label: "APR", value: formatPct(inv.apr) });
 
+        const metricsY = doc.y;
         let imx = MARGIN;
         for (const m of invMetrics) {
           doc.font("Inter").fontSize(6).fillColor("#999999")
-            .text(m.label.toUpperCase(), imx, doc.y);
+            .text(m.label.toUpperCase(), imx, metricsY, { lineBreak: false });
           doc.font("InterBold").fontSize(11).fillColor(NAVY)
-            .text(m.value, imx, doc.y + 9);
+            .text(m.value, imx, metricsY + 9, { lineBreak: false });
           imx += 85;
         }
-        doc.y += 28;
+        doc.y = metricsY + 26;
 
         // Mini chart
         if (inv.chartData.length > 1) {

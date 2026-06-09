@@ -8,9 +8,11 @@ interface ChartDataPoint {
 }
 
 function formatCompact(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`;
-  return value.toFixed(0);
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 10_000) return `$${(value / 1_000).toFixed(0)}K`;
+  if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
+  if (value === 0) return "$0";
+  return `$${value.toFixed(0)}`;
 }
 
 function formatMonthLabel(month: string): string {
@@ -33,7 +35,7 @@ function buildSvgChart(
     barWidth?: number;
   } = {}
 ): string {
-  const margin = { top: 10, right: 50, bottom: 30, left: 50 };
+  const margin = { top: 10, right: 60, bottom: 30, left: 55 };
   const chartW = width - margin.left - margin.right;
   const chartH = height - margin.top - margin.bottom;
 
@@ -90,7 +92,7 @@ function buildSvgChart(
   for (let i = 0; i <= gridSteps; i++) {
     const val = leftMax * 1.1 * (1 - i / gridSteps);
     const y = margin.top + (i / gridSteps) * chartH;
-    svg += `<text x="${margin.left - 5}" y="${y + 3}" text-anchor="end" font-size="8" fill="#666">${escapeXml(formatCompact(val))}</text>`;
+    svg += `<text x="${margin.left - 5}" y="${y + 4}" text-anchor="end" font-size="11" fill="#666" font-family="sans-serif">${escapeXml(formatCompact(val))}</text>`;
   }
 
   // Y-axis labels (right)
@@ -98,7 +100,7 @@ function buildSvgChart(
     for (let i = 0; i <= gridSteps; i++) {
       const val = rightMax * 1.1 * (1 - i / gridSteps);
       const y = margin.top + (i / gridSteps) * chartH;
-      svg += `<text x="${margin.left + chartW + 5}" y="${y + 3}" text-anchor="start" font-size="8" fill="#B07D3A">${escapeXml(formatCompact(val))}</text>`;
+      svg += `<text x="${margin.left + chartW + 5}" y="${y + 4}" text-anchor="start" font-size="11" fill="#B07D3A" font-family="sans-serif">${escapeXml(formatCompact(val))}</text>`;
     }
   }
 
@@ -106,7 +108,7 @@ function buildSvgChart(
   const labelInterval = Math.max(1, Math.floor(data.length / 8));
   for (let i = 0; i < data.length; i += labelInterval) {
     const x = xPos(i);
-    svg += `<text x="${x}" y="${height - 5}" text-anchor="middle" font-size="8" fill="#666">${escapeXml(data[i].label)}</text>`;
+    svg += `<text x="${x}" y="${height - 5}" text-anchor="middle" font-size="10" fill="#666" font-family="sans-serif">${escapeXml(data[i].label)}</text>`;
   }
 
   // Bars
