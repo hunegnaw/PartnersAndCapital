@@ -20,9 +20,9 @@ const PAGE_H = 792;
 const MARGIN = 40;
 const CONTENT_W = PAGE_W - MARGIN * 2;
 const FONT_DIR = path.join(process.cwd(), "fonts");
-const FONT_REGULAR = path.join(FONT_DIR, "Inter-Regular.otf");
-const FONT_BOLD = path.join(FONT_DIR, "Inter-Bold.otf");
-const FONT_HEADING = path.join(FONT_DIR, "CormorantGaramond-Medium.otf");
+const FONT_REGULAR = path.join(FONT_DIR, "Inter-Regular.ttf");
+const FONT_BOLD = path.join(FONT_DIR, "Inter-Bold.ttf");
+const FONT_HEADING = path.join(FONT_DIR, "CormorantGaramond-Medium.ttf");
 
 function getEncryptionKey(): Buffer {
   const key = process.env.ENCRYPTION_KEY;
