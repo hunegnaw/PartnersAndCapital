@@ -7,6 +7,8 @@ interface ChartDataPoint {
   monthlyContribution: number;
 }
 
+const FONT = "Inter, Arial, Helvetica, sans-serif";
+
 function formatCompact(value: number): string {
   if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 10_000) return `$${(value / 1_000).toFixed(0)}K`;
@@ -35,7 +37,7 @@ function buildSvgChart(
     barWidth?: number;
   } = {}
 ): string {
-  const margin = { top: 10, right: 60, bottom: 30, left: 55 };
+  const margin = { top: 10, right: 70, bottom: 30, left: 65 };
   const chartW = width - margin.left - margin.right;
   const chartH = height - margin.top - margin.bottom;
 
@@ -43,14 +45,9 @@ function buildSvgChart(
   const barKeys = options.barKeys || [];
   const barWidth = options.barWidth || 6;
 
-  const allLineVals = data.flatMap((d) =>
-    d.values.filter((v) => lineKeys.some((lk) => lk.key === v.key)).map((v) => v.value)
-  );
   const allBarVals = data.flatMap((d) =>
     d.values.filter((v) => barKeys.some((bk) => bk.key === v.key)).map((v) => v.value)
   );
-
-  const lineMax = allLineVals.length > 0 ? Math.max(...allLineVals, 1) : 1;
   const barMax = allBarVals.length > 0 ? Math.max(...allBarVals, 1) * 2.5 : 1;
 
   const rightAxisKeys = lineKeys.filter((lk) => lk.yAxis === "right").map((lk) => lk.key);
@@ -62,8 +59,8 @@ function buildSvgChart(
   const rightVals = data.flatMap((d) =>
     d.values.filter((v) => rightAxisKeys.includes(v.key)).map((v) => v.value)
   );
-  const leftMax = leftVals.length > 0 ? Math.max(...leftVals, 1) : lineMax;
-  const rightMax = rightVals.length > 0 ? Math.max(...rightVals, 1) : lineMax;
+  const leftMax = leftVals.length > 0 ? Math.max(...leftVals, 1) : 1;
+  const rightMax = rightVals.length > 0 ? Math.max(...rightVals, 1) : 1;
 
   function xPos(i: number): number {
     return margin.left + (i / Math.max(data.length - 1, 1)) * chartW;
@@ -77,30 +74,27 @@ function buildSvgChart(
     return margin.top + chartH - (val / (rightMax * 1.1)) * chartH;
   }
 
-
-
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`;
 
-  // Grid lines
   const gridSteps = 4;
   for (let i = 0; i <= gridSteps; i++) {
     const y = margin.top + (i / gridSteps) * chartH;
     svg += `<line x1="${margin.left}" y1="${y}" x2="${margin.left + chartW}" y2="${y}" stroke="#E8EBF0" stroke-dasharray="3,3" />`;
   }
 
-  // Y-axis labels (left)
+  // Left Y-axis labels (with padding from chart edge)
   for (let i = 0; i <= gridSteps; i++) {
     const val = leftMax * 1.1 * (1 - i / gridSteps);
     const y = margin.top + (i / gridSteps) * chartH;
-    svg += `<text x="${margin.left - 5}" y="${y + 4}" text-anchor="end" font-size="11" fill="#666" font-family="sans-serif">${escapeXml(formatCompact(val))}</text>`;
+    svg += `<text x="${margin.left - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#666" font-family="${FONT}">${escapeXml(formatCompact(val))}</text>`;
   }
 
-  // Y-axis labels (right)
+  // Right Y-axis labels (with padding from chart edge)
   if (rightAxisKeys.length > 0) {
     for (let i = 0; i <= gridSteps; i++) {
       const val = rightMax * 1.1 * (1 - i / gridSteps);
       const y = margin.top + (i / gridSteps) * chartH;
-      svg += `<text x="${margin.left + chartW + 5}" y="${y + 4}" text-anchor="start" font-size="11" fill="#B07D3A" font-family="sans-serif">${escapeXml(formatCompact(val))}</text>`;
+      svg += `<text x="${margin.left + chartW + 8}" y="${y + 4}" text-anchor="start" font-size="11" fill="#B07D3A" font-family="${FONT}">${escapeXml(formatCompact(val))}</text>`;
     }
   }
 
@@ -108,7 +102,7 @@ function buildSvgChart(
   const labelInterval = Math.max(1, Math.floor(data.length / 8));
   for (let i = 0; i < data.length; i += labelInterval) {
     const x = xPos(i);
-    svg += `<text x="${x}" y="${height - 5}" text-anchor="middle" font-size="10" fill="#666" font-family="sans-serif">${escapeXml(data[i].label)}</text>`;
+    svg += `<text x="${x}" y="${height - 5}" text-anchor="middle" font-size="10" fill="#666" font-family="${FONT}">${escapeXml(data[i].label)}</text>`;
   }
 
   // Bars
@@ -147,6 +141,42 @@ function buildSvgChart(
       }
       svg += `<path d="${d}" fill="none" stroke="${lk.color}" stroke-width="2" stroke-linecap="round" />`;
     }
+  }
+
+  svg += "</svg>";
+  return svg;
+}
+
+export function renderDonutSVG(
+  slices: { name: string; value: number; color: string }[],
+  size: number = 200
+): string {
+  const cx = size / 2;
+  const cy = size / 2;
+  const outerR = size / 2 - 4;
+  const innerR = outerR * 0.55;
+  const total = slices.reduce((s, sl) => s + sl.value, 0);
+  if (total === 0) return "";
+
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`;
+
+  let startAngle = -Math.PI / 2;
+  for (const sl of slices) {
+    const pct = sl.value / total;
+    const endAngle = startAngle + pct * 2 * Math.PI;
+    const largeArc = pct > 0.5 ? 1 : 0;
+
+    const x1o = cx + outerR * Math.cos(startAngle);
+    const y1o = cy + outerR * Math.sin(startAngle);
+    const x2o = cx + outerR * Math.cos(endAngle);
+    const y2o = cy + outerR * Math.sin(endAngle);
+    const x1i = cx + innerR * Math.cos(endAngle);
+    const y1i = cy + innerR * Math.sin(endAngle);
+    const x2i = cx + innerR * Math.cos(startAngle);
+    const y2i = cy + innerR * Math.sin(startAngle);
+
+    svg += `<path d="M ${x1o},${y1o} A ${outerR},${outerR} 0 ${largeArc} 1 ${x2o},${y2o} L ${x1i},${y1i} A ${innerR},${innerR} 0 ${largeArc} 0 ${x2i},${y2i} Z" fill="${sl.color}" />`;
+    startAngle = endAngle;
   }
 
   svg += "</svg>";

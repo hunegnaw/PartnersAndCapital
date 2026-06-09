@@ -52,6 +52,11 @@ export interface StatementData {
     monthlyDistribution: number;
     monthlyContribution: number;
   }[];
+  allocation: {
+    name: string;
+    value: number;
+    color: string;
+  }[];
   banners: {
     title: string;
     description: string | null;
@@ -355,6 +360,23 @@ export async function collectStatementData(
 
   const statementDate = `${periodEnd.getMonth() + 1}/${periodEnd.getDate()}/${periodEnd.getFullYear()}`;
 
+  const ALLOC_COLORS: Record<string, string> = {
+    "Oil & Gas": "#B07D3A",
+    "Real Estate": "#7A5528",
+    "Private Credit": "#1A2640",
+    "Specialty Assets": "#2C3E5C",
+    "Specialty": "#2C3E5C",
+  };
+  const allocMap = new Map<string, number>();
+  for (const inv of investmentsData) {
+    allocMap.set(inv.assetClassName, (allocMap.get(inv.assetClassName) || 0) + inv.amountInvested);
+  }
+  const allocation = Array.from(allocMap.entries()).map(([name, value]) => ({
+    name,
+    value,
+    color: ALLOC_COLORS[name] || "#718096",
+  }));
+
   return {
     clientName: user.name || user.email,
     clientEmail: user.email,
@@ -368,6 +390,7 @@ export async function collectStatementData(
     weightedIrr: totalWeight > 0 ? Math.round((weightedIrr / totalWeight) * 100) / 100 : 0,
     weightedApr: totalWeight > 0 ? Math.round((weightedApr / totalWeight) * 100) / 100 : 0,
     investments: investmentsData,
+    allocation,
     combinedChartData,
     banners: Array.from(uniqueBanners.values()).map((b) => ({
       title: b.title,

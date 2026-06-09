@@ -54,6 +54,7 @@ export async function GET(
         _count: {
           select: {
             documents: { where: { deletedAt: null } },
+            statements: { where: { deletedAt: null } },
           },
         },
         advisorsInvited: {

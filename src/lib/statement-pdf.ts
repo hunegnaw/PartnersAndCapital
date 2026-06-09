@@ -5,7 +5,7 @@ import PDFDocument from "pdfkit";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import { collectStatementData, type StatementData, type StatementInvestmentData } from "./statement-generator";
-import { renderChartSVG, renderMiniChartSVG, prepareChartData } from "./statement-chart";
+import { renderChartSVG, renderMiniChartSVG, renderDonutSVG, prepareChartData } from "./statement-chart";
 import { createAuditLog } from "./audit";
 
 const NAVY = "#1A2640";
@@ -188,32 +188,43 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       doc.on("end", () => resolve(Buffer.concat(chunks)));
       doc.on("error", reject);
 
-      // ── CUSTOMER SERVICE BAR ──
-      const csInfo = [data.org.phone, data.org.email, data.org.website].filter(Boolean);
-      const csBarH = csInfo.length > 0 ? 16 : 0;
-      if (csInfo.length > 0) {
-        doc.save().rect(0, 0, PAGE_W, csBarH).fill("#F5F3EE").restore();
-        doc.font("Inter").fontSize(7).fillColor(GRAY)
-          .text(csInfo.join("  |  "), MARGIN, 4, { width: CONTENT_W, align: "right", lineBreak: false });
-      }
-
       // ── HEADER ──
-      const headerTop = csBarH;
-      doc.save().rect(0, headerTop, PAGE_W, 64).fill(NAVY).restore();
+      doc.save().rect(0, 0, PAGE_W, 64).fill(NAVY).restore();
       doc.font("Cormorant").fontSize(18).fillColor(GOLD_LIGHT)
-        .text("PARTNERS", MARGIN, headerTop + 16, { continued: true, lineBreak: false })
+        .text("PARTNERS", MARGIN, 16, { continued: true, lineBreak: false })
         .fillColor("#FFFFFF").text(" + CAPITAL", { lineBreak: false });
       doc.font("Inter").fontSize(6).fillColor("#8899BB")
-        .text("PUBLIC ACCESS TO PRIVATE MARKETS", MARGIN, headerTop + 40, { lineBreak: false });
+        .text("PUBLIC ACCESS TO PRIVATE MARKETS", MARGIN, 40, { lineBreak: false });
       doc.font("Inter").fontSize(7).fillColor("#FFFFFF")
-        .text("STATEMENT", PAGE_W - MARGIN - 120, headerTop + 18, { width: 120, align: "right", lineBreak: false });
+        .text("STATEMENT", PAGE_W - MARGIN - 120, 18, { width: 120, align: "right", lineBreak: false });
       doc.font("Cormorant").fontSize(18).fillColor("#FFFFFF")
-        .text(data.statementDate, PAGE_W - MARGIN - 120, headerTop + 30, { width: 120, align: "right", lineBreak: false });
+        .text(data.statementDate, PAGE_W - MARGIN - 120, 30, { width: 120, align: "right", lineBreak: false });
 
       // Gold line
-      doc.save().rect(0, headerTop + 64, PAGE_W, 3)
-        .fill(GOLD).restore();
-      doc.y = headerTop + 80;
+      doc.save().rect(0, 64, PAGE_W, 3).fill(GOLD).restore();
+
+      // ── CUSTOMER SERVICE ──
+      const csItems: { label: string; value: string }[] = [];
+      if (data.org.phone) csItems.push({ label: "Phone", value: data.org.phone });
+      if (data.org.email) csItems.push({ label: "Email", value: data.org.email });
+      if (data.org.website) csItems.push({ label: "Web", value: data.org.website });
+
+      let csEndY = 80;
+      if (csItems.length > 0) {
+        doc.save().rect(0, 67, PAGE_W, 42).fill("#F5F3EE").restore();
+        doc.font("Cormorant").fontSize(11).fillColor(NAVY)
+          .text("Customer Service", MARGIN, 72, { lineBreak: false });
+        let csx = MARGIN;
+        for (const cs of csItems) {
+          doc.font("InterBold").fontSize(6).fillColor("#999999")
+            .text(cs.label.toUpperCase(), csx, 86, { lineBreak: false });
+          doc.font("Inter").fontSize(8).fillColor(NAVY)
+            .text(cs.value, csx, 94, { lineBreak: false });
+          csx += 170;
+        }
+        csEndY = 116;
+      }
+      doc.y = csEndY;
 
       // ── CLIENT INFO ──
       const clientY = doc.y;
@@ -238,7 +249,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         const bannerY = doc.y;
         doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, 70, 4)
           .fill(banner.gradientTo).restore();
-        doc.font("InterBold").fontSize(13).fillColor(GOLD_LIGHT)
+        doc.font("Cormorant").fontSize(15).fillColor(GOLD_LIGHT)
           .text(banner.title, MARGIN + 20, bannerY + 14, { width: CONTENT_W - 40, lineBreak: false });
         if (banner.description) {
           doc.font("Inter").fontSize(9).fillColor("#FFFFFF")
@@ -274,7 +285,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       doc.y = summaryY + 32;
 
       // ── COMBINED CHART ──
-      if (data.combinedChartData.length > 1) {
+      if (data.combinedChartData.length >= 1) {
         ensureSpace(doc, 160);
         const chartData = prepareChartData(data.combinedChartData);
         try {
@@ -290,6 +301,39 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         } catch {
           doc.y += 10;
         }
+      }
+
+      // ── DONUT CHART (Asset Allocation) ──
+      if (data.allocation.length > 1) {
+        ensureSpace(doc, 140);
+        doc.save()
+          .roundedRect(MARGIN, doc.y, CONTENT_W, 130, 4)
+          .fill(LIGHT_BG).restore();
+        doc.font("InterBold").fontSize(7).fillColor(GRAY)
+          .text("ASSET ALLOCATION", MARGIN + 12, doc.y + 8, { lineBreak: false });
+
+        try {
+          const donutSvg = renderDonutSVG(data.allocation, 100);
+          const donutPng = await svgToPng(donutSvg, 100, 100);
+          doc.image(donutPng, MARGIN + 16, doc.y + 24, { width: 90, height: 90 });
+        } catch {
+          // skip donut if rendering fails
+        }
+
+        const legendX = MARGIN + 130;
+        let legendY = doc.y + 28;
+        const total = data.allocation.reduce((s, a) => s + a.value, 0);
+        for (const a of data.allocation) {
+          const pct = total > 0 ? Math.round((a.value / total) * 100) : 0;
+          doc.save().roundedRect(legendX, legendY + 2, 8, 8, 1).fill(a.color).restore();
+          doc.font("InterBold").fontSize(9).fillColor(NAVY)
+            .text(`${a.name}`, legendX + 14, legendY, { lineBreak: false });
+          doc.font("Inter").fontSize(9).fillColor(GRAY)
+            .text(`${formatCurrency(a.value)} (${pct}%)`, legendX + 14, legendY + 12, { lineBreak: false });
+          legendY += 28;
+        }
+
+        doc.y += 138;
       }
 
       // ── INVESTMENT SECTIONS ──
@@ -388,21 +432,21 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       }
 
       // ── FOOTER ──
-      ensureSpace(doc, 40);
-      doc.y += 8;
-      doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
-        .strokeColor(BORDER).lineWidth(0.5).stroke().restore();
+      ensureSpace(doc, 50);
       doc.y += 8;
       const orgLegal = data.org.legalName || data.org.name;
-      doc.font("Inter").fontSize(8).fillColor("#999999")
-        .text(`© ${new Date().getFullYear()} ${orgLegal}`, MARGIN, doc.y);
-      doc.y += 14;
-      doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
-        .strokeColor(BORDER).lineWidth(0.5).stroke().restore();
-      doc.y += 6;
+
+      // Gold line above footer
+      doc.save().moveTo(0, doc.y).lineTo(PAGE_W, doc.y)
+        .strokeColor(GOLD).lineWidth(1.5).stroke().restore();
+
+      // Footer bar matching the customer service bar style
+      doc.save().rect(0, doc.y + 1.5, PAGE_W, 40).fill("#F5F3EE").restore();
+      doc.font("Inter").fontSize(7).fillColor("#999999")
+        .text(`© ${new Date().getFullYear()} ${orgLegal}`, MARGIN, doc.y + 8, { lineBreak: false });
       const footerParts = [orgLegal, data.org.email, data.org.address].filter(Boolean);
       doc.font("Inter").fontSize(7).fillColor("#999999")
-        .text(footerParts.join(" | "), MARGIN, doc.y, { width: CONTENT_W, align: "center" });
+        .text(footerParts.join("  |  "), MARGIN, doc.y + 22, { width: CONTENT_W, align: "center", lineBreak: false });
 
       doc.end();
     } catch (error) {

@@ -118,6 +118,7 @@ interface ClientDetail {
   documents: Document[]
   _count: {
     documents: number
+    statements: number
   }
   advisorsInvited: Advisor[]
   verification: ClientVerification | null
@@ -504,7 +505,7 @@ export default function AdminClientDetailPage({
           </TabsTrigger>
           <TabsTrigger value="statements">
             <FileText className="h-4 w-4 mr-1.5" />
-            Statements
+            Statements ({client._count.statements})
           </TabsTrigger>
         </TabsList>
 
