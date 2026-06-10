@@ -5,8 +5,7 @@ import PDFDocument from "pdfkit";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import { collectStatementData, type StatementData, type StatementInvestmentData } from "./statement-generator";
-import { renderChartSVG, renderMiniChartSVG, renderDonutSVG, prepareChartData } from "./statement-chart";
-import { formatCompact } from "./statement-chart";
+import { renderChartSVG, renderMiniChartSVG, renderDonutSVG, prepareChartData, formatCompact } from "./statement-chart";
 import { createAuditLog } from "./audit";
 
 const NAVY = "#1A2640";
