@@ -20,8 +20,6 @@ export async function POST(
       allClients?: boolean;
     };
 
-    console.log("[Banner Assign]", { bannerId, months, years, allClients, clientIds });
-
     if (!months?.length || !years?.length) {
       return NextResponse.json({ error: "months and years are required" }, { status: 400 });
     }
@@ -31,8 +29,10 @@ export async function POST(
       return NextResponse.json({ error: "Banner not found" }, { status: 404 });
     }
 
-    const assignments: { bannerId: string; userId: string | null; month: number; year: number }[] = [];
+    // Delete ALL existing assignments for this banner, then recreate from current selection
+    await prisma.statementBannerAssignment.deleteMany({ where: { bannerId } });
 
+    const assignments: { bannerId: string; userId: string | null; month: number; year: number }[] = [];
     for (const year of years) {
       for (const month of months) {
         if (allClients) {
@@ -45,26 +45,8 @@ export async function POST(
       }
     }
 
-    console.log("[Banner Assign] Assignments to create:", JSON.stringify(assignments));
-    let created = 0;
-    for (const a of assignments) {
-      try {
-        const existing = await prisma.statementBannerAssignment.findFirst({
-          where: {
-            bannerId: a.bannerId,
-            userId: a.userId,
-            month: a.month,
-            year: a.year,
-          },
-        });
-        console.log("[Banner Assign] Check existing:", { ...a, found: !!existing });
-        if (!existing) {
-          await prisma.statementBannerAssignment.create({ data: a });
-          created++;
-        }
-      } catch (err) {
-        console.error("[Banner Assign] Failed to create:", a, err);
-      }
+    if (assignments.length > 0) {
+      await prisma.statementBannerAssignment.createMany({ data: assignments });
     }
 
     await createAuditLog({
@@ -77,13 +59,12 @@ export async function POST(
         years,
         allClients: !!allClients,
         clientCount: allClients ? "all" : clientIds?.length,
-        assignmentsCreated: created,
+        assignmentsCreated: assignments.length,
       },
       request,
     });
 
-    console.log("[Banner Assign] Created", created, "assignments");
-    return NextResponse.json({ created });
+    return NextResponse.json({ created: assignments.length });
   } catch (error) {
     console.error("Error assigning banner:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

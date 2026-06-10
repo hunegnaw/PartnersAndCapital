@@ -291,10 +291,6 @@ export default function AdminBannersPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Assignment failed")
-      if (data.created === 0) {
-        setError("These assignments already exist")
-        return
-      }
       setAssignOpen(false)
       await fetchBanners()
     } catch (err) {
