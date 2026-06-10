@@ -5,7 +5,8 @@ import PDFDocument from "pdfkit";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import { collectStatementData, type StatementData, type StatementInvestmentData } from "./statement-generator";
-import { renderChartSVG, renderMiniChartSVG, renderDonutSVG, prepareChartData, type ChartLabels } from "./statement-chart";
+import { renderChartSVG, renderMiniChartSVG, renderDonutSVG, prepareChartData } from "./statement-chart";
+import { formatCompact } from "./statement-chart";
 import { createAuditLog } from "./audit";
 
 const NAVY = "#1A2640";
@@ -88,31 +89,38 @@ async function svgToPng(svg: string, width: number, height: number): Promise<Buf
   return sharp(svgBuf).resize(width * 2, height * 2).png().toBuffer();
 }
 
-function drawChartLabels(
+function drawChartAxes(
   doc: PDFKit.PDFDocument,
-  labels: ChartLabels,
   imgX: number,
   imgY: number,
   imgW: number,
-  imgH: number
+  imgH: number,
+  leftMax: number,
+  rightMax: number,
+  xLabels: string[]
 ) {
-  for (const tick of labels.leftTicks) {
-    const y = imgY + tick.y * imgH;
+  const steps = 4;
+  for (let i = 0; i <= steps; i++) {
+    const frac = i / steps;
+    const y = imgY + frac * imgH;
+
+    const leftVal = leftMax * (1 - frac);
     doc.font("Inter").fontSize(7).fillColor(GRAY)
-      .text(tick.label, imgX - 48, y - 4, { width: 44, align: "right", lineBreak: false });
+      .text(formatCompact(leftVal), imgX - 48, y - 4, { width: 44, align: "right", lineBreak: false });
+
+    if (rightMax > 0) {
+      const rightVal = rightMax * (1 - frac);
+      const label = formatCompact(rightVal);
+      doc.font("Inter").fontSize(7).fillColor(GOLD)
+        .text(label, imgX + imgW + 6, y - 4, { lineBreak: false });
+    }
   }
 
-  for (const tick of labels.rightTicks) {
-    const y = imgY + tick.y * imgH;
-    doc.font("Inter").fontSize(7).fillColor(GOLD);
-    const tw = doc.widthOfString(tick.label);
-    doc.text(tick.label, imgX + imgW + 6, y - 4, { width: tw + 2, lineBreak: false });
-  }
-
-  for (const xl of labels.xLabels) {
-    const x = imgX + xl.x * imgW;
-    doc.font("Inter").fontSize(7).fillColor(GRAY)
-      .text(xl.label, x - 22, imgY + imgH + 4, { width: 44, align: "center", lineBreak: false });
+  const interval = Math.max(1, Math.floor(xLabels.length / 8));
+  for (let i = 0; i < xLabels.length; i += interval) {
+    const x = imgX + (i / Math.max(xLabels.length - 1, 1)) * imgW;
+    doc.font("Inter").fontSize(6).fillColor(GRAY)
+      .text(xLabels[i], x - 20, imgY + imgH + 4, { width: 40, align: "center", lineBreak: false });
   }
 }
 
@@ -380,24 +388,27 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
 
       // ── COMBINED CHART ──
       if (data.combinedChartData.length >= 1) {
-        ensureSpace(doc, 190);
+        ensureSpace(doc, 200);
         const chartData = prepareChartData(data.combinedChartData);
+        const leftMax = Math.max(...data.combinedChartData.map((d) => d.netValue), 1) * 1.1;
+        const rightMax = Math.max(...data.combinedChartData.map((d) => d.cumulativeDistributions), 0) * 1.1;
+        const xLabels = chartData.map((d) => d.label);
         try {
-          const { svg: svgStr, labels } = renderChartSVG(chartData, 420, 140);
+          const { svg: svgStr } = renderChartSVG(chartData, 420, 140);
           const chartPng = await svgToPng(svgStr, 420, 140);
           const boxY = doc.y;
           doc.save()
-            .roundedRect(MARGIN, boxY, CONTENT_W, 190, 4)
+            .roundedRect(MARGIN, boxY, CONTENT_W, 200, 4)
             .fill(LIGHT_BG).restore();
           doc.font("InterBold").fontSize(7).fillColor(GRAY)
             .text("PORTFOLIO PERFORMANCE", MARGIN + 12, boxY + 8, { lineBreak: false });
-          const imgX = MARGIN + 50;
+          const imgX = MARGIN + 52;
           const imgY = boxY + 24;
-          const imgW = CONTENT_W - 110;
+          const imgW = CONTENT_W - 116;
           const imgH = 140;
           doc.image(chartPng, imgX, imgY, { width: imgW, height: imgH });
-          drawChartLabels(doc, labels, imgX, imgY + 6, imgW, imgH - 20);
-          doc.y = boxY + 198;
+          drawChartAxes(doc, imgX, imgY + 4, imgW, imgH - 16, leftMax, rightMax, xLabels);
+          doc.y = boxY + 208;
         } catch {
           doc.y += 10;
         }
@@ -506,24 +517,27 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
 
         // Mini chart
         if (inv.chartData.length >= 1) {
-          ensureSpace(doc, 140);
+          ensureSpace(doc, 150);
           try {
             const miniData = inv.chartData.map((d) => {
               const [y, m] = d.month.split("-");
-              const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-              return { month: d.month, label: `${months[parseInt(m, 10) - 1]} '${y.slice(2)}`, value: d.value, distributions: d.distributions };
+              const mnths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+              return { month: d.month, label: `${mnths[parseInt(m, 10) - 1]} '${y.slice(2)}`, value: d.value, distributions: d.distributions };
             });
-            const { svg: miniSvg, labels: miniLabels } = renderMiniChartSVG(miniData, 380, 90);
+            const miniLeftMax = Math.max(...miniData.map((d) => d.value), 1) * 1.1;
+            const miniRightMax = Math.max(...miniData.map((d) => d.distributions), 0) * 1.1;
+            const miniXLabels = miniData.map((d) => d.label);
+            const { svg: miniSvg } = renderMiniChartSVG(miniData, 380, 90);
             const miniPng = await svgToPng(miniSvg, 380, 90);
             const miniBoxY = doc.y;
-            doc.save().roundedRect(MARGIN, miniBoxY, CONTENT_W, 130, 4).fill(LIGHT_BG).restore();
-            const mImgX = MARGIN + 50;
+            doc.save().roundedRect(MARGIN, miniBoxY, CONTENT_W, 140, 4).fill(LIGHT_BG).restore();
+            const mImgX = MARGIN + 52;
             const mImgY = miniBoxY + 8;
-            const mImgW = CONTENT_W - 110;
-            const mImgH = 90;
+            const mImgW = CONTENT_W - 116;
+            const mImgH = 100;
             doc.image(miniPng, mImgX, mImgY, { width: mImgW, height: mImgH });
-            drawChartLabels(doc, miniLabels, mImgX, mImgY + 5, mImgW, mImgH - 16);
-            doc.y = miniBoxY + 136;
+            drawChartAxes(doc, mImgX, mImgY + 4, mImgW, mImgH - 18, miniLeftMax, miniRightMax, miniXLabels);
+            doc.y = miniBoxY + 146;
           } catch {
             doc.y += 4;
           }
