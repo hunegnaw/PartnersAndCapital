@@ -9,6 +9,10 @@ import { renderChartSVG, renderMiniChartSVG, renderDonutSVG, prepareChartData, f
 import { createAuditLog } from "./audit";
 import { renderBannerImage } from "./statement-banner";
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
 const NAVY = "#1A2640";
 const GOLD = "#B07D3A";
 const GOLD_LIGHT = "#E8D5B0";
@@ -562,27 +566,45 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         startNewPage(doc);
 
         if (hasCommentary) {
-          doc.font("Cormorant").fontSize(20).fillColor(NAVY)
-            .text("Market Commentary", MARGIN, doc.y, { lineBreak: false });
-          doc.y += 6;
+          const periodMonth = data.periodStart.getUTCMonth();
+          const periodYear = data.periodStart.getUTCFullYear();
+          const quarter = Math.floor(periodMonth / 3) + 1;
+
+          // Dramatic header — big year + quarter
+          doc.font("Cormorant").fontSize(16).fillColor(GRAY)
+            .text("MARKET", MARGIN, doc.y, { lineBreak: false, characterSpacing: 4 });
+          doc.font("Cormorant").fontSize(16).fillColor(GRAY)
+            .text("COMMENTARY", MARGIN, doc.y + 20, { lineBreak: false, characterSpacing: 4 });
+          doc.font("Cormorant").fontSize(64).fillColor(NAVY)
+            .text(String(periodYear), MARGIN, doc.y + 40, { lineBreak: false });
+          doc.font("Cormorant").fontSize(14).fillColor(GOLD)
+            .text(`Q${quarter} — ${MONTH_NAMES[periodMonth]} ${periodYear}`, MARGIN, doc.y + 100, { lineBreak: false });
+          doc.y += 124;
           doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
-            .strokeColor(GOLD).lineWidth(1.5).stroke().restore();
-          doc.y += 14;
+            .strokeColor(GOLD).lineWidth(2).stroke().restore();
+          doc.y += 16;
 
           for (const inv of data.investments) {
             if (!inv.commentary) continue;
-            ensureSpace(doc, 50);
-            doc.font("Cormorant").fontSize(14).fillColor(NAVY)
-              .text(inv.investmentName, MARGIN, doc.y, { lineBreak: false });
-            doc.y += 18;
+            ensureSpace(doc, 70);
+
+            // Investment name
+            doc.font("Cormorant").fontSize(18).fillColor(NAVY)
+              .text(inv.investmentName, MARGIN, doc.y);
+            doc.y += 4;
+            doc.save().moveTo(MARGIN, doc.y).lineTo(MARGIN + 100, doc.y)
+              .strokeColor(GOLD).lineWidth(1).stroke().restore();
+            doc.y += 8;
+
             if (inv.commentaryTitle) {
-              doc.font("InterBold").fontSize(9).fillColor(NAVY)
+              doc.font("InterBold").fontSize(10).fillColor(GOLD)
                 .text(inv.commentaryTitle, MARGIN, doc.y, { width: CONTENT_W });
-              doc.moveDown(0.3);
+              doc.moveDown(0.4);
             }
-            doc.font("Inter").fontSize(8).fillColor("#444444")
-              .text(inv.commentary, MARGIN, doc.y, { width: CONTENT_W, lineGap: 2 });
-            doc.moveDown(1);
+
+            doc.font("Inter").fontSize(9).fillColor("#333333")
+              .text(inv.commentary, MARGIN, doc.y, { width: CONTENT_W, lineGap: 3 });
+            doc.moveDown(1.5);
           }
         }
 
@@ -683,11 +705,6 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
     }
   });
 }
-
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
 
 export interface GenerateStatementResult {
   statementId: string;
