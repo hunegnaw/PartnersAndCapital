@@ -7,9 +7,7 @@ interface ChartDataPoint {
   monthlyContribution: number;
 }
 
-const FONT = "Inter, Arial, Helvetica, sans-serif";
-
-function formatCompact(value: number): string {
+export function formatCompact(value: number): string {
   if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 10_000) return `$${(value / 1_000).toFixed(0)}K`;
   if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
@@ -23,8 +21,11 @@ function formatMonthLabel(month: string): string {
   return `${months[parseInt(m, 10) - 1]} '${y.slice(2)}`;
 }
 
-function escapeXml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+export interface ChartLabels {
+  leftTicks: { y: number; label: string }[];
+  rightTicks: { y: number; label: string }[];
+  xLabels: { x: number; label: string }[];
+  margin: { top: number; right: number; bottom: number; left: number };
 }
 
 function buildSvgChart(
@@ -36,8 +37,8 @@ function buildSvgChart(
     barKeys?: { key: string; color: string }[];
     barWidth?: number;
   } = {}
-): string {
-  const margin = { top: 10, right: 70, bottom: 30, left: 65 };
+): { svg: string; labels: ChartLabels } {
+  const margin = { top: 10, right: 10, bottom: 20, left: 10 };
   const chartW = width - margin.left - margin.right;
   const chartH = height - margin.top - margin.bottom;
 
@@ -74,35 +75,13 @@ function buildSvgChart(
     return margin.top + chartH - (val / (rightMax * 1.1)) * chartH;
   }
 
+  // SVG contains ONLY visual elements — no text (text drawn by pdfkit)
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`;
 
   const gridSteps = 4;
   for (let i = 0; i <= gridSteps; i++) {
     const y = margin.top + (i / gridSteps) * chartH;
     svg += `<line x1="${margin.left}" y1="${y}" x2="${margin.left + chartW}" y2="${y}" stroke="#E8EBF0" stroke-dasharray="3,3" />`;
-  }
-
-  // Left Y-axis labels (with padding from chart edge)
-  for (let i = 0; i <= gridSteps; i++) {
-    const val = leftMax * 1.1 * (1 - i / gridSteps);
-    const y = margin.top + (i / gridSteps) * chartH;
-    svg += `<text x="${margin.left - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#666" font-family="${FONT}">${escapeXml(formatCompact(val))}</text>`;
-  }
-
-  // Right Y-axis labels (with padding from chart edge)
-  if (rightAxisKeys.length > 0) {
-    for (let i = 0; i <= gridSteps; i++) {
-      const val = rightMax * 1.1 * (1 - i / gridSteps);
-      const y = margin.top + (i / gridSteps) * chartH;
-      svg += `<text x="${margin.left + chartW + 8}" y="${y + 4}" text-anchor="start" font-size="11" fill="#B07D3A" font-family="${FONT}">${escapeXml(formatCompact(val))}</text>`;
-    }
-  }
-
-  // X-axis labels
-  const labelInterval = Math.max(1, Math.floor(data.length / 8));
-  for (let i = 0; i < data.length; i += labelInterval) {
-    const x = xPos(i);
-    svg += `<text x="${x}" y="${height - 5}" text-anchor="middle" font-size="10" fill="#666" font-family="${FONT}">${escapeXml(data[i].label)}</text>`;
   }
 
   // Bars
@@ -144,7 +123,27 @@ function buildSvgChart(
   }
 
   svg += "</svg>";
-  return svg;
+
+  // Build label positions (normalized 0-1 fractions for the PDF renderer to place)
+  const leftTicks: ChartLabels["leftTicks"] = [];
+  const rightTicks: ChartLabels["rightTicks"] = [];
+  for (let i = 0; i <= gridSteps; i++) {
+    const frac = i / gridSteps;
+    const leftVal = leftMax * 1.1 * (1 - frac);
+    const rightVal = rightMax * 1.1 * (1 - frac);
+    leftTicks.push({ y: frac, label: formatCompact(leftVal) });
+    if (rightAxisKeys.length > 0) {
+      rightTicks.push({ y: frac, label: formatCompact(rightVal) });
+    }
+  }
+
+  const xLabels: ChartLabels["xLabels"] = [];
+  const labelInterval = Math.max(1, Math.floor(data.length / 8));
+  for (let i = 0; i < data.length; i += labelInterval) {
+    xLabels.push({ x: i / Math.max(data.length - 1, 1), label: data[i].label });
+  }
+
+  return { svg, labels: { leftTicks, rightTicks, xLabels, margin } };
 }
 
 export function renderDonutSVG(
@@ -187,7 +186,7 @@ export function renderChartSVG(
   data: ChartDataPoint[],
   width: number = 540,
   height: number = 200
-): string {
+): { svg: string; labels: ChartLabels } {
   const chartData = data.map((d) => ({
     label: d.label,
     values: [
@@ -215,7 +214,7 @@ export function renderMiniChartSVG(
   data: { month: string; label: string; value: number; distributions: number }[],
   width: number = 540,
   height: number = 140
-): string {
+): { svg: string; labels: ChartLabels } {
   const chartData = data.map((d) => ({
     label: d.label,
     values: [

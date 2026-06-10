@@ -5,7 +5,7 @@ import PDFDocument from "pdfkit";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import { collectStatementData, type StatementData, type StatementInvestmentData } from "./statement-generator";
-import { renderChartSVG, renderMiniChartSVG, renderDonutSVG, prepareChartData } from "./statement-chart";
+import { renderChartSVG, renderMiniChartSVG, renderDonutSVG, prepareChartData, type ChartLabels } from "./statement-chart";
 import { createAuditLog } from "./audit";
 
 const NAVY = "#1A2640";
@@ -87,6 +87,38 @@ function formatActivityDate(d: Date): string {
 async function svgToPng(svg: string, width: number, height: number): Promise<Buffer> {
   const svgBuf = Buffer.from(svg);
   return sharp(svgBuf).resize(width * 2, height * 2).png().toBuffer();
+}
+
+function drawChartLabels(
+  doc: PDFKit.PDFDocument,
+  labels: ChartLabels,
+  chartX: number,
+  chartY: number,
+  chartW: number,
+  chartH: number
+) {
+  const innerTop = chartY;
+  const innerH = chartH;
+  const innerLeft = chartX;
+  const innerW = chartW;
+
+  for (const tick of labels.leftTicks) {
+    const y = innerTop + tick.y * innerH;
+    doc.font("Inter").fontSize(7).fillColor(GRAY)
+      .text(tick.label, innerLeft - 48, y - 4, { width: 44, align: "right", lineBreak: false });
+  }
+
+  for (const tick of labels.rightTicks) {
+    const y = innerTop + tick.y * innerH;
+    doc.font("Inter").fontSize(7).fillColor(GOLD)
+      .text(tick.label, innerLeft + innerW + 4, y - 4, { width: 50, lineBreak: false });
+  }
+
+  for (const xl of labels.xLabels) {
+    const x = innerLeft + xl.x * innerW;
+    doc.font("Inter").fontSize(7).fillColor(GRAY)
+      .text(xl.label, x - 20, innerTop + innerH + 4, { width: 40, align: "center", lineBreak: false });
+  }
 }
 
 function ensureSpace(doc: PDFKit.PDFDocument, needed: number) {
@@ -190,11 +222,32 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
 
       // ── HEADER ──
       doc.save().rect(0, 0, PAGE_W, 64).fill(NAVY).restore();
-      doc.font("Cormorant").fontSize(18).fillColor(GOLD_LIGHT)
-        .text("PARTNERS", MARGIN, 16, { continued: true, lineBreak: false })
-        .fillColor("#FFFFFF").text(" + CAPITAL", { lineBreak: false });
-      doc.font("Inter").fontSize(6).fillColor("#8899BB")
-        .text("PUBLIC ACCESS TO PRIVATE MARKETS", MARGIN, 40, { lineBreak: false });
+
+      // Logo from settings or text fallback
+      let logoDrawn = false;
+      if (data.org.logoUrl && !data.org.logoUrl.startsWith("http")) {
+        try {
+          const candidates = [
+            path.join(process.cwd(), "public", data.org.logoUrl),
+            path.join(process.cwd(), data.org.logoUrl),
+          ];
+          for (const logoPath of candidates) {
+            const logoExists = await fs.access(logoPath).then(() => true).catch(() => false);
+            if (logoExists) {
+              doc.image(logoPath, MARGIN, 14, { height: 32 });
+              logoDrawn = true;
+              break;
+            }
+          }
+        } catch { /* fallback to text */ }
+      }
+      if (!logoDrawn) {
+        doc.font("Cormorant").fontSize(18).fillColor(GOLD_LIGHT)
+          .text("PARTNERS", MARGIN, 16, { continued: true, lineBreak: false })
+          .fillColor("#FFFFFF").text(" + CAPITAL", { lineBreak: false });
+        doc.font("Inter").fontSize(6).fillColor("#8899BB")
+          .text("PUBLIC ACCESS TO PRIVATE MARKETS", MARGIN, 40, { lineBreak: false });
+      }
       doc.font("Inter").fontSize(7).fillColor("#FFFFFF")
         .text("STATEMENT", PAGE_W - MARGIN - 120, 18, { width: 120, align: "right", lineBreak: false });
       doc.font("Cormorant").fontSize(18).fillColor("#FFFFFF")
@@ -263,6 +316,13 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         doc.y = bannerY + 78;
       }
 
+      // Gold line below banners (separator before portfolio section)
+      if (data.banners.length > 0) {
+        doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
+          .strokeColor(GOLD).lineWidth(1.5).stroke().restore();
+        doc.y += 12;
+      }
+
       // ── PORTFOLIO SUMMARY ──
       ensureSpace(doc, 60);
       const summaryY = doc.y;
@@ -286,18 +346,24 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
 
       // ── COMBINED CHART ──
       if (data.combinedChartData.length >= 1) {
-        ensureSpace(doc, 160);
+        ensureSpace(doc, 190);
         const chartData = prepareChartData(data.combinedChartData);
         try {
-          const svgStr = renderChartSVG(chartData, 532, 150);
-          const chartPng = await svgToPng(svgStr, 532, 150);
+          const { svg: svgStr, labels } = renderChartSVG(chartData, 420, 140);
+          const chartPng = await svgToPng(svgStr, 420, 140);
+          const boxY = doc.y;
           doc.save()
-            .roundedRect(MARGIN, doc.y, CONTENT_W, 170, 4)
+            .roundedRect(MARGIN, boxY, CONTENT_W, 190, 4)
             .fill(LIGHT_BG).restore();
           doc.font("InterBold").fontSize(7).fillColor(GRAY)
-            .text("PORTFOLIO PERFORMANCE", MARGIN + 12, doc.y + 8, { lineBreak: false });
-          doc.image(chartPng, MARGIN + 6, doc.y + 22, { width: CONTENT_W - 12, height: 140 });
-          doc.y += 178;
+            .text("PORTFOLIO PERFORMANCE", MARGIN + 12, boxY + 8, { lineBreak: false });
+          const imgX = MARGIN + 50;
+          const imgY = boxY + 24;
+          const imgW = CONTENT_W - 110;
+          const imgH = 140;
+          doc.image(chartPng, imgX, imgY, { width: imgW, height: imgH });
+          drawChartLabels(doc, labels, imgX, imgY + 6, imgW, imgH - 20);
+          doc.y = boxY + 198;
         } catch {
           doc.y += 10;
         }
@@ -381,18 +447,24 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
 
         // Mini chart
         if (inv.chartData.length >= 1) {
-          ensureSpace(doc, 120);
+          ensureSpace(doc, 140);
           try {
             const miniData = inv.chartData.map((d) => {
               const [y, m] = d.month.split("-");
               const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
               return { month: d.month, label: `${months[parseInt(m, 10) - 1]} '${y.slice(2)}`, value: d.value, distributions: d.distributions };
             });
-            const miniSvg = renderMiniChartSVG(miniData, 532, 100);
-            const miniPng = await svgToPng(miniSvg, 532, 100);
-            doc.save().roundedRect(MARGIN, doc.y, CONTENT_W, 110, 4).fill(LIGHT_BG).restore();
-            doc.image(miniPng, MARGIN + 6, doc.y + 6, { width: CONTENT_W - 12, height: 98 });
-            doc.y += 116;
+            const { svg: miniSvg, labels: miniLabels } = renderMiniChartSVG(miniData, 380, 90);
+            const miniPng = await svgToPng(miniSvg, 380, 90);
+            const miniBoxY = doc.y;
+            doc.save().roundedRect(MARGIN, miniBoxY, CONTENT_W, 130, 4).fill(LIGHT_BG).restore();
+            const mImgX = MARGIN + 50;
+            const mImgY = miniBoxY + 8;
+            const mImgW = CONTENT_W - 110;
+            const mImgH = 90;
+            doc.image(miniPng, mImgX, mImgY, { width: mImgW, height: mImgH });
+            drawChartLabels(doc, miniLabels, mImgX, mImgY + 5, mImgW, mImgH - 16);
+            doc.y = miniBoxY + 136;
           } catch {
             doc.y += 4;
           }
