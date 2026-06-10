@@ -14,7 +14,6 @@ const GOLD_LIGHT = "#E8D5B0";
 const GRAY = "#666666";
 const LIGHT_BG = "#FAF8F5";
 const TABLE_HEADER_BG = "#F5F3EE";
-const BORDER = "#E8E5E0";
 const PAGE_W = 612;
 const PAGE_H = 792;
 const MARGIN = 40;

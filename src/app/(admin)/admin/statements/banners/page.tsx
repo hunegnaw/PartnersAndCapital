@@ -71,22 +71,24 @@ function BannerPreview({ title, description, imageUrl, buttonText, gradientFrom,
         <img
           src={imageUrl}
           alt=""
-          style={{ position: "absolute", left: 0, top: 0, width: 200, height: 120, objectFit: "cover" }}
+          style={{ position: "absolute", left: 0, top: 0, width: "45%", height: 120, objectFit: "cover" }}
         />
       )}
       <div
         style={{
           position: "absolute",
-          left: imageUrl ? 120 : 0,
+          left: 0,
           top: 0,
           right: 0,
           bottom: 0,
-          background: `linear-gradient(to right, transparent, ${gradientTo} ${imageUrl ? "40%" : "0%"})`,
+          background: imageUrl
+            ? `linear-gradient(to right, transparent 20%, ${gradientTo} 45%)`
+            : gradientTo,
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           padding: "16px 24px",
-          paddingLeft: imageUrl ? 100 : 24,
+          paddingLeft: imageUrl ? "40%" : 24,
         }}
       >
         <div style={{ color: "#E8D5B0", fontSize: 16, fontWeight: 600, marginBottom: 4 }}>
