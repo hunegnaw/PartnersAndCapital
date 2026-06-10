@@ -523,7 +523,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         try {
           const invSlices = inv.cashDistributed > 0
             ? [
-                { name: "Invested", value: inv.amountInvested - inv.cashDistributed, color: NAVY },
+                { name: "Invested", value: inv.amountInvested, color: NAVY },
                 { name: "Distributions", value: inv.cashDistributed, color: GOLD },
               ]
             : [{ name: "Invested", value: inv.amountInvested, color: NAVY }];
@@ -610,7 +610,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
             .text(`Q${quarter} — ${MONTH_NAMES[periodMonth]}`, MARGIN, headerY + 42, { lineBreak: false });
           doc.font("Cormorant").fontSize(64).fillColor(NAVY)
             .text(String(periodYear), MARGIN, headerY + 56, { lineBreak: false });
-          doc.y = headerY + 110;
+          doc.y = headerY + 130;
           doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
             .strokeColor(GOLD).lineWidth(2).stroke().restore();
           doc.y += 14;
