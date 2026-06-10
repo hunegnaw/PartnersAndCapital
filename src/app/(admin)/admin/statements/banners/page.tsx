@@ -343,7 +343,7 @@ export default function AdminBannersPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => { setAssignBannerId(b.id); setAssignMonths([]); setAssignOpen(true) }} title="Assign">
+                        <Button variant="ghost" size="sm" onClick={() => { setAssignBannerId(b.id); setAssignMonths([]); setAssignYears([new Date().getFullYear()]); setAssignAllClients(false); setAssignClientIds([]); setAssignOpen(true) }} title="Assign">
                           <Send className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="sm" onClick={() => openEditor(b)} title="Edit">

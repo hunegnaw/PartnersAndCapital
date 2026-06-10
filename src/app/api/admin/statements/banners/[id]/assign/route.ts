@@ -45,29 +45,17 @@ export async function POST(
 
     let created = 0;
     for (const a of assignments) {
-      try {
-        await prisma.statementBannerAssignment.upsert({
-          where: {
-            bannerId_userId_month_year: {
-              bannerId: a.bannerId,
-              userId: a.userId!,
-              month: a.month,
-              year: a.year,
-            },
-          },
-          update: {},
-          create: a,
-        });
+      const existing = await prisma.statementBannerAssignment.findFirst({
+        where: {
+          bannerId: a.bannerId,
+          userId: a.userId,
+          month: a.month,
+          year: a.year,
+        },
+      });
+      if (!existing) {
+        await prisma.statementBannerAssignment.create({ data: a });
         created++;
-      } catch {
-        // Handle null userId case (all clients)
-        const existing = await prisma.statementBannerAssignment.findFirst({
-          where: { bannerId: a.bannerId, userId: a.userId, month: a.month, year: a.year },
-        });
-        if (!existing) {
-          await prisma.statementBannerAssignment.create({ data: a });
-          created++;
-        }
       }
     }
 
