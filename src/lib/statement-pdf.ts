@@ -104,8 +104,9 @@ function drawChartLabels(
 
   for (const tick of labels.rightTicks) {
     const y = imgY + tick.y * imgH;
-    doc.font("Inter").fontSize(7).fillColor(GOLD)
-      .text(tick.label, imgX + imgW + 4, y - 4, { width: 50, lineBreak: false });
+    doc.font("Inter").fontSize(7).fillColor(GOLD);
+    const tw = doc.widthOfString(tick.label);
+    doc.text(tick.label, imgX + imgW + 6, y - 4, { width: tw + 2, lineBreak: false });
   }
 
   for (const xl of labels.xLabels) {
@@ -115,8 +116,10 @@ function drawChartLabels(
   }
 }
 
+const FOOTER_H = 50;
+
 function ensureSpace(doc: PDFKit.PDFDocument, needed: number) {
-  if (doc.y + needed > PAGE_H - 60) {
+  if (doc.y + needed > PAGE_H - FOOTER_H - 10) {
     doc.addPage();
     doc.y = MARGIN;
   }
@@ -228,7 +231,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           for (const logoPath of candidates) {
             const logoExists = await fs.access(logoPath).then(() => true).catch(() => false);
             if (logoExists) {
-              doc.image(logoPath, MARGIN, 14, { height: 32 });
+              doc.image(logoPath, MARGIN, 18, { height: 24 });
               logoDrawn = true;
               break;
             }
@@ -292,15 +295,13 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
 
       // ── BANNERS ──
       for (const banner of data.banners) {
-        ensureSpace(doc, 80);
+        ensureSpace(doc, 90);
         const bannerY = doc.y;
-        const bannerH = 70;
-        // Background
-        doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, bannerH, 4)
-          .fill(banner.gradientTo).restore();
+        const bannerH = 80;
+        const bannerColor = banner.gradientTo || NAVY;
 
-        // Banner image on left side
-        let textLeftPad = 20;
+        // Draw image first (full width, clipped to banner bounds)
+        let hasImage = false;
         if (banner.imageUrl) {
           try {
             const imgCandidates = [
@@ -311,27 +312,42 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
               const exists = await fs.access(imgPath).then(() => true).catch(() => false);
               if (exists) {
                 doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, bannerH, 4).clip();
-                doc.image(imgPath, MARGIN, bannerY, { height: bannerH, width: CONTENT_W * 0.4 });
+                doc.image(imgPath, MARGIN, bannerY, { height: bannerH, width: CONTENT_W * 0.45 });
                 doc.restore();
-                textLeftPad = CONTENT_W * 0.35;
+                hasImage = true;
                 break;
               }
             }
           } catch { /* skip image */ }
         }
 
-        doc.font("Cormorant").fontSize(15).fillColor(GOLD_LIGHT)
-          .text(banner.title, MARGIN + textLeftPad, bannerY + 14, { width: CONTENT_W - textLeftPad - 20, lineBreak: false });
+        // Navy overlay — covers right portion, overlaps image edge to create fade effect
+        const overlayX = hasImage ? MARGIN + CONTENT_W * 0.3 : MARGIN;
+        const overlayW = hasImage ? CONTENT_W * 0.7 + MARGIN - overlayX + MARGIN : CONTENT_W;
+        if (!hasImage) {
+          doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, bannerH, 4)
+            .fill(bannerColor).restore();
+        } else {
+          doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, bannerH, 4).clip();
+          doc.rect(overlayX, bannerY, overlayW, bannerH).fill(bannerColor);
+          doc.restore();
+        }
+
+        // Text content on right side
+        const textX = hasImage ? MARGIN + CONTENT_W * 0.38 : MARGIN + 20;
+        const textW = CONTENT_W - (textX - MARGIN) - 16;
+        doc.font("Cormorant").fontSize(18).fillColor(GOLD_LIGHT)
+          .text(banner.title, textX, bannerY + 12, { width: textW, lineBreak: false });
         if (banner.description) {
           doc.font("Inter").fontSize(9).fillColor("#FFFFFF")
-            .text(banner.description, MARGIN + textLeftPad, bannerY + 32, { width: CONTENT_W - textLeftPad - 20, lineBreak: false });
+            .text(banner.description, textX, bannerY + 34, { width: textW, lineBreak: false });
         }
         if (banner.buttonText) {
-          doc.save().roundedRect(MARGIN + textLeftPad, bannerY + 50, 80, 16, 3).fill(GOLD).restore();
-          doc.font("InterBold").fontSize(8).fillColor("#FFFFFF")
-            .text(banner.buttonText, MARGIN + textLeftPad + 4, bannerY + 53, { width: 72, lineBreak: false, link: banner.buttonUrl || undefined });
+          doc.save().roundedRect(textX, bannerY + 52, 90, 18, 4).fill(GOLD).restore();
+          doc.font("InterBold").fontSize(9).fillColor("#FFFFFF")
+            .text(banner.buttonText, textX + 8, bannerY + 56, { width: 74, lineBreak: false, link: banner.buttonUrl || undefined });
         }
-        doc.y = bannerY + 78;
+        doc.y = bannerY + 88;
       }
 
       // Gold line below banners (separator before portfolio section)
@@ -546,22 +562,21 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         }
       }
 
-      // ── FOOTER ──
-      ensureSpace(doc, 50);
-      doc.y += 8;
+      // ── FOOTER ON EVERY PAGE ──
       const orgLegal = data.org.legalName || data.org.name;
-
-      // Gold line above footer
-      doc.save().moveTo(0, doc.y).lineTo(PAGE_W, doc.y)
-        .strokeColor(GOLD).lineWidth(1.5).stroke().restore();
-
-      // Footer bar matching the customer service bar style
-      doc.save().rect(0, doc.y + 1.5, PAGE_W, 40).fill("#F5F3EE").restore();
-      doc.font("Inter").fontSize(7).fillColor("#999999")
-        .text(`© ${new Date().getFullYear()} ${orgLegal}`, MARGIN, doc.y + 8, { lineBreak: false });
       const footerParts = [orgLegal, data.org.email, data.org.address].filter(Boolean);
-      doc.font("Inter").fontSize(7).fillColor("#999999")
-        .text(footerParts.join("  |  "), MARGIN, doc.y + 22, { width: CONTENT_W, align: "center", lineBreak: false });
+      const pageCount = doc.bufferedPageRange().count;
+      for (let p = 0; p < pageCount; p++) {
+        doc.switchToPage(p);
+        const footerY = PAGE_H - FOOTER_H;
+        doc.save().moveTo(0, footerY).lineTo(PAGE_W, footerY)
+          .strokeColor(GOLD).lineWidth(1.5).stroke().restore();
+        doc.save().rect(0, footerY + 1.5, PAGE_W, FOOTER_H).fill("#F5F3EE").restore();
+        doc.font("Inter").fontSize(7).fillColor("#999999")
+          .text(`© ${new Date().getFullYear()} ${orgLegal}`, MARGIN, footerY + 8, { lineBreak: false });
+        doc.font("Inter").fontSize(7).fillColor("#999999")
+          .text(footerParts.join("  |  "), MARGIN, footerY + 22, { width: CONTENT_W, align: "center", lineBreak: false });
+      }
 
       doc.end();
     } catch (error) {

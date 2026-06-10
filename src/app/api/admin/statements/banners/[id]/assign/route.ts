@@ -20,6 +20,8 @@ export async function POST(
       allClients?: boolean;
     };
 
+    console.log("[Banner Assign]", { bannerId, months, years, allClients, clientIds });
+
     if (!months?.length || !years?.length) {
       return NextResponse.json({ error: "months and years are required" }, { status: 400 });
     }
@@ -74,6 +76,7 @@ export async function POST(
       request,
     });
 
+    console.log("[Banner Assign] Created", created, "assignments");
     return NextResponse.json({ created });
   } catch (error) {
     console.error("Error assigning banner:", error);

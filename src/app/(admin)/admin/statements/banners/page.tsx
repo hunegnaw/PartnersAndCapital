@@ -247,8 +247,12 @@ export default function AdminBannersPage() {
   }
 
   async function handleAssign() {
-    if (!assignBannerId || assignMonths.length === 0 || assignYears.length === 0) return
+    if (!assignBannerId) return
+    if (assignMonths.length === 0) { setError("Select at least one month"); return }
+    if (assignYears.length === 0) { setError("Select at least one year"); return }
+    if (!assignAllClients && assignClientIds.length === 0) { setError("Select at least one client or choose 'All clients'"); return }
     setAssigning(true)
+    setError(null)
     try {
       const body: Record<string, unknown> = { months: assignMonths, years: assignYears }
       if (assignAllClients) body.allClients = true
@@ -258,7 +262,8 @@ export default function AdminBannersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       })
-      if (!res.ok) throw new Error("Assignment failed")
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Assignment failed")
       setAssignOpen(false)
       await fetchBanners()
     } catch (err) {
@@ -558,9 +563,12 @@ export default function AdminBannersPage() {
               )}
             </div>
           </div>
+          {error && (
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">{error}</div>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAssignOpen(false)}>Cancel</Button>
-            <Button onClick={handleAssign} disabled={assigning || assignMonths.length === 0}>
+            <Button variant="outline" onClick={() => { setError(null); setAssignOpen(false) }}>Cancel</Button>
+            <Button onClick={handleAssign} disabled={assigning}>
               {assigning ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Assign
             </Button>
