@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { collectStatementData, type StatementData, type StatementInvestmentData } from "./statement-generator";
 import { renderChartSVG, renderMiniChartSVG, renderDonutSVG, prepareChartData, formatCompact } from "./statement-chart";
 import { createAuditLog } from "./audit";
+import { renderBannerImage } from "./statement-banner";
 
 const NAVY = "#1A2640";
 const GOLD = "#B07D3A";
@@ -300,69 +301,25 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         .strokeColor(GOLD).lineWidth(2).stroke().restore();
       doc.y += 16;
 
-      // ── BANNERS ──
+      // ── BANNERS (rendered via satori for pixel-perfect match with web preview) ──
       for (const banner of data.banners) {
         ensureSpace(doc, 95);
         const bannerY = doc.y;
         const bannerH = 82;
-        const bannerColor = banner.gradientTo || NAVY;
-
-        // Clip everything to rounded banner bounds
-        doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, bannerH, 6).clip();
-
-        // Solid background first
-        doc.rect(MARGIN, bannerY, CONTENT_W, bannerH).fill(bannerColor);
-
-        // Draw image on left side
-        let hasImage = false;
-        if (banner.imageUrl) {
-          try {
-            const imgCandidates = [
-              path.join(process.cwd(), "public", banner.imageUrl),
-              path.join(process.cwd(), banner.imageUrl),
-            ];
-            for (const imgPath of imgCandidates) {
-              const exists = await fs.access(imgPath).then(() => true).catch(() => false);
-              if (exists) {
-                doc.image(imgPath, MARGIN, bannerY, { cover: [CONTENT_W * 0.5, bannerH] as [number, number] });
-                hasImage = true;
-
-                // Gradient fade: draw navy strips with increasing opacity over the image
-                const fadeStart = MARGIN + CONTENT_W * 0.15;
-                const fadeEnd = MARGIN + CONTENT_W * 0.45;
-                const stripCount = 30;
-                const stripW = (fadeEnd - fadeStart) / stripCount;
-                for (let s = 0; s < stripCount; s++) {
-                  const alpha = s / stripCount;
-                  doc.save().opacity(alpha);
-                  doc.rect(fadeStart + s * stripW, bannerY, stripW + 1, bannerH).fill(bannerColor);
-                  doc.restore();
-                }
-                // Solid navy from fade end to right edge
-                doc.rect(fadeEnd, bannerY, CONTENT_W, bannerH).fill(bannerColor);
-                break;
-              }
-            }
-          } catch { /* skip image */ }
+        try {
+          const bannerPng = await renderBannerImage(banner, CONTENT_W, bannerH);
+          doc.image(bannerPng, MARGIN, bannerY, { width: CONTENT_W, height: bannerH });
+          if (banner.buttonUrl) {
+            doc.link(MARGIN, bannerY, CONTENT_W, bannerH, banner.buttonUrl);
+          }
+        } catch (err) {
+          console.error("Banner render failed:", err);
+          doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, bannerH, 6)
+            .fill(banner.gradientTo || NAVY).restore();
+          doc.font("Cormorant").fontSize(20).fillColor(GOLD_LIGHT)
+            .text(banner.title, MARGIN + 20, bannerY + 20, { lineBreak: false });
         }
-
-        doc.restore(); // end clip
-
-        // Text content on right side
-        const textX = hasImage ? MARGIN + CONTENT_W * 0.38 : MARGIN + 20;
-        const textW = CONTENT_W - (textX - MARGIN) - 16;
-        doc.font("Cormorant").fontSize(20).fillColor(GOLD_LIGHT)
-          .text(banner.title, textX, bannerY + 10, { width: textW, lineBreak: false });
-        if (banner.description) {
-          doc.font("Inter").fontSize(9).fillColor("#FFFFFF")
-            .text(banner.description, textX, bannerY + 34, { width: textW, lineBreak: false });
-        }
-        if (banner.buttonText) {
-          doc.save().roundedRect(textX, bannerY + 52, 100, 20, 4).fill(GOLD).restore();
-          doc.font("InterBold").fontSize(9).fillColor("#FFFFFF")
-            .text(banner.buttonText, textX + 12, bannerY + 57, { width: 76, lineBreak: false, link: banner.buttonUrl || undefined });
-        }
-        doc.y = bannerY + 92;
+        doc.y = bannerY + 90;
       }
 
       // Gold line below banners (separator before portfolio section)
