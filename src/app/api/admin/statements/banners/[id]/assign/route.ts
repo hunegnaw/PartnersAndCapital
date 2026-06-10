@@ -45,19 +45,25 @@ export async function POST(
       }
     }
 
+    console.log("[Banner Assign] Assignments to create:", JSON.stringify(assignments));
     let created = 0;
     for (const a of assignments) {
-      const existing = await prisma.statementBannerAssignment.findFirst({
-        where: {
-          bannerId: a.bannerId,
-          userId: a.userId,
-          month: a.month,
-          year: a.year,
-        },
-      });
-      if (!existing) {
-        await prisma.statementBannerAssignment.create({ data: a });
-        created++;
+      try {
+        const existing = await prisma.statementBannerAssignment.findFirst({
+          where: {
+            bannerId: a.bannerId,
+            userId: a.userId,
+            month: a.month,
+            year: a.year,
+          },
+        });
+        console.log("[Banner Assign] Check existing:", { ...a, found: !!existing });
+        if (!existing) {
+          await prisma.statementBannerAssignment.create({ data: a });
+          created++;
+        }
+      } catch (err) {
+        console.error("[Banner Assign] Failed to create:", a, err);
       }
     }
 

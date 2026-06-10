@@ -169,7 +169,7 @@ export default function AdminBannersPage() {
   useEffect(() => {
     async function loadClients() {
       try {
-        const res = await fetch("/api/admin/clients?limit=1000")
+        const res = await fetch("/api/admin/clients?pageSize=100")
         if (res.ok) {
           const data = await res.json()
           setClients((data.clients || data).map((c: { id: string; name: string | null; email: string }) => ({
@@ -264,6 +264,10 @@ export default function AdminBannersPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Assignment failed")
+      if (data.created === 0) {
+        setError("These assignments already exist")
+        return
+      }
       setAssignOpen(false)
       await fetchBanners()
     } catch (err) {

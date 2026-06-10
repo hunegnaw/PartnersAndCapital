@@ -116,7 +116,7 @@ export default function AdminStatementsPage() {
   useEffect(() => {
     async function loadClients() {
       try {
-        const res = await fetch("/api/admin/clients?limit=1000")
+        const res = await fetch("/api/admin/clients?pageSize=100")
         if (res.ok) {
           const data = await res.json()
           const list = (data.clients || data).map((c: { id: string; name: string | null; email: string }) => ({
