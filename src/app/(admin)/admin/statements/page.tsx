@@ -33,6 +33,7 @@ import {
   ImageIcon,
   ChevronLeft,
   ChevronRight,
+  Trash2,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -189,6 +190,17 @@ export default function AdminStatementsPage() {
       await fetchStatements()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Regenerate failed")
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this rejected statement?")) return
+    try {
+      const res = await fetch(`/api/admin/statements/${id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Failed to delete")
+      await fetchStatements()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Delete failed")
     }
   }
 
@@ -410,6 +422,11 @@ export default function AdminStatementsPage() {
                           {(s.status === "REJECTED" || s.status === "GENERATED") && (
                             <Button variant="ghost" size="sm" onClick={() => handleRegenerate(s.id)} title="Regenerate">
                               <RefreshCw className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {s.status === "REJECTED" && (
+                            <Button variant="ghost" size="sm" onClick={() => handleDelete(s.id)} title="Delete">
+                              <Trash2 className="h-4 w-4 text-red-500" />
                             </Button>
                           )}
                         </div>
