@@ -312,7 +312,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
               const exists = await fs.access(imgPath).then(() => true).catch(() => false);
               if (exists) {
                 doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, bannerH, 4).clip();
-                doc.image(imgPath, MARGIN, bannerY, { height: bannerH, width: CONTENT_W * 0.45 });
+                doc.image(imgPath, MARGIN, bannerY, { cover: [CONTENT_W * 0.45, bannerH] as [number, number] });
                 doc.restore();
                 hasImage = true;
                 break;
