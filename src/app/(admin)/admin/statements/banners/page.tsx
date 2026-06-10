@@ -246,6 +246,33 @@ export default function AdminBannersPage() {
     } catch {}
   }
 
+  async function openAssignDialog(bannerId: string) {
+    setAssignBannerId(bannerId)
+    setAssignMonths([])
+    setAssignYears([new Date().getFullYear()])
+    setAssignAllClients(false)
+    setAssignClientIds([])
+    setError(null)
+    try {
+      const res = await fetch(`/api/admin/statements/banners/${bannerId}/assignments`)
+      if (res.ok) {
+        const data = await res.json()
+        const existing = data.assignments as { month: number; year: number; userId: string | null }[]
+        if (existing.length > 0) {
+          const months = [...new Set(existing.map((a) => a.month))]
+          const years = [...new Set(existing.map((a) => a.year))]
+          const hasAll = existing.some((a) => a.userId === null)
+          const clientIds = [...new Set(existing.filter((a) => a.userId).map((a) => a.userId as string))]
+          setAssignMonths(months)
+          setAssignYears(years)
+          setAssignAllClients(hasAll)
+          setAssignClientIds(clientIds)
+        }
+      }
+    } catch { /* open empty */ }
+    setAssignOpen(true)
+  }
+
   async function handleAssign() {
     if (!assignBannerId) return
     if (assignMonths.length === 0) { setError("Select at least one month"); return }
@@ -352,7 +379,7 @@ export default function AdminBannersPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => { setAssignBannerId(b.id); setAssignMonths([]); setAssignYears([new Date().getFullYear()]); setAssignAllClients(false); setAssignClientIds([]); setAssignOpen(true) }} title="Assign">
+                        <Button variant="ghost" size="sm" onClick={() => openAssignDialog(b.id)} title="Assign">
                           <Send className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="sm" onClick={() => openEditor(b)} title="Edit">
