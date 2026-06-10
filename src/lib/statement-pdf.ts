@@ -556,7 +556,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           doc.y += 8;
           ensureSpace(doc, 50);
           doc.font("InterBold").fontSize(8).fillColor(GRAY)
-            .text("MARKET COMMENTARY", MARGIN, doc.y, { lineBreak: false });
+            .text(`MARKET COMMENTARY — ${inv.investmentName}`, MARGIN, doc.y, { lineBreak: false });
           doc.y += 14;
           if (inv.commentaryTitle) {
             doc.font("InterBold").fontSize(9).fillColor(NAVY)
@@ -573,7 +573,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           doc.y += 4;
           ensureSpace(doc, 40);
           doc.font("InterBold").fontSize(8).fillColor(GRAY)
-            .text("UPCOMING DISTRIBUTIONS", MARGIN, doc.y, { lineBreak: false });
+            .text(`UPCOMING DISTRIBUTIONS — ${inv.investmentName}`, MARGIN, doc.y, { lineBreak: false });
           doc.y += 14;
           for (const ud of inv.upcomingDistributions) {
             ensureSpace(doc, 18);
