@@ -91,7 +91,7 @@ function BannerPreview({ title, description, imageUrl, buttonText, gradientFrom,
           paddingLeft: imageUrl ? "40%" : 24,
         }}
       >
-        <div style={{ color: "#E8D5B0", fontSize: 18, fontWeight: 500, marginBottom: 4, fontFamily: "'Cormorant Garamond', 'Cormorant', serif" }}>
+        <div style={{ color: "#E8D5B0", fontSize: 36, fontWeight: 500, marginBottom: 4, fontFamily: "'Cormorant Garamond', 'Cormorant', serif", lineHeight: 1.1 }}>
           {title || "Banner Title"}
         </div>
         {description && (
