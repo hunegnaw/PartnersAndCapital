@@ -336,7 +336,7 @@ export async function collectStatementData(
       amountInvested: invested,
       currentValue: currentVal,
       cashDistributed: cashDist,
-      returnPercentage: Number(ci.returnPercentage),
+      returnPercentage: invested > 0 ? Math.round((cashDist / invested) * 10000) / 100 : 0,
       irr: ci.irr != null ? Number(ci.irr) : null,
       apr: ci.adminApr != null ? Number(ci.adminApr) : null,
       recentActivity,

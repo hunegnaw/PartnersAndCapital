@@ -91,32 +91,27 @@ async function svgToPng(svg: string, width: number, height: number): Promise<Buf
 function drawChartLabels(
   doc: PDFKit.PDFDocument,
   labels: ChartLabels,
-  chartX: number,
-  chartY: number,
-  chartW: number,
-  chartH: number
+  imgX: number,
+  imgY: number,
+  imgW: number,
+  imgH: number
 ) {
-  const innerTop = chartY;
-  const innerH = chartH;
-  const innerLeft = chartX;
-  const innerW = chartW;
-
   for (const tick of labels.leftTicks) {
-    const y = innerTop + tick.y * innerH;
+    const y = imgY + tick.y * imgH;
     doc.font("Inter").fontSize(7).fillColor(GRAY)
-      .text(tick.label, innerLeft - 48, y - 4, { width: 44, align: "right", lineBreak: false });
+      .text(tick.label, imgX - 48, y - 4, { width: 44, align: "right", lineBreak: false });
   }
 
   for (const tick of labels.rightTicks) {
-    const y = innerTop + tick.y * innerH;
+    const y = imgY + tick.y * imgH;
     doc.font("Inter").fontSize(7).fillColor(GOLD)
-      .text(tick.label, innerLeft + innerW + 4, y - 4, { width: 50, lineBreak: false });
+      .text(tick.label, imgX + imgW + 4, y - 4, { width: 50, lineBreak: false });
   }
 
   for (const xl of labels.xLabels) {
-    const x = innerLeft + xl.x * innerW;
+    const x = imgX + xl.x * imgW;
     doc.font("Inter").fontSize(7).fillColor(GRAY)
-      .text(xl.label, x - 20, innerTop + innerH + 4, { width: 40, align: "center", lineBreak: false });
+      .text(xl.label, x - 22, imgY + imgH + 4, { width: 44, align: "center", lineBreak: false });
   }
 }
 
@@ -299,18 +294,42 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       for (const banner of data.banners) {
         ensureSpace(doc, 80);
         const bannerY = doc.y;
-        doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, 70, 4)
+        const bannerH = 70;
+        // Background
+        doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, bannerH, 4)
           .fill(banner.gradientTo).restore();
+
+        // Banner image on left side
+        let textLeftPad = 20;
+        if (banner.imageUrl) {
+          try {
+            const imgCandidates = [
+              path.join(process.cwd(), "public", banner.imageUrl),
+              path.join(process.cwd(), banner.imageUrl),
+            ];
+            for (const imgPath of imgCandidates) {
+              const exists = await fs.access(imgPath).then(() => true).catch(() => false);
+              if (exists) {
+                doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, bannerH, 4).clip();
+                doc.image(imgPath, MARGIN, bannerY, { height: bannerH, width: CONTENT_W * 0.4 });
+                doc.restore();
+                textLeftPad = CONTENT_W * 0.35;
+                break;
+              }
+            }
+          } catch { /* skip image */ }
+        }
+
         doc.font("Cormorant").fontSize(15).fillColor(GOLD_LIGHT)
-          .text(banner.title, MARGIN + 20, bannerY + 14, { width: CONTENT_W - 40, lineBreak: false });
+          .text(banner.title, MARGIN + textLeftPad, bannerY + 14, { width: CONTENT_W - textLeftPad - 20, lineBreak: false });
         if (banner.description) {
           doc.font("Inter").fontSize(9).fillColor("#FFFFFF")
-            .text(banner.description, MARGIN + 20, bannerY + 32, { width: CONTENT_W - 40, lineBreak: false });
+            .text(banner.description, MARGIN + textLeftPad, bannerY + 32, { width: CONTENT_W - textLeftPad - 20, lineBreak: false });
         }
         if (banner.buttonText) {
-          doc.save().roundedRect(MARGIN + 20, bannerY + 50, 80, 16, 3).fill(GOLD).restore();
+          doc.save().roundedRect(MARGIN + textLeftPad, bannerY + 50, 80, 16, 3).fill(GOLD).restore();
           doc.font("InterBold").fontSize(8).fillColor("#FFFFFF")
-            .text(banner.buttonText, MARGIN + 24, bannerY + 53, { width: 72, lineBreak: false, link: banner.buttonUrl || undefined });
+            .text(banner.buttonText, MARGIN + textLeftPad + 4, bannerY + 53, { width: 72, lineBreak: false, link: banner.buttonUrl || undefined });
         }
         doc.y = bannerY + 78;
       }

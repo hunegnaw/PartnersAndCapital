@@ -38,7 +38,7 @@ function buildSvgChart(
     barWidth?: number;
   } = {}
 ): { svg: string; labels: ChartLabels } {
-  const margin = { top: 10, right: 10, bottom: 20, left: 10 };
+  const margin = { top: 5, right: 5, bottom: 5, left: 5 };
   const chartW = width - margin.left - margin.right;
   const chartH = height - margin.top - margin.bottom;
 
@@ -159,23 +159,28 @@ export function renderDonutSVG(
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`;
 
-  let startAngle = -Math.PI / 2;
-  for (const sl of slices) {
-    const pct = sl.value / total;
-    const endAngle = startAngle + pct * 2 * Math.PI;
-    const largeArc = pct > 0.5 ? 1 : 0;
+  if (slices.length === 1) {
+    svg += `<circle cx="${cx}" cy="${cy}" r="${outerR}" fill="${slices[0].color}" />`;
+    svg += `<circle cx="${cx}" cy="${cy}" r="${innerR}" fill="white" />`;
+  } else {
+    let startAngle = -Math.PI / 2;
+    for (const sl of slices) {
+      const pct = sl.value / total;
+      const endAngle = startAngle + pct * 2 * Math.PI;
+      const largeArc = pct > 0.5 ? 1 : 0;
 
-    const x1o = cx + outerR * Math.cos(startAngle);
-    const y1o = cy + outerR * Math.sin(startAngle);
-    const x2o = cx + outerR * Math.cos(endAngle);
-    const y2o = cy + outerR * Math.sin(endAngle);
-    const x1i = cx + innerR * Math.cos(endAngle);
-    const y1i = cy + innerR * Math.sin(endAngle);
-    const x2i = cx + innerR * Math.cos(startAngle);
-    const y2i = cy + innerR * Math.sin(startAngle);
+      const x1o = cx + outerR * Math.cos(startAngle);
+      const y1o = cy + outerR * Math.sin(startAngle);
+      const x2o = cx + outerR * Math.cos(endAngle);
+      const y2o = cy + outerR * Math.sin(endAngle);
+      const x1i = cx + innerR * Math.cos(endAngle);
+      const y1i = cy + innerR * Math.sin(endAngle);
+      const x2i = cx + innerR * Math.cos(startAngle);
+      const y2i = cy + innerR * Math.sin(startAngle);
 
-    svg += `<path d="M ${x1o},${y1o} A ${outerR},${outerR} 0 ${largeArc} 1 ${x2o},${y2o} L ${x1i},${y1i} A ${innerR},${innerR} 0 ${largeArc} 0 ${x2i},${y2i} Z" fill="${sl.color}" />`;
-    startAngle = endAngle;
+      svg += `<path d="M ${x1o},${y1o} A ${outerR},${outerR} 0 ${largeArc} 1 ${x2o},${y2o} L ${x1i},${y1i} A ${innerR},${innerR} 0 ${largeArc} 0 ${x2i},${y2i} Z" fill="${sl.color}" />`;
+      startAngle = endAngle;
+    }
   }
 
   svg += "</svg>";
