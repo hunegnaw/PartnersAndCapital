@@ -14,7 +14,7 @@ export async function PATCH(
     const dist = await prisma.statementUpcomingDistribution.update({
       where: { id },
       data: {
-        expectedDate: body.expectedDate ? new Date(body.expectedDate) : undefined,
+        expectedDate: body.expectedDate ? new Date(body.expectedDate + "T12:00:00") : undefined,
         amount: body.amount !== undefined ? body.amount : undefined,
         description: body.description !== undefined ? body.description : undefined,
       },

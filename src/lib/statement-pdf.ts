@@ -551,49 +551,91 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           inv.totalDepositsYTD + inv.totalDistributionsYTD
         );
 
-        // Market commentary for this investment
-        if (inv.commentary) {
-          doc.y += 8;
-          ensureSpace(doc, 50);
-          doc.font("InterBold").fontSize(8).fillColor(GRAY)
-            .text(`MARKET COMMENTARY — ${inv.investmentName}`, MARGIN, doc.y, { lineBreak: false });
-          doc.y += 14;
-          if (inv.commentaryTitle) {
-            doc.font("InterBold").fontSize(9).fillColor(NAVY)
-              .text(inv.commentaryTitle, MARGIN, doc.y, { width: CONTENT_W });
-            doc.moveDown(0.3);
-          }
-          doc.font("Inter").fontSize(8).fillColor("#444444")
-            .text(inv.commentary, MARGIN, doc.y, { width: CONTENT_W, lineGap: 2 });
-          doc.moveDown(0.5);
-        }
-
-        // Upcoming distributions for this investment
-        if (inv.upcomingDistributions.length > 0) {
-          doc.y += 4;
-          ensureSpace(doc, 40);
-          doc.font("InterBold").fontSize(8).fillColor(GRAY)
-            .text(`UPCOMING DISTRIBUTIONS — ${inv.investmentName}`, MARGIN, doc.y, { lineBreak: false });
-          doc.y += 14;
-          for (const ud of inv.upcomingDistributions) {
-            ensureSpace(doc, 18);
-            const udY = doc.y;
-            const dateStr = `${ud.expectedDate.getUTCMonth() + 1}/${ud.expectedDate.getUTCDate()}/${ud.expectedDate.getUTCFullYear()}`;
-            doc.font("Inter").fontSize(8).fillColor(NAVY)
-              .text(dateStr, MARGIN + 8, udY, { lineBreak: false });
-            if (ud.description) {
-              doc.font("Inter").fontSize(8).fillColor("#444444")
-                .text(ud.description, MARGIN + 90, udY, { lineBreak: false });
-            }
-            if (ud.amount) {
-              doc.font("InterBold").fontSize(8).fillColor(NAVY)
-                .text(formatCurrency(ud.amount), PAGE_W - MARGIN - 80, udY, { width: 80, align: "right", lineBreak: false });
-            }
-            doc.y = udY + 16;
-          }
-        }
-
         doc.y += 8;
+      }
+
+      // ── MARKET COMMENTARY & UPCOMING DISTRIBUTIONS (dedicated page) ──
+      const hasCommentary = data.investments.some((inv) => inv.commentary);
+      const hasUpcoming = data.investments.some((inv) => inv.upcomingDistributions.length > 0);
+
+      if (hasCommentary || hasUpcoming) {
+        startNewPage(doc);
+
+        if (hasCommentary) {
+          doc.font("Cormorant").fontSize(20).fillColor(NAVY)
+            .text("Market Commentary", MARGIN, doc.y, { lineBreak: false });
+          doc.y += 6;
+          doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
+            .strokeColor(GOLD).lineWidth(1.5).stroke().restore();
+          doc.y += 14;
+
+          for (const inv of data.investments) {
+            if (!inv.commentary) continue;
+            ensureSpace(doc, 50);
+            doc.font("Cormorant").fontSize(14).fillColor(NAVY)
+              .text(inv.investmentName, MARGIN, doc.y, { lineBreak: false });
+            doc.y += 18;
+            if (inv.commentaryTitle) {
+              doc.font("InterBold").fontSize(9).fillColor(NAVY)
+                .text(inv.commentaryTitle, MARGIN, doc.y, { width: CONTENT_W });
+              doc.moveDown(0.3);
+            }
+            doc.font("Inter").fontSize(8).fillColor("#444444")
+              .text(inv.commentary, MARGIN, doc.y, { width: CONTENT_W, lineGap: 2 });
+            doc.moveDown(1);
+          }
+        }
+
+        if (hasUpcoming) {
+          if (hasCommentary) doc.y += 10;
+          ensureSpace(doc, 60);
+          doc.font("Cormorant").fontSize(20).fillColor(NAVY)
+            .text("Upcoming Distributions", MARGIN, doc.y, { lineBreak: false });
+          doc.y += 6;
+          doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
+            .strokeColor(GOLD).lineWidth(1.5).stroke().restore();
+          doc.y += 14;
+
+          for (const inv of data.investments) {
+            if (inv.upcomingDistributions.length === 0) continue;
+            ensureSpace(doc, 40);
+            doc.font("Cormorant").fontSize(14).fillColor(NAVY)
+              .text(inv.investmentName, MARGIN, doc.y, { lineBreak: false });
+            doc.y += 18;
+
+            // Table header
+            const colW = [100, 200, CONTENT_W - 300];
+            const hdrY = doc.y;
+            doc.save().rect(MARGIN, hdrY, CONTENT_W, 18).fill(TABLE_HEADER_BG).restore();
+            doc.font("InterBold").fontSize(7).fillColor(GRAY)
+              .text("EXPECTED DATE", MARGIN + 8, hdrY + 5, { lineBreak: false });
+            doc.font("InterBold").fontSize(7).fillColor(GRAY)
+              .text("DESCRIPTION", MARGIN + 8 + colW[0], hdrY + 5, { lineBreak: false });
+            doc.font("InterBold").fontSize(7).fillColor(GRAY)
+              .text("AMOUNT", MARGIN + 8 + colW[0] + colW[1], hdrY + 5, { width: colW[2] - 8, align: "right", lineBreak: false });
+            doc.y = hdrY + 20;
+
+            for (const ud of inv.upcomingDistributions) {
+              ensureSpace(doc, 18);
+              const udY = doc.y;
+              const dateStr = `${ud.expectedDate.getUTCMonth() + 1}/${ud.expectedDate.getUTCDate()}/${ud.expectedDate.getUTCFullYear()}`;
+              doc.font("Inter").fontSize(8).fillColor(NAVY)
+                .text(dateStr, MARGIN + 8, udY + 4, { lineBreak: false });
+              if (ud.description) {
+                doc.font("Inter").fontSize(8).fillColor("#444444")
+                  .text(ud.description, MARGIN + 8 + colW[0], udY + 4, { lineBreak: false });
+              }
+              if (ud.amount) {
+                doc.font("InterBold").fontSize(8).fillColor(NAVY)
+                  .text(formatCurrency(ud.amount), MARGIN + 8 + colW[0] + colW[1], udY + 4, { width: colW[2] - 8, align: "right", lineBreak: false });
+              }
+              doc.y = udY + 18;
+              doc.save().moveTo(MARGIN, doc.y).lineTo(MARGIN + CONTENT_W, doc.y)
+                .strokeColor("#F0EDE8").lineWidth(0.5).stroke().restore();
+            }
+            doc.y += 10;
+          }
+        }
       }
 
       // ── DISCLOSURES ──

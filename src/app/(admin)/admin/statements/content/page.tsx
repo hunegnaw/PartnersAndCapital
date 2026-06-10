@@ -22,7 +22,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { ArrowLeft, Plus, Trash2, Loader2 } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Loader2, Pencil } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 const MONTH_NAMES = [
@@ -33,6 +33,11 @@ const MONTH_NAMES = [
 interface Investment { id: string; name: string }
 interface Commentary { id: string; investmentId: string; month: number; year: number; title: string | null; body: string; investment: { id: string; name: string } }
 interface UpcomingDist { id: string; investmentId: string; expectedDate: string; amount: number | null; description: string | null; month: number; year: number; investment: { id: string; name: string } }
+
+function formatDateSafe(dateStr: string): string {
+  const d = new Date(dateStr)
+  return `${d.getUTCMonth() + 1}/${d.getUTCDate()}/${d.getUTCFullYear()}`
+}
 
 export default function StatementContentPage() {
   const [month, setMonth] = useState(new Date().getMonth() + 1)
@@ -45,12 +50,14 @@ export default function StatementContentPage() {
 
   // Commentary dialog
   const [commOpen, setCommOpen] = useState(false)
+  const [commEditId, setCommEditId] = useState<string | null>(null)
   const [commInvId, setCommInvId] = useState("")
   const [commTitle, setCommTitle] = useState("")
   const [commBody, setCommBody] = useState("")
 
   // Upcoming distribution dialog
   const [distOpen, setDistOpen] = useState(false)
+  const [distEditId, setDistEditId] = useState<string | null>(null)
   const [distInvId, setDistInvId] = useState("")
   const [distDate, setDistDate] = useState("")
   const [distAmount, setDistAmount] = useState("")
@@ -71,7 +78,7 @@ export default function StatementContentPage() {
   useEffect(() => { Promise.resolve().then(fetchData) }, [fetchData])
 
   useEffect(() => {
-    fetch("/api/admin/investments?limit=100").then(async (r) => {
+    fetch("/api/admin/investments?pageSize=100").then(async (r) => {
       if (r.ok) {
         const data = await r.json()
         setInvestments((data.investments || data).map((i: { id: string; name: string }) => ({ id: i.id, name: i.name })))
@@ -79,22 +86,53 @@ export default function StatementContentPage() {
     }).catch(() => {})
   }, [])
 
+  function invName(id: string): string {
+    return investments.find((i) => i.id === id)?.name || id
+  }
+
+  function openCommDialog(c?: Commentary) {
+    if (c) {
+      setCommEditId(c.id)
+      setCommInvId(c.investmentId)
+      setCommTitle(c.title || "")
+      setCommBody(c.body)
+    } else {
+      setCommEditId(null)
+      setCommInvId("")
+      setCommTitle("")
+      setCommBody("")
+    }
+    setCommOpen(true)
+  }
+
+  function openDistDialog(d?: UpcomingDist) {
+    if (d) {
+      setDistEditId(d.id)
+      setDistInvId(d.investmentId)
+      setDistDate(d.expectedDate.slice(0, 10))
+      setDistAmount(d.amount ? String(d.amount) : "")
+      setDistDesc(d.description || "")
+    } else {
+      setDistEditId(null)
+      setDistInvId("")
+      setDistDate("")
+      setDistAmount("")
+      setDistDesc("")
+    }
+    setDistOpen(true)
+  }
+
   async function saveCommentary() {
     if (!commInvId || !commBody) return
     setSaving(true)
     try {
-      const res = await fetch("/api/admin/statements/commentary", {
+      await fetch("/api/admin/statements/commentary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ investmentId: commInvId, month, year, title: commTitle || null, body: commBody }),
       })
-      if (res.ok) {
-        setCommOpen(false)
-        setCommTitle("")
-        setCommBody("")
-        setCommInvId("")
-        await fetchData()
-      }
+      setCommOpen(false)
+      await fetchData()
     } catch {} finally { setSaving(false) }
   }
 
@@ -108,19 +146,21 @@ export default function StatementContentPage() {
     if (!distInvId || !distDate) return
     setSaving(true)
     try {
-      const res = await fetch("/api/admin/statements/upcoming-distributions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ investmentId: distInvId, expectedDate: distDate, amount: distAmount ? parseFloat(distAmount) : null, description: distDesc || null, month, year }),
-      })
-      if (res.ok) {
-        setDistOpen(false)
-        setDistDate("")
-        setDistAmount("")
-        setDistDesc("")
-        setDistInvId("")
-        await fetchData()
+      if (distEditId) {
+        await fetch(`/api/admin/statements/upcoming-distributions/${distEditId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expectedDate: distDate, amount: distAmount ? parseFloat(distAmount) : null, description: distDesc || null }),
+        })
+      } else {
+        await fetch("/api/admin/statements/upcoming-distributions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ investmentId: distInvId, expectedDate: distDate, amount: distAmount ? parseFloat(distAmount) : null, description: distDesc || null, month, year }),
+        })
       }
+      setDistOpen(false)
+      await fetchData()
     } catch {} finally { setSaving(false) }
   }
 
@@ -165,23 +205,24 @@ export default function StatementContentPage() {
 
           <TabsContent value="commentary" className="mt-4 space-y-4">
             <div className="flex justify-end">
-              <Button onClick={() => setCommOpen(true)}><Plus className="h-4 w-4 mr-2" />Add Commentary</Button>
+              <Button onClick={() => openCommDialog()}><Plus className="h-4 w-4 mr-2" />Add Commentary</Button>
             </div>
             {commentaries.length === 0 ? (
-              <Card><CardContent className="p-8 text-center text-muted-foreground">No commentary for {MONTH_NAMES[month - 1]} {year}. Add commentary to include it in client statements.</CardContent></Card>
+              <Card><CardContent className="p-8 text-center text-muted-foreground">No commentary for {MONTH_NAMES[month - 1]} {year}.</CardContent></Card>
             ) : (
               commentaries.map((c) => (
                 <Card key={c.id}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
-                      <div>
+                      <div className="flex-1">
                         <div className="text-xs text-muted-foreground font-medium">{c.investment.name}</div>
                         {c.title && <div className="font-semibold text-sm mt-1">{c.title}</div>}
                         <div className="text-sm mt-1 text-muted-foreground whitespace-pre-wrap">{c.body}</div>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => deleteCommentary(c.id)}>
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
+                      <div className="flex items-center gap-1 ml-2">
+                        <Button variant="ghost" size="sm" onClick={() => openCommDialog(c)}><Pencil className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="sm" onClick={() => deleteCommentary(c.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -191,7 +232,7 @@ export default function StatementContentPage() {
 
           <TabsContent value="upcoming" className="mt-4 space-y-4">
             <div className="flex justify-end">
-              <Button onClick={() => setDistOpen(true)}><Plus className="h-4 w-4 mr-2" />Add Distribution</Button>
+              <Button onClick={() => openDistDialog()}><Plus className="h-4 w-4 mr-2" />Add Distribution</Button>
             </div>
             {upcoming.length === 0 ? (
               <Card><CardContent className="p-8 text-center text-muted-foreground">No upcoming distributions for {MONTH_NAMES[month - 1]} {year}.</CardContent></Card>
@@ -205,20 +246,21 @@ export default function StatementContentPage() {
                         <th className="p-3 text-left text-xs font-medium text-muted-foreground uppercase">Expected Date</th>
                         <th className="p-3 text-right text-xs font-medium text-muted-foreground uppercase">Amount</th>
                         <th className="p-3 text-left text-xs font-medium text-muted-foreground uppercase">Description</th>
-                        <th className="p-3 w-10"></th>
+                        <th className="p-3 w-20"></th>
                       </tr>
                     </thead>
                     <tbody>
                       {upcoming.map((d) => (
                         <tr key={d.id} className="border-b">
                           <td className="p-3 text-sm font-medium">{d.investment.name}</td>
-                          <td className="p-3 text-sm">{new Date(d.expectedDate).toLocaleDateString()}</td>
+                          <td className="p-3 text-sm">{formatDateSafe(d.expectedDate)}</td>
                           <td className="p-3 text-sm text-right tabular-nums">{d.amount ? `$${d.amount.toLocaleString()}` : "—"}</td>
                           <td className="p-3 text-sm text-muted-foreground">{d.description || "—"}</td>
                           <td className="p-3">
-                            <Button variant="ghost" size="sm" onClick={() => deleteUpcoming(d.id)}>
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button variant="ghost" size="sm" onClick={() => openDistDialog(d)}><Pencil className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="sm" onClick={() => deleteUpcoming(d.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -234,12 +276,16 @@ export default function StatementContentPage() {
       {/* Commentary Dialog */}
       <Dialog open={commOpen} onOpenChange={setCommOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Add Market Commentary</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{commEditId ? "Edit" : "Add"} Market Commentary</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Investment *</Label>
-              <Select value={commInvId} onValueChange={(v) => v && setCommInvId(v)}>
-                <SelectTrigger><SelectValue placeholder="Select investment" /></SelectTrigger>
+              <Select value={commInvId} onValueChange={(v) => v && setCommInvId(v)} disabled={!!commEditId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select investment">
+                    {commInvId ? invName(commInvId) : undefined}
+                  </SelectValue>
+                </SelectTrigger>
                 <SelectContent>
                   {investments.map((inv) => <SelectItem key={inv.id} value={inv.id}>{inv.name}</SelectItem>)}
                 </SelectContent>
@@ -266,12 +312,16 @@ export default function StatementContentPage() {
       {/* Upcoming Distribution Dialog */}
       <Dialog open={distOpen} onOpenChange={setDistOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Add Upcoming Distribution</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{distEditId ? "Edit" : "Add"} Upcoming Distribution</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Investment *</Label>
-              <Select value={distInvId} onValueChange={(v) => v && setDistInvId(v)}>
-                <SelectTrigger><SelectValue placeholder="Select investment" /></SelectTrigger>
+              <Select value={distInvId} onValueChange={(v) => v && setDistInvId(v)} disabled={!!distEditId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select investment">
+                    {distInvId ? invName(distInvId) : undefined}
+                  </SelectValue>
+                </SelectTrigger>
                 <SelectContent>
                   {investments.map((inv) => <SelectItem key={inv.id} value={inv.id}>{inv.name}</SelectItem>)}
                 </SelectContent>

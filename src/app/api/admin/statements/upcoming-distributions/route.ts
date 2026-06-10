@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     const dist = await prisma.statementUpcomingDistribution.create({
       data: {
         investmentId,
-        expectedDate: new Date(expectedDate),
+        expectedDate: new Date(expectedDate + "T12:00:00"),
         amount: amount || null,
         description: description || null,
         month,
