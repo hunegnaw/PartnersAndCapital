@@ -60,7 +60,7 @@ export async function renderBannerImage(
         display: "flex",
         width: "100%",
         height: "100%",
-        borderRadius: 6,
+        borderRadius: 8,
         overflow: "hidden",
         position: "relative" as const,
       },
@@ -167,12 +167,12 @@ export async function renderBannerImage(
     },
   };
 
-  const scale = 3;
   const svg = await satori(element as Parameters<typeof satori>[0], {
-    width: width * scale,
-    height: height * scale,
+    width,
+    height,
     fonts,
   });
 
-  return sharp(Buffer.from(svg)).png().toBuffer();
+  // Render at 3x for crisp text and images in the PDF
+  return sharp(Buffer.from(svg)).resize(width * 3, height * 3).png().toBuffer();
 }

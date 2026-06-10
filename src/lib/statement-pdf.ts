@@ -351,7 +351,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           doc.font("Cormorant").fontSize(20).fillColor(GOLD_LIGHT)
             .text(banner.title, MARGIN + 20, bannerY + 20, { lineBreak: false });
         }
-        doc.y = bannerY + 90;
+        doc.y = bannerY + 98;
       }
 
       // Gold line below banners (separator before portfolio section)
