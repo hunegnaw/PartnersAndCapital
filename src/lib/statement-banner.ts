@@ -167,9 +167,10 @@ export async function renderBannerImage(
     },
   };
 
+  const scale = 3;
   const svg = await satori(element as Parameters<typeof satori>[0], {
-    width,
-    height,
+    width: width * scale,
+    height: height * scale,
     fonts,
   });
 

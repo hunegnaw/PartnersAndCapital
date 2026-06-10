@@ -148,8 +148,8 @@ function startNewPage(doc: PDFKit.PDFDocument) {
         .text("PARTNERS", MARGIN, 10, { continued: true, lineBreak: false })
         .fillColor("#FFFFFF").text(" + CAPITAL", { lineBreak: false });
     }
-    doc.font("Inter").fontSize(7).fillColor("#FFFFFF")
-      .text(_contHeaderData.statementDate, PAGE_W - MARGIN - 80, 13, { width: 80, align: "right", lineBreak: false });
+    doc.font("Cormorant").fontSize(12).fillColor("#FFFFFF")
+      .text(_contHeaderData.statementDate, PAGE_W - MARGIN - 100, 11, { width: 100, align: "right", lineBreak: false });
     doc.y = CONT_HEADER_H + 14;
   } else {
     doc.y = MARGIN;
@@ -583,9 +583,9 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           .strokeColor(GOLD).lineWidth(1.5).stroke().restore();
         doc.save().rect(0, footerY + 1.5, PAGE_W, FOOTER_H).fill("#F5F3EE").restore();
         doc.font("Inter").fontSize(7).fillColor("#999999")
-          .text(`© ${new Date().getFullYear()} ${orgLegal}`, MARGIN, footerY + 8, { lineBreak: false });
+          .text(footerParts.join("  |  "), MARGIN, footerY + 8, { width: CONTENT_W, align: "center", lineBreak: false });
         doc.font("Inter").fontSize(7).fillColor("#999999")
-          .text(footerParts.join("  |  "), MARGIN, footerY + 20, { width: CONTENT_W, align: "center", lineBreak: false });
+          .text(`© ${new Date().getFullYear()} ${orgLegal}`, MARGIN, footerY + 20, { width: CONTENT_W, align: "center", lineBreak: false });
         doc.font("Inter").fontSize(7).fillColor("#999999")
           .text(`Page ${p + 1} of ${pageCount}`, MARGIN, footerY + 32, { width: CONTENT_W, align: "center", lineBreak: false });
       }
