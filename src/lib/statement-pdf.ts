@@ -617,11 +617,14 @@ export async function generateStatement(
   request?: Request
 ): Promise<GenerateStatementResult> {
   try {
-    const existing = await prisma.statement.findUnique({
+    let existing = await prisma.statement.findUnique({
       where: { userId_periodStart: { userId, periodStart } },
     });
 
-    if (existing && existing.status !== "REJECTED") {
+    if (existing && existing.deletedAt) {
+      await prisma.statement.delete({ where: { id: existing.id } });
+      existing = null;
+    } else if (existing && existing.status !== "REJECTED") {
       return { statementId: existing.id, success: false, error: "Statement already exists for this period" };
     }
 
