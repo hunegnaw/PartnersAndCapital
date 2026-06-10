@@ -307,7 +307,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       if (csItems.length > 0) {
         doc.save().rect(0, 67, PAGE_W, 42).fill("#F5F3EE").restore();
         doc.font("Cormorant").fontSize(11).fillColor(NAVY)
-          .text("Customer Service", MARGIN, 72, { lineBreak: false });
+          .text("Client Service", MARGIN, 72, { lineBreak: false });
         let csx = MARGIN;
         for (const cs of csItems) {
           doc.font("InterBold").fontSize(6).fillColor("#999999")
