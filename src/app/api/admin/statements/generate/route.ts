@@ -22,14 +22,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "month and year are required" }, { status: 400 });
     }
 
-    const periodStart = new Date(year, month - 1, 1);
+    const periodStart = new Date(Date.UTC(year, month - 1, 1));
     let periodEnd: Date;
 
     if (monthToDate) {
       const now = new Date();
-      periodEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     } else {
-      periodEnd = new Date(year, month, 0);
+      periodEnd = new Date(Date.UTC(year, month, 0));
     }
 
     let userIds: string[];

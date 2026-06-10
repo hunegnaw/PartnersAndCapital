@@ -363,7 +363,9 @@ export async function collectStatementData(
       ? Math.round((totalDistributions / totalInvested) * 10000) / 100
       : 0;
 
-  const statementDate = `${periodEnd.getMonth() + 1}/${periodEnd.getDate()}/${periodEnd.getFullYear()}`;
+  // Use UTC methods to avoid timezone shifts from DB round-trip
+  const lastDay = new Date(Date.UTC(periodEnd.getUTCFullYear(), periodEnd.getUTCMonth() + 1, 0)).getUTCDate();
+  const statementDate = `${periodEnd.getUTCMonth() + 1}/${lastDay}/${periodEnd.getUTCFullYear()}`;
 
   const ALLOC_COLORS: Record<string, string> = {
     "Oil & Gas": "#B07D3A",

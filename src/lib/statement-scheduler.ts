@@ -27,8 +27,8 @@ export function startStatementScheduler() {
 
       console.log("[Statement Scheduler] Running monthly statement generation...");
 
-      const previousMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-      const previousMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+      const previousMonth = new Date(Date.UTC(today.getFullYear(), today.getMonth() - 1, 1));
+      const previousMonthEnd = new Date(Date.UTC(today.getFullYear(), today.getMonth(), 0));
 
       const clients = await prisma.user.findMany({
         where: {
