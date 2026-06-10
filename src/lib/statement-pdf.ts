@@ -368,37 +368,62 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         }
       }
 
-      // ── DONUT CHART (Asset Allocation) ──
-      if (data.allocation.length > 1) {
-        ensureSpace(doc, 140);
+      // ── DONUT CHARTS (Asset Class + Investment Allocation) ──
+      if (data.allocation.length >= 1) {
+        const donutRows = Math.max(data.allocation.length, data.investmentAllocation.length);
+        const donutBoxH = Math.max(120, 28 + donutRows * 18);
+        ensureSpace(doc, donutBoxH + 10);
+        const donutBoxY = doc.y;
         doc.save()
-          .roundedRect(MARGIN, doc.y, CONTENT_W, 130, 4)
+          .roundedRect(MARGIN, donutBoxY, CONTENT_W, donutBoxH, 4)
           .fill(LIGHT_BG).restore();
+
+        const halfW = CONTENT_W / 2;
+
+        // Left donut: Asset Class Allocation
         doc.font("InterBold").fontSize(7).fillColor(GRAY)
-          .text("ASSET ALLOCATION", MARGIN + 12, doc.y + 8, { lineBreak: false });
-
+          .text("ASSET CLASS ALLOCATION", MARGIN + 12, donutBoxY + 8, { lineBreak: false });
         try {
-          const donutSvg = renderDonutSVG(data.allocation, 100);
-          const donutPng = await svgToPng(donutSvg, 100, 100);
-          doc.image(donutPng, MARGIN + 16, doc.y + 24, { width: 90, height: 90 });
-        } catch {
-          // skip donut if rendering fails
-        }
+          const d1Svg = renderDonutSVG(data.allocation, 80);
+          const d1Png = await svgToPng(d1Svg, 80, 80);
+          doc.image(d1Png, MARGIN + 12, donutBoxY + 22, { width: 70, height: 70 });
+        } catch { /* skip */ }
 
-        const legendX = MARGIN + 130;
-        let legendY = doc.y + 28;
-        const total = data.allocation.reduce((s, a) => s + a.value, 0);
+        const leg1X = MARGIN + 90;
+        let leg1Y = donutBoxY + 24;
+        const total1 = data.allocation.reduce((s, a) => s + a.value, 0);
         for (const a of data.allocation) {
-          const pct = total > 0 ? Math.round((a.value / total) * 100) : 0;
-          doc.save().roundedRect(legendX, legendY + 2, 8, 8, 1).fill(a.color).restore();
-          doc.font("InterBold").fontSize(9).fillColor(NAVY)
-            .text(`${a.name}`, legendX + 14, legendY, { lineBreak: false });
-          doc.font("Inter").fontSize(9).fillColor(GRAY)
-            .text(`${formatCurrency(a.value)} (${pct}%)`, legendX + 14, legendY + 12, { lineBreak: false });
-          legendY += 28;
+          const pct = total1 > 0 ? Math.round((a.value / total1) * 100) : 0;
+          doc.save().roundedRect(leg1X, leg1Y + 1, 6, 6, 1).fill(a.color).restore();
+          doc.font("Inter").fontSize(7).fillColor(NAVY)
+            .text(`${a.name} — ${formatCurrency(a.value)} (${pct}%)`, leg1X + 10, leg1Y, { lineBreak: false });
+          leg1Y += 16;
         }
 
-        doc.y += 138;
+        // Right donut: Investment Allocation
+        const rightX = MARGIN + halfW;
+        doc.font("InterBold").fontSize(7).fillColor(GRAY)
+          .text("INVESTMENT ALLOCATION", rightX + 12, donutBoxY + 8, { lineBreak: false });
+        try {
+          const d2Svg = renderDonutSVG(data.investmentAllocation, 80);
+          const d2Png = await svgToPng(d2Svg, 80, 80);
+          doc.image(d2Png, rightX + 12, donutBoxY + 22, { width: 70, height: 70 });
+        } catch { /* skip */ }
+
+        const leg2X = rightX + 90;
+        let leg2Y = donutBoxY + 24;
+        const total2 = data.investmentAllocation.reduce((s, a) => s + a.value, 0);
+        for (const a of data.investmentAllocation) {
+          const pct = total2 > 0 ? Math.round((a.value / total2) * 100) : 0;
+          doc.font("Inter").fontSize(7).fillColor(NAVY)
+            .text(`${a.name}`, leg2X + 10, leg2Y, { lineBreak: false });
+          doc.save().roundedRect(leg2X, leg2Y + 1, 6, 6, 1).fill(a.color).restore();
+          doc.font("Inter").fontSize(7).fillColor(GRAY)
+            .text(`${formatCurrency(a.value)} (${pct}%)`, leg2X + 10, leg2Y + 10, { lineBreak: false });
+          leg2Y += 22;
+        }
+
+        doc.y = donutBoxY + donutBoxH + 8;
       }
 
       // ── INVESTMENT SECTIONS ──

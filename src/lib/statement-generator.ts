@@ -57,6 +57,11 @@ export interface StatementData {
     value: number;
     color: string;
   }[];
+  investmentAllocation: {
+    name: string;
+    value: number;
+    color: string;
+  }[];
   banners: {
     title: string;
     description: string | null;
@@ -377,6 +382,18 @@ export async function collectStatementData(
     color: ALLOC_COLORS[name] || "#718096",
   }));
 
+  const GOLD_SHADES = ["#B07D3A", "#7A5528", "#4A3818", "#E8D5B0", "#D4B483"];
+  const NAVY_SHADES = ["#1A2640", "#2C3E5C", "#406984", "#0D1428", "#8599B8"];
+  let gi = 0;
+  let ni = 0;
+  const investmentAllocation = investmentsData.map((inv) => {
+    const isGold = inv.assetClassName === "Oil & Gas" || inv.assetClassName === "Real Estate";
+    const color = isGold
+      ? GOLD_SHADES[gi++ % GOLD_SHADES.length]
+      : NAVY_SHADES[ni++ % NAVY_SHADES.length];
+    return { name: inv.investmentName, value: inv.amountInvested, color };
+  });
+
   return {
     clientName: user.name || user.email,
     clientEmail: user.email,
@@ -391,6 +408,7 @@ export async function collectStatementData(
     weightedApr: totalWeight > 0 ? Math.round((weightedApr / totalWeight) * 100) / 100 : 0,
     investments: investmentsData,
     allocation,
+    investmentAllocation,
     combinedChartData,
     banners: Array.from(uniqueBanners.values()).map((b) => ({
       title: b.title,
