@@ -675,14 +675,14 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
               ensureSpace(doc, 18);
               const udY = doc.y;
               const dateStr = `${ud.expectedDate.getUTCMonth() + 1}/${ud.expectedDate.getUTCDate()}/${ud.expectedDate.getUTCFullYear()}`;
-              doc.font("Inter").fontSize(8).fillColor(NAVY)
+              doc.font("Inter").fontSize(9).fillColor(NAVY)
                 .text(dateStr, MARGIN + 8, udY + 4, { lineBreak: false });
               if (ud.description) {
-                doc.font("Inter").fontSize(8).fillColor("#444444")
+                doc.font("Inter").fontSize(9).fillColor("#333333")
                   .text(ud.description, MARGIN + 8 + colW[0], udY + 4, { lineBreak: false });
               }
               if (ud.amount) {
-                doc.font("InterBold").fontSize(8).fillColor(NAVY)
+                doc.font("InterBold").fontSize(9).fillColor(NAVY)
                   .text(formatCurrency(ud.amount), MARGIN + 8 + colW[0] + colW[1], udY + 4, { width: colW[2] - 8, align: "right", lineBreak: false });
               }
               doc.y = udY + 18;
