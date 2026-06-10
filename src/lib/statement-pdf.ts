@@ -119,7 +119,7 @@ function drawChartAxes(
   for (let i = 0; i < xLabels.length; i += interval) {
     const x = imgX + (i / Math.max(xLabels.length - 1, 1)) * imgW;
     doc.font("Inter").fontSize(6).fillColor(GRAY)
-      .text(xLabels[i], x - 20, imgY + imgH + 4, { width: 40, align: "center", lineBreak: false });
+      .text(xLabels[i], x - 20, imgY + imgH + 12, { width: 40, align: "center", lineBreak: false });
   }
 }
 
