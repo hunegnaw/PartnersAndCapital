@@ -38,7 +38,7 @@ function buildSvgChart(
     barWidth?: number;
   } = {}
 ): { svg: string; labels: ChartLabels } {
-  const margin = { top: 5, right: 5, bottom: 5, left: 5 };
+  const margin = { top: 5, right: 5, bottom: 15, left: 5 };
   const chartW = width - margin.left - margin.right;
   const chartH = height - margin.top - margin.bottom;
 
@@ -93,7 +93,7 @@ function buildSvgChart(
       const x = xPos(i) - barWidth + bi * barWidth;
       const barH = (val / (barMax * 1.1)) * chartH;
       const y = margin.top + chartH - barH;
-      svg += `<rect x="${x}" y="${y}" width="${barWidth}" height="${barH}" fill="${bk.color}" opacity="0.7" rx="1" />`;
+      svg += `<rect x="${x}" y="${y}" width="${barWidth}" height="${barH}" fill="${bk.color}" rx="1" />`;
     }
   }
 

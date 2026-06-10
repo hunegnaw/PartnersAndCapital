@@ -170,6 +170,9 @@ export default function AdminStatementsPage() {
 
   async function handleReject(id: string) {
     const reason = prompt("Rejection reason (optional):")
+    if (reason === null) return
+    // Optimistic update — show REJECTED status immediately
+    setStatements((prev) => prev.map((s) => s.id === id ? { ...s, status: "REJECTED" } : s))
     try {
       const res = await fetch(`/api/admin/statements/${id}/reject`, {
         method: "PATCH",
@@ -180,6 +183,7 @@ export default function AdminStatementsPage() {
       await fetchStatements()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Reject failed")
+      await fetchStatements()
     }
   }
 

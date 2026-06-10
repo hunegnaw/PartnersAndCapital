@@ -119,7 +119,7 @@ function drawChartAxes(
   for (let i = 0; i < xLabels.length; i += interval) {
     const x = imgX + (i / Math.max(xLabels.length - 1, 1)) * imgW;
     doc.font("Inter").fontSize(6).fillColor(GRAY)
-      .text(xLabels[i], x - 20, imgY + imgH + 12, { width: 40, align: "center", lineBreak: false });
+      .text(xLabels[i], x - 20, imgY + imgH + 16, { width: 40, align: "center", lineBreak: false });
   }
 }
 
@@ -295,19 +295,25 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       doc.font("Cormorant").fontSize(22).fillColor(NAVY)
         .text(formatCurrency(data.totalInvested), PAGE_W - MARGIN - 160, clientY + 10, { width: 160, align: "right", lineBreak: false });
 
-      doc.y = clientY + 38;
+      doc.y = clientY + 42;
       doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
         .strokeColor(GOLD).lineWidth(2).stroke().restore();
-      doc.y += 12;
+      doc.y += 16;
 
       // ── BANNERS ──
       for (const banner of data.banners) {
-        ensureSpace(doc, 90);
+        ensureSpace(doc, 95);
         const bannerY = doc.y;
-        const bannerH = 80;
+        const bannerH = 82;
         const bannerColor = banner.gradientTo || NAVY;
 
-        // Draw image first (full width, clipped to banner bounds)
+        // Clip everything to rounded banner bounds
+        doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, bannerH, 6).clip();
+
+        // Solid background first
+        doc.rect(MARGIN, bannerY, CONTENT_W, bannerH).fill(bannerColor);
+
+        // Draw image on left side
         let hasImage = false;
         if (banner.imageUrl) {
           try {
@@ -318,43 +324,45 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
             for (const imgPath of imgCandidates) {
               const exists = await fs.access(imgPath).then(() => true).catch(() => false);
               if (exists) {
-                doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, bannerH, 4).clip();
-                doc.image(imgPath, MARGIN, bannerY, { cover: [CONTENT_W * 0.45, bannerH] as [number, number] });
-                doc.restore();
+                doc.image(imgPath, MARGIN, bannerY, { cover: [CONTENT_W * 0.5, bannerH] as [number, number] });
                 hasImage = true;
+
+                // Gradient fade: draw navy strips with increasing opacity over the image
+                const fadeStart = MARGIN + CONTENT_W * 0.15;
+                const fadeEnd = MARGIN + CONTENT_W * 0.45;
+                const stripCount = 30;
+                const stripW = (fadeEnd - fadeStart) / stripCount;
+                for (let s = 0; s < stripCount; s++) {
+                  const alpha = s / stripCount;
+                  doc.save().opacity(alpha);
+                  doc.rect(fadeStart + s * stripW, bannerY, stripW + 1, bannerH).fill(bannerColor);
+                  doc.restore();
+                }
+                // Solid navy from fade end to right edge
+                doc.rect(fadeEnd, bannerY, CONTENT_W, bannerH).fill(bannerColor);
                 break;
               }
             }
           } catch { /* skip image */ }
         }
 
-        // Navy overlay — covers right portion, overlaps image edge to create fade effect
-        const overlayX = hasImage ? MARGIN + CONTENT_W * 0.3 : MARGIN;
-        const overlayW = hasImage ? CONTENT_W * 0.7 + MARGIN - overlayX + MARGIN : CONTENT_W;
-        if (!hasImage) {
-          doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, bannerH, 4)
-            .fill(bannerColor).restore();
-        } else {
-          doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, bannerH, 4).clip();
-          doc.rect(overlayX, bannerY, overlayW, bannerH).fill(bannerColor);
-          doc.restore();
-        }
+        doc.restore(); // end clip
 
         // Text content on right side
         const textX = hasImage ? MARGIN + CONTENT_W * 0.38 : MARGIN + 20;
         const textW = CONTENT_W - (textX - MARGIN) - 16;
-        doc.font("Cormorant").fontSize(18).fillColor(GOLD_LIGHT)
-          .text(banner.title, textX, bannerY + 12, { width: textW, lineBreak: false });
+        doc.font("Cormorant").fontSize(20).fillColor(GOLD_LIGHT)
+          .text(banner.title, textX, bannerY + 10, { width: textW, lineBreak: false });
         if (banner.description) {
           doc.font("Inter").fontSize(9).fillColor("#FFFFFF")
             .text(banner.description, textX, bannerY + 34, { width: textW, lineBreak: false });
         }
         if (banner.buttonText) {
-          doc.save().roundedRect(textX, bannerY + 52, 90, 18, 4).fill(GOLD).restore();
+          doc.save().roundedRect(textX, bannerY + 52, 100, 20, 4).fill(GOLD).restore();
           doc.font("InterBold").fontSize(9).fillColor("#FFFFFF")
-            .text(banner.buttonText, textX + 8, bannerY + 56, { width: 74, lineBreak: false, link: banner.buttonUrl || undefined });
+            .text(banner.buttonText, textX + 12, bannerY + 57, { width: 76, lineBreak: false, link: banner.buttonUrl || undefined });
         }
-        doc.y = bannerY + 88;
+        doc.y = bannerY + 92;
       }
 
       // Gold line below banners (separator before portfolio section)
@@ -383,7 +391,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           .text(m.value, mx, summaryY + 10, { width: 100, lineBreak: false });
         mx += 105;
       }
-      doc.y = summaryY + 32;
+      doc.y = summaryY + 38;
 
       // ── COMBINED CHART ──
       if (data.combinedChartData.length >= 1) {
@@ -415,9 +423,11 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
 
       // ── DONUT CHARTS (Asset Class + Investment Allocation) ──
       if (data.allocation.length >= 1) {
-        const donutRows = Math.max(data.allocation.length, data.investmentAllocation.length);
-        const donutBoxH = Math.max(120, 28 + donutRows * 18);
-        ensureSpace(doc, donutBoxH + 10);
+        const leftRows = data.allocation.length;
+        const rightRows = data.investmentAllocation.length;
+        const maxRows = Math.max(leftRows, rightRows);
+        const donutBoxH = Math.max(100, 24 + maxRows * 12);
+        ensureSpace(doc, donutBoxH + 16);
         const donutBoxY = doc.y;
         doc.save()
           .roundedRect(MARGIN, donutBoxY, CONTENT_W, donutBoxH, 4)
@@ -426,49 +436,47 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         const halfW = CONTENT_W / 2;
 
         // Left donut: Asset Class Allocation
-        doc.font("InterBold").fontSize(7).fillColor(GRAY)
-          .text("ASSET CLASS ALLOCATION", MARGIN + 12, donutBoxY + 8, { lineBreak: false });
+        doc.font("InterBold").fontSize(6).fillColor(GRAY)
+          .text("ASSET CLASS ALLOCATION", MARGIN + 12, donutBoxY + 6, { lineBreak: false });
         try {
-          const d1Svg = renderDonutSVG(data.allocation, 80);
-          const d1Png = await svgToPng(d1Svg, 80, 80);
-          doc.image(d1Png, MARGIN + 12, donutBoxY + 22, { width: 70, height: 70 });
+          const d1Svg = renderDonutSVG(data.allocation, 70);
+          const d1Png = await svgToPng(d1Svg, 70, 70);
+          doc.image(d1Png, MARGIN + 10, donutBoxY + 18, { width: 60, height: 60 });
         } catch { /* skip */ }
 
-        const leg1X = MARGIN + 90;
-        let leg1Y = donutBoxY + 24;
+        const leg1X = MARGIN + 78;
+        let leg1Y = donutBoxY + 22;
         const total1 = data.allocation.reduce((s, a) => s + a.value, 0);
         for (const a of data.allocation) {
           const pct = total1 > 0 ? Math.round((a.value / total1) * 100) : 0;
-          doc.save().roundedRect(leg1X, leg1Y + 1, 6, 6, 1).fill(a.color).restore();
-          doc.font("Inter").fontSize(7).fillColor(NAVY)
-            .text(`${a.name} — ${formatCurrency(a.value)} (${pct}%)`, leg1X + 10, leg1Y, { lineBreak: false });
-          leg1Y += 16;
+          doc.save().roundedRect(leg1X, leg1Y + 1, 5, 5, 1).fill(a.color).restore();
+          doc.font("Inter").fontSize(6).fillColor(NAVY)
+            .text(`${a.name} — ${formatCurrency(a.value)} (${pct}%)`, leg1X + 8, leg1Y, { lineBreak: false });
+          leg1Y += 12;
         }
 
         // Right donut: Investment Allocation
         const rightX = MARGIN + halfW;
-        doc.font("InterBold").fontSize(7).fillColor(GRAY)
-          .text("INVESTMENT ALLOCATION", rightX + 12, donutBoxY + 8, { lineBreak: false });
+        doc.font("InterBold").fontSize(6).fillColor(GRAY)
+          .text("INVESTMENT ALLOCATION", rightX + 12, donutBoxY + 6, { lineBreak: false });
         try {
-          const d2Svg = renderDonutSVG(data.investmentAllocation, 80);
-          const d2Png = await svgToPng(d2Svg, 80, 80);
-          doc.image(d2Png, rightX + 12, donutBoxY + 22, { width: 70, height: 70 });
+          const d2Svg = renderDonutSVG(data.investmentAllocation, 70);
+          const d2Png = await svgToPng(d2Svg, 70, 70);
+          doc.image(d2Png, rightX + 10, donutBoxY + 18, { width: 60, height: 60 });
         } catch { /* skip */ }
 
-        const leg2X = rightX + 90;
-        let leg2Y = donutBoxY + 24;
+        const leg2X = rightX + 78;
+        let leg2Y = donutBoxY + 22;
         const total2 = data.investmentAllocation.reduce((s, a) => s + a.value, 0);
         for (const a of data.investmentAllocation) {
           const pct = total2 > 0 ? Math.round((a.value / total2) * 100) : 0;
-          doc.font("Inter").fontSize(7).fillColor(NAVY)
-            .text(`${a.name}`, leg2X + 10, leg2Y, { lineBreak: false });
-          doc.save().roundedRect(leg2X, leg2Y + 1, 6, 6, 1).fill(a.color).restore();
-          doc.font("Inter").fontSize(7).fillColor(GRAY)
-            .text(`${formatCurrency(a.value)} (${pct}%)`, leg2X + 10, leg2Y + 10, { lineBreak: false });
-          leg2Y += 22;
+          doc.save().roundedRect(leg2X, leg2Y + 1, 5, 5, 1).fill(a.color).restore();
+          doc.font("Inter").fontSize(6).fillColor(NAVY)
+            .text(`${a.name} ${formatCurrency(a.value)} (${pct}%)`, leg2X + 8, leg2Y, { lineBreak: false });
+          leg2Y += 12;
         }
 
-        doc.y = donutBoxY + donutBoxH + 8;
+        doc.y = donutBoxY + donutBoxH + 12;
       }
 
       // ── INVESTMENT SECTIONS ──
@@ -476,9 +484,10 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         ensureSpace(doc, 100);
 
         // Section header
+        doc.y += 6;
         doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
           .strokeColor(GOLD).lineWidth(1.5).stroke().restore();
-        doc.y += 8;
+        doc.y += 12;
 
         const invHeaderY = doc.y;
         doc.font("Cormorant").fontSize(16).fillColor(NAVY)
@@ -491,7 +500,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         doc.font("Cormorant").fontSize(16).fillColor(NAVY)
           .text(formatCurrency(inv.amountInvested), PAGE_W - MARGIN - 140, invHeaderY + 12, { width: 140, align: "right", lineBreak: false });
 
-        doc.y = invHeaderY + 38;
+        doc.y = invHeaderY + 40;
 
         // Investment metrics row
         const invMetrics = [
@@ -512,7 +521,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
             .text(m.value, imx, metricsY + 9, { lineBreak: false });
           imx += 85;
         }
-        doc.y = metricsY + 26;
+        doc.y = metricsY + 30;
 
         // Mini chart
         if (inv.chartData.length >= 1) {
