@@ -125,11 +125,40 @@ function drawChartAxes(
 }
 
 const FOOTER_H = 50;
+const CONT_HEADER_H = 36;
+
+let _contHeaderData: { statementDate: string; logoPath: string | null } | null = null;
+
+function startNewPage(doc: PDFKit.PDFDocument) {
+  doc.addPage();
+  if (_contHeaderData) {
+    // Mini header: small navy bar with logo + date
+    doc.save().rect(0, 0, PAGE_W, CONT_HEADER_H).fill(NAVY).restore();
+    doc.save().rect(0, CONT_HEADER_H, PAGE_W, 2).fill(GOLD).restore();
+    if (_contHeaderData.logoPath) {
+      try {
+        doc.image(_contHeaderData.logoPath, MARGIN, 8, { height: 18 });
+      } catch {
+        doc.font("Cormorant").fontSize(11).fillColor(GOLD_LIGHT)
+          .text("PARTNERS", MARGIN, 10, { continued: true, lineBreak: false })
+          .fillColor("#FFFFFF").text(" + CAPITAL", { lineBreak: false });
+      }
+    } else {
+      doc.font("Cormorant").fontSize(11).fillColor(GOLD_LIGHT)
+        .text("PARTNERS", MARGIN, 10, { continued: true, lineBreak: false })
+        .fillColor("#FFFFFF").text(" + CAPITAL", { lineBreak: false });
+    }
+    doc.font("Inter").fontSize(7).fillColor("#FFFFFF")
+      .text(_contHeaderData.statementDate, PAGE_W - MARGIN - 80, 13, { width: 80, align: "right", lineBreak: false });
+    doc.y = CONT_HEADER_H + 14;
+  } else {
+    doc.y = MARGIN;
+  }
+}
 
 function ensureSpace(doc: PDFKit.PDFDocument, needed: number) {
   if (doc.y + needed > PAGE_H - FOOTER_H - 10) {
-    doc.addPage();
-    doc.y = MARGIN;
+    startNewPage(doc);
   }
 }
 
@@ -230,6 +259,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
 
       // Logo from settings or text fallback
       let logoDrawn = false;
+      let resolvedLogoPath: string | null = null;
       if (data.org.logoUrl && !data.org.logoUrl.startsWith("http")) {
         try {
           const candidates = [
@@ -241,11 +271,13 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
             if (logoExists) {
               doc.image(logoPath, MARGIN, 18, { height: 24 });
               logoDrawn = true;
+              resolvedLogoPath = logoPath;
               break;
             }
           }
         } catch { /* fallback to text */ }
       }
+      _contHeaderData = { statementDate: data.statementDate, logoPath: resolvedLogoPath };
       if (!logoDrawn) {
         doc.font("Cormorant").fontSize(18).fillColor(GOLD_LIGHT)
           .text("PARTNERS", MARGIN, 16, { continued: true, lineBreak: false })
@@ -436,12 +468,11 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         doc.y = donutBoxY + donutBoxH + 12;
       }
 
-      // ── INVESTMENT SECTIONS ──
+      // ── INVESTMENT SECTIONS (one per page) ──
       for (const inv of data.investments) {
-        ensureSpace(doc, 100);
+        startNewPage(doc);
 
         // Section header
-        doc.y += 6;
         doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
           .strokeColor(GOLD).lineWidth(1.5).stroke().restore();
         doc.y += 12;
@@ -554,7 +585,9 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         doc.font("Inter").fontSize(7).fillColor("#999999")
           .text(`© ${new Date().getFullYear()} ${orgLegal}`, MARGIN, footerY + 8, { lineBreak: false });
         doc.font("Inter").fontSize(7).fillColor("#999999")
-          .text(footerParts.join("  |  "), MARGIN, footerY + 22, { width: CONTENT_W, align: "center", lineBreak: false });
+          .text(footerParts.join("  |  "), MARGIN, footerY + 20, { width: CONTENT_W, align: "center", lineBreak: false });
+        doc.font("Inter").fontSize(7).fillColor("#999999")
+          .text(`Page ${p + 1} of ${pageCount}`, MARGIN, footerY + 32, { width: CONTENT_W, align: "center", lineBreak: false });
       }
 
       doc.end();
