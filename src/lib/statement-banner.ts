@@ -61,105 +61,86 @@ export async function renderBannerImage(
         width: "100%",
         height: "100%",
         borderRadius: 8,
-        overflow: "hidden",
-        position: "relative" as const,
+        overflow: "hidden" as const,
+        backgroundColor: bgColor,
+        ...(imgDataUrl ? { backgroundImage: `url(${imgDataUrl})`, backgroundSize: "50% 100%", backgroundPosition: "left center", backgroundRepeat: "no-repeat" } : {}),
       },
       children: [
-        // Background image (left side)
-        ...(imgDataUrl ? [{
-          type: "img" as const,
-          props: {
-            src: imgDataUrl,
-            style: {
-              position: "absolute" as const,
-              left: 0,
-              top: 0,
-              width: "50%",
-              height: "100%",
-              objectFit: "cover" as const,
-            },
-          },
-        }] : []),
         // Gradient overlay
         {
           type: "div" as const,
           props: {
             style: {
-              position: "absolute" as const,
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
+              display: "flex",
+              width: "100%",
+              height: "100%",
+              borderRadius: 8,
               background: imgDataUrl
                 ? `linear-gradient(to right, transparent 15%, ${bgColor} 45%)`
                 : bgColor,
-            },
-          },
-        },
-        // Text content
-        {
-          type: "div" as const,
-          props: {
-            style: {
-              position: "absolute" as const,
-              left: imgDataUrl ? "38%" : "4%",
-              top: 0,
-              right: 0,
-              bottom: 0,
-              display: "flex",
-              flexDirection: "column" as const,
-              justifyContent: "center" as const,
-              padding: "12px 20px",
+              alignItems: "center" as const,
+              paddingLeft: imgDataUrl ? "38%" : "4%",
+              paddingRight: "20px",
             },
             children: [
               {
                 type: "div" as const,
                 props: {
                   style: {
-                    color: "#E8D5B0",
-                    fontSize: 22,
-                    fontFamily: "Cormorant",
-                    fontWeight: 500,
-                    marginBottom: 4,
+                    display: "flex",
+                    flexDirection: "column" as const,
+                    gap: 6,
                   },
-                  children: banner.title,
+                  children: [
+                    {
+                      type: "div" as const,
+                      props: {
+                        style: {
+                          color: "#E8D5B0",
+                          fontSize: 22,
+                          fontFamily: "Cormorant",
+                          fontWeight: 500,
+                        },
+                        children: banner.title,
+                      },
+                    },
+                    ...(banner.description ? [{
+                      type: "div" as const,
+                      props: {
+                        style: {
+                          color: "#FFFFFF",
+                          fontSize: 10,
+                          fontFamily: "Inter",
+                        },
+                        children: banner.description,
+                      },
+                    }] : []),
+                    ...(banner.buttonText ? [{
+                      type: "div" as const,
+                      props: {
+                        style: {
+                          display: "flex",
+                        },
+                        children: [{
+                          type: "div" as const,
+                          props: {
+                            style: {
+                              backgroundColor: "#B07D3A",
+                              color: "#FFFFFF",
+                              fontSize: 10,
+                              fontFamily: "Inter",
+                              fontWeight: 700,
+                              padding: "6px 20px",
+                              borderRadius: 4,
+                            },
+                            children: banner.buttonText,
+                          },
+                        }],
+                      },
+                    }] : []),
+                  ],
                 },
               },
-              ...(banner.description ? [{
-                type: "div" as const,
-                props: {
-                  style: {
-                    color: "#FFFFFF",
-                    fontSize: 10,
-                    fontFamily: "Inter",
-                    marginBottom: 6,
-                  },
-                  children: banner.description,
-                },
-              }] : []),
-              ...(banner.buttonText ? [{
-                type: "div" as const,
-                props: {
-                  style: {
-                    display: "flex",
-                  },
-                  children: [{
-                    type: "div" as const,
-                    props: {
-                      style: {
-                        backgroundColor: "#B07D3A",
-                        color: "#FFFFFF",
-                        fontSize: 10,
-                        fontFamily: "Inter",
-                        fontWeight: 700,
-                        padding: "6px 20px",
-                        borderRadius: 4,
-                      },
-                      children: banner.buttonText,
-                    },
-                  }],
-                },
-              }] : []),
             ],
           },
         },
