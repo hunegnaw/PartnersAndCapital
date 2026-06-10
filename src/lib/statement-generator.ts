@@ -30,6 +30,13 @@ export interface StatementInvestmentData {
     value: number;
     distributions: number;
   }[];
+  commentary: string | null;
+  commentaryTitle: string | null;
+  upcomingDistributions: {
+    expectedDate: Date;
+    amount: number | null;
+    description: string | null;
+  }[];
 }
 
 export interface StatementData {
@@ -330,6 +337,16 @@ export async function collectStatementData(
       cursor.setMonth(cursor.getMonth() + 1);
     }
 
+    const [invCommentary, invUpcoming] = await Promise.all([
+      prisma.statementCommentary.findUnique({
+        where: { investmentId_month_year: { investmentId: ci.investmentId, month: periodMonth, year: periodYear } },
+      }),
+      prisma.statementUpcomingDistribution.findMany({
+        where: { investmentId: ci.investmentId, month: periodMonth, year: periodYear },
+        orderBy: { expectedDate: "asc" },
+      }),
+    ]);
+
     investmentsData.push({
       investmentName: ci.investment.name,
       assetClassName: ci.investment.assetClass.name,
@@ -344,6 +361,13 @@ export async function collectStatementData(
       totalDepositsYTD: totalDepositsYTD,
       totalDistributionsYTD,
       chartData: miniChartData,
+      commentary: invCommentary?.body || null,
+      commentaryTitle: invCommentary?.title || null,
+      upcomingDistributions: invUpcoming.map((d) => ({
+        expectedDate: d.expectedDate,
+        amount: d.amount ? Number(d.amount) : null,
+        description: d.description,
+      })),
     });
   }
 

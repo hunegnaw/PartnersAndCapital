@@ -335,23 +335,25 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
 
       // ── BANNERS (rendered via satori for pixel-perfect match with web preview) ──
       for (const banner of data.banners) {
-        ensureSpace(doc, 95);
-        const bannerY = doc.y;
-        const bannerH = 82;
         try {
-          const bannerPng = await renderBannerImage(banner, CONTENT_W, bannerH);
+          const { png: bannerPng, height: bannerH } = await renderBannerImage(banner, CONTENT_W);
+          ensureSpace(doc, bannerH + 16);
+          const bannerY = doc.y;
           doc.image(bannerPng, MARGIN, bannerY, { width: CONTENT_W, height: bannerH });
           if (banner.buttonUrl) {
             doc.link(MARGIN, bannerY, CONTENT_W, bannerH, banner.buttonUrl);
           }
+          doc.y = bannerY + bannerH + 14;
         } catch (err) {
           console.error("Banner render failed:", err);
-          doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, bannerH, 6)
+          ensureSpace(doc, 95);
+          const bannerY = doc.y;
+          doc.save().roundedRect(MARGIN, bannerY, CONTENT_W, 82, 6)
             .fill(banner.gradientTo || NAVY).restore();
           doc.font("Cormorant").fontSize(20).fillColor(GOLD_LIGHT)
             .text(banner.title, MARGIN + 20, bannerY + 20, { lineBreak: false });
+          doc.y = bannerY + 96;
         }
-        doc.y = bannerY + 98;
       }
 
       // Gold line below banners (separator before portfolio section)
@@ -548,6 +550,49 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           "Total Deposits YTD",
           inv.totalDepositsYTD + inv.totalDistributionsYTD
         );
+
+        // Market commentary for this investment
+        if (inv.commentary) {
+          doc.y += 8;
+          ensureSpace(doc, 50);
+          doc.font("InterBold").fontSize(8).fillColor(GRAY)
+            .text("MARKET COMMENTARY", MARGIN, doc.y, { lineBreak: false });
+          doc.y += 14;
+          if (inv.commentaryTitle) {
+            doc.font("InterBold").fontSize(9).fillColor(NAVY)
+              .text(inv.commentaryTitle, MARGIN, doc.y, { width: CONTENT_W });
+            doc.moveDown(0.3);
+          }
+          doc.font("Inter").fontSize(8).fillColor("#444444")
+            .text(inv.commentary, MARGIN, doc.y, { width: CONTENT_W, lineGap: 2 });
+          doc.moveDown(0.5);
+        }
+
+        // Upcoming distributions for this investment
+        if (inv.upcomingDistributions.length > 0) {
+          doc.y += 4;
+          ensureSpace(doc, 40);
+          doc.font("InterBold").fontSize(8).fillColor(GRAY)
+            .text("UPCOMING DISTRIBUTIONS", MARGIN, doc.y, { lineBreak: false });
+          doc.y += 14;
+          for (const ud of inv.upcomingDistributions) {
+            ensureSpace(doc, 18);
+            const udY = doc.y;
+            const dateStr = `${ud.expectedDate.getUTCMonth() + 1}/${ud.expectedDate.getUTCDate()}/${ud.expectedDate.getUTCFullYear()}`;
+            doc.font("Inter").fontSize(8).fillColor(NAVY)
+              .text(dateStr, MARGIN + 8, udY, { lineBreak: false });
+            if (ud.description) {
+              doc.font("Inter").fontSize(8).fillColor("#444444")
+                .text(ud.description, MARGIN + 90, udY, { lineBreak: false });
+            }
+            if (ud.amount) {
+              doc.font("InterBold").fontSize(8).fillColor(NAVY)
+                .text(formatCurrency(ud.amount), PAGE_W - MARGIN - 80, udY, { width: 80, align: "right", lineBreak: false });
+            }
+            doc.y = udY + 16;
+          }
+        }
+
         doc.y += 8;
       }
 

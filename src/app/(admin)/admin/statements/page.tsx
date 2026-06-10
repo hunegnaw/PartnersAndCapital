@@ -294,6 +294,12 @@ export default function AdminStatementsPage() {
               Banners
             </Button>
           </Link>
+          <Link href="/admin/statements/content">
+            <Button variant="outline" size="sm">
+              <FileText className="h-4 w-4 mr-2" />
+              Content
+            </Button>
+          </Link>
           <Button onClick={() => setGenerateOpen(true)}>
             <FileText className="h-4 w-4 mr-2" />
             Generate Statements

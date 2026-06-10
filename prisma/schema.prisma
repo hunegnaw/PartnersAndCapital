@@ -328,7 +328,9 @@ model Investment {
   clientInvestments ClientInvestment[]
   documents         Document[]
   dealRoomUpdates   DealRoomUpdate[]
-  valuations        InvestmentValuation[]
+  valuations            InvestmentValuation[]
+  statementCommentaries StatementCommentary[]
+  upcomingDistributions StatementUpcomingDistribution[]
 
   @@index([assetClassId])
   @@index([status])
@@ -1203,4 +1205,36 @@ model StatementDisclosure {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model StatementCommentary {
+  id           String   @id @default(cuid())
+  investmentId String
+  month        Int
+  year         Int
+  title        String?
+  body         String   @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  investment Investment @relation(fields: [investmentId], references: [id])
+
+  @@unique([investmentId, month, year])
+  @@index([month, year])
+}
+
+model StatementUpcomingDistribution {
+  id           String   @id @default(cuid())
+  investmentId String
+  expectedDate DateTime
+  amount       Decimal? @db.Decimal(14, 2)
+  description  String?
+  month        Int
+  year         Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  investment Investment @relation(fields: [investmentId], references: [id])
+
+  @@index([investmentId, month, year])
 }

@@ -43,10 +43,18 @@ export async function renderBannerImage(
     gradientTo: string;
   },
   width: number = 532,
-  height: number = 82
-): Promise<Buffer> {
+  height?: number
+): Promise<{ png: Buffer; height: number }> {
+  const minHeight = 82;
   const fonts = await loadFonts();
   const bgColor = banner.gradientTo || "#1A2640";
+
+  // Estimate height based on content
+  let contentH = 24; // padding top+bottom
+  contentH += 28; // title line
+  if (banner.description) contentH += 6 + Math.ceil(banner.description.length / 50) * 14;
+  if (banner.buttonText) contentH += 6 + 28;
+  const finalHeight = height || Math.max(minHeight, contentH);
 
   let imgDataUrl: string | null = null;
   if (banner.imageUrl) {
@@ -150,10 +158,10 @@ export async function renderBannerImage(
 
   const svg = await satori(element as Parameters<typeof satori>[0], {
     width,
-    height,
+    height: finalHeight,
     fonts,
   });
 
-  // Render at 3x for crisp text and images in the PDF
-  return sharp(Buffer.from(svg)).resize(width * 3, height * 3).png().toBuffer();
+  const png = await sharp(Buffer.from(svg)).resize(width * 3, finalHeight * 3).png().toBuffer();
+  return { png, height: finalHeight };
 }
