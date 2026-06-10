@@ -517,6 +517,36 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         }
         doc.y = metricsY + 30;
 
+        // Per-investment donut (invested vs distributed)
+        ensureSpace(doc, 80);
+        const donutY = doc.y;
+        try {
+          const invSlices = inv.cashDistributed > 0
+            ? [
+                { name: "Invested", value: inv.amountInvested - inv.cashDistributed, color: NAVY },
+                { name: "Distributions", value: inv.cashDistributed, color: GOLD },
+              ]
+            : [{ name: "Invested", value: inv.amountInvested, color: NAVY }];
+          const invDonutSvg = renderDonutSVG(invSlices, 60);
+          if (invDonutSvg) {
+            const invDonutPng = await svgToPng(invDonutSvg, 60, 60);
+            doc.image(invDonutPng, MARGIN, donutY, { width: 50, height: 50 });
+            let ldY = donutY + 4;
+            doc.save().roundedRect(MARGIN + 58, ldY + 1, 6, 6, 1).fill(NAVY).restore();
+            doc.font("Inter").fontSize(7).fillColor(NAVY)
+              .text(`Invested — ${formatCurrency(inv.amountInvested)}`, MARGIN + 68, ldY, { lineBreak: false });
+            ldY += 14;
+            doc.save().roundedRect(MARGIN + 58, ldY + 1, 6, 6, 1).fill(GOLD).restore();
+            doc.font("Inter").fontSize(7).fillColor(GOLD)
+              .text(`Distributions — ${formatCurrency(inv.cashDistributed)}`, MARGIN + 68, ldY, { lineBreak: false });
+            ldY += 14;
+            const pctDist = inv.amountInvested > 0 ? Math.round((inv.cashDistributed / inv.amountInvested) * 100) : 0;
+            doc.font("Inter").fontSize(7).fillColor(GRAY)
+              .text(`${pctDist}% distributed`, MARGIN + 68, ldY, { lineBreak: false });
+          }
+        } catch { /* skip donut */ }
+        doc.y = donutY + 58;
+
         // Mini chart
         if (inv.chartData.length >= 1) {
           ensureSpace(doc, 150);
@@ -570,52 +600,56 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           const periodYear = data.periodStart.getUTCFullYear();
           const quarter = Math.floor(periodMonth / 3) + 1;
 
-          // Dramatic header — big year + quarter
+          // Dramatic header — tight spacing
+          const headerY = doc.y;
           doc.font("Cormorant").fontSize(16).fillColor(GRAY)
-            .text("MARKET", MARGIN, doc.y, { lineBreak: false, characterSpacing: 4 });
+            .text("MARKET", MARGIN, headerY, { lineBreak: false, characterSpacing: 4 });
           doc.font("Cormorant").fontSize(16).fillColor(GRAY)
-            .text("COMMENTARY", MARGIN, doc.y + 20, { lineBreak: false, characterSpacing: 4 });
-          doc.font("Cormorant").fontSize(64).fillColor(NAVY)
-            .text(String(periodYear), MARGIN, doc.y + 40, { lineBreak: false });
+            .text("COMMENTARY", MARGIN, headerY + 18, { lineBreak: false, characterSpacing: 4 });
           doc.font("Cormorant").fontSize(14).fillColor(GOLD)
-            .text(`Q${quarter} — ${MONTH_NAMES[periodMonth]} ${periodYear}`, MARGIN, doc.y + 100, { lineBreak: false });
-          doc.y += 124;
+            .text(`Q${quarter} — ${MONTH_NAMES[periodMonth]}`, MARGIN, headerY + 42, { lineBreak: false });
+          doc.font("Cormorant").fontSize(64).fillColor(NAVY)
+            .text(String(periodYear), MARGIN, headerY + 56, { lineBreak: false });
+          doc.y = headerY + 110;
           doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
             .strokeColor(GOLD).lineWidth(2).stroke().restore();
-          doc.y += 16;
+          doc.y += 14;
 
           for (const inv of data.investments) {
             if (!inv.commentary) continue;
             ensureSpace(doc, 70);
 
-            // Investment name
             doc.font("Cormorant").fontSize(18).fillColor(NAVY)
               .text(inv.investmentName, MARGIN, doc.y);
-            doc.y += 4;
-            doc.save().moveTo(MARGIN, doc.y).lineTo(MARGIN + 100, doc.y)
+            doc.y += 2;
+            doc.save().moveTo(MARGIN, doc.y).lineTo(MARGIN + 80, doc.y)
               .strokeColor(GOLD).lineWidth(1).stroke().restore();
-            doc.y += 8;
+            doc.y += 6;
 
             if (inv.commentaryTitle) {
               doc.font("InterBold").fontSize(10).fillColor(GOLD)
                 .text(inv.commentaryTitle, MARGIN, doc.y, { width: CONTENT_W });
-              doc.moveDown(0.4);
+              doc.moveDown(0.3);
             }
 
             doc.font("Inter").fontSize(9).fillColor("#333333")
               .text(inv.commentary, MARGIN, doc.y, { width: CONTENT_W, lineGap: 3 });
-            doc.moveDown(1.5);
+            doc.moveDown(1.2);
           }
         }
 
         if (hasUpcoming) {
-          if (hasCommentary) doc.y += 10;
-          ensureSpace(doc, 60);
-          doc.font("Cormorant").fontSize(20).fillColor(NAVY)
-            .text("Upcoming Distributions", MARGIN, doc.y, { lineBreak: false });
-          doc.y += 6;
+          if (hasCommentary) startNewPage(doc);
+          else { doc.y += 10; }
+          ensureSpace(doc, 80);
+          const upHeaderY = doc.y;
+          doc.font("Cormorant").fontSize(16).fillColor(GRAY)
+            .text("UPCOMING", MARGIN, upHeaderY, { lineBreak: false, characterSpacing: 4 });
+          doc.font("Cormorant").fontSize(16).fillColor(GRAY)
+            .text("DISTRIBUTIONS", MARGIN, upHeaderY + 18, { lineBreak: false, characterSpacing: 4 });
+          doc.y = upHeaderY + 42;
           doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
-            .strokeColor(GOLD).lineWidth(1.5).stroke().restore();
+            .strokeColor(GOLD).lineWidth(2).stroke().restore();
           doc.y += 14;
 
           for (const inv of data.investments) {
