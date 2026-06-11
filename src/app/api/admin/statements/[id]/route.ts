@@ -18,10 +18,6 @@ export async function DELETE(
       return NextResponse.json({ error: "Statement not found" }, { status: 404 });
     }
 
-    if (statement.status !== "REJECTED") {
-      return NextResponse.json({ error: "Only rejected statements can be deleted" }, { status: 400 });
-    }
-
     await prisma.statement.update({
       where: { id },
       data: { deletedAt: new Date() },

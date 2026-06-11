@@ -434,11 +434,9 @@ export default function AdminStatementsPage() {
                               <RefreshCw className="h-4 w-4" />
                             </Button>
                           )}
-                          {s.status === "REJECTED" && (
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(s.id)} title="Delete">
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
-                          )}
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(s.id)} title="Delete">
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
                         </div>
                       </td>
                     </tr>
