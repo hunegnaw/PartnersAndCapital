@@ -410,6 +410,21 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           const imgH = 140;
           doc.image(chartPng, imgX, imgY, { width: imgW, height: imgH });
           drawChartAxes(doc, imgX, imgY + 4, imgW, imgH - 16, leftMax, rightMax, xLabels);
+
+          // Buy-in labels above navy bars
+          const barMax = Math.max(...data.combinedChartData.map((d) => d.monthlyContribution), 1) * 2.5;
+          const chartPlotH = imgH - 16;
+          const n = data.combinedChartData.length;
+          for (let i = 0; i < n; i++) {
+            const contrib = data.combinedChartData[i].monthlyContribution;
+            if (contrib <= 0) continue;
+            const x = imgX + (i / Math.max(n - 1, 1)) * imgW;
+            const barH = (contrib / (barMax * 1.1)) * chartPlotH;
+            const barTopY = imgY + 4 + chartPlotH - barH;
+            doc.font("Inter").fontSize(5).fillColor(NAVY)
+              .text(formatCurrency(contrib), x - 20, barTopY - 8, { width: 40, align: "center", lineBreak: false });
+          }
+
           doc.y = boxY + 208;
         } catch {
           doc.y += 10;
