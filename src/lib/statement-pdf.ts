@@ -569,7 +569,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
             const miniData = inv.chartData.map((d) => {
               const [y, m] = d.month.split("-");
               const mnths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-              return { month: d.month, label: `${mnths[parseInt(m, 10) - 1]} '${y.slice(2)}`, value: d.value, distributions: d.distributions };
+              return { month: d.month, label: `${mnths[parseInt(m, 10) - 1]} '${y.slice(2)}`, value: d.value, distributions: d.distributions, monthlyContribution: d.monthlyContribution, monthlyDistribution: d.monthlyDistribution };
             });
             const miniLeftMax = Math.max(...miniData.map((d) => d.value), 1) * 1.1;
             const miniRightMax = Math.max(...miniData.map((d) => d.distributions), 0) * 1.1;
@@ -584,6 +584,21 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
             const mImgH = 100;
             doc.image(miniPng, mImgX, mImgY, { width: mImgW, height: mImgH });
             drawChartAxes(doc, mImgX, mImgY + 4, mImgW, mImgH - 18, miniLeftMax, miniRightMax, miniXLabels);
+
+            // Buy-in labels above navy bars
+            const mBarMax = Math.max(...miniData.map((d) => d.monthlyContribution || 0), 1) * 2.5;
+            const mPlotH = mImgH - 18;
+            const mN = miniData.length;
+            for (let i = 0; i < mN; i++) {
+              const mc = miniData[i].monthlyContribution || 0;
+              if (mc <= 0) continue;
+              const mx = mImgX + (i / Math.max(mN - 1, 1)) * mImgW;
+              const mBarH = (mc / (mBarMax * 1.1)) * mPlotH;
+              const mBarTopY = mImgY + 4 + mPlotH - mBarH;
+              doc.font("Inter").fontSize(5).fillColor(NAVY)
+                .text(formatCurrency(mc), mx - 20, mBarTopY - 8, { width: 40, align: "center", lineBreak: false });
+            }
+
             doc.y = miniBoxY + 146;
           } catch {
             doc.y += 4;

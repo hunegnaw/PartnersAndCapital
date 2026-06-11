@@ -29,6 +29,8 @@ export interface StatementInvestmentData {
     month: string;
     value: number;
     distributions: number;
+    monthlyContribution: number;
+    monthlyDistribution: number;
   }[];
   commentary: string | null;
   commentaryTitle: string | null;
@@ -289,26 +291,33 @@ export async function collectStatementData(
       1
     );
     const chartEnd = new Date(periodEnd.getFullYear(), periodEnd.getMonth(), 1);
-    const miniChartData: { month: string; value: number; distributions: number }[] = [];
+    const miniChartData: { month: string; value: number; distributions: number; monthlyContribution: number; monthlyDistribution: number }[] = [];
     const cursor = new Date(chartStart);
 
     while (cursor <= chartEnd) {
+      const monthStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
       const monthEnd = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0, 23, 59, 59, 999);
       const monthKey = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
 
       let cumContrib = 0;
+      let mContrib = 0;
       for (const c of allContribs) {
         if (c.date <= monthEnd) cumContrib += Number(c.amount);
+        if (c.date >= monthStart && c.date <= monthEnd) mContrib += Number(c.amount);
       }
       let cumDist = 0;
+      let mDist = 0;
       for (const d of allDistros) {
         if (d.date <= monthEnd) cumDist += Number(d.amount);
+        if (d.date >= monthStart && d.date <= monthEnd) mDist += Number(d.amount);
       }
 
       miniChartData.push({
         month: monthKey,
         value: Math.min(cumContrib, invested),
         distributions: cumDist,
+        monthlyContribution: mContrib,
+        monthlyDistribution: mDist,
       });
 
       const existing = allMonthlyData.get(monthKey) || {
@@ -317,16 +326,6 @@ export async function collectStatementData(
         monthDist: 0,
         monthContrib: 0,
       };
-
-      const monthStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-      let mContrib = 0;
-      for (const c of allContribs) {
-        if (c.date >= monthStart && c.date <= monthEnd) mContrib += Number(c.amount);
-      }
-      let mDist = 0;
-      for (const d of allDistros) {
-        if (d.date >= monthStart && d.date <= monthEnd) mDist += Number(d.amount);
-      }
 
       existing.netValue += Math.min(cumContrib, invested);
       existing.cumDist += cumDist;

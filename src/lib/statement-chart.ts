@@ -216,7 +216,7 @@ export function renderChartSVG(
 }
 
 export function renderMiniChartSVG(
-  data: { month: string; label: string; value: number; distributions: number }[],
+  data: { month: string; label: string; value: number; distributions: number; monthlyContribution?: number; monthlyDistribution?: number }[],
   width: number = 540,
   height: number = 140
 ): { svg: string; labels: ChartLabels } {
@@ -225,6 +225,8 @@ export function renderMiniChartSVG(
     values: [
       { key: "value", value: d.value, color: "#1A2640" },
       { key: "distributions", value: d.distributions, color: "#B07D3A" },
+      { key: "monthContrib", value: d.monthlyContribution || 0, color: "#1A2640" },
+      { key: "monthDist", value: d.monthlyDistribution || 0, color: "#B07D3A" },
     ],
   }));
 
@@ -233,6 +235,11 @@ export function renderMiniChartSVG(
       { key: "value", color: "#1A2640", yAxis: "left" },
       { key: "distributions", color: "#B07D3A", yAxis: "right" },
     ],
+    barKeys: [
+      { key: "monthContrib", color: "#1A2640" },
+      { key: "monthDist", color: "#B07D3A" },
+    ],
+    barWidth: 4,
   });
 }
 
