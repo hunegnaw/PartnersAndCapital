@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createBulkNotifications } from "@/lib/notifications";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, getOrgEmail } from "@/lib/email";
 import { ticketSubmittedEmail, ticketAdminNotifyEmail, getEmailLogoUrl } from "@/lib/email-templates";
 import { getEffectiveUserId, requireNotImpersonating } from "@/lib/impersonation";
 
@@ -98,18 +98,20 @@ export async function POST(request: Request) {
       );
     }
 
-    // Email david@partnersandcapital.com about new ticket
-    sendEmail({
-      to: "david@partnersandcapital.com",
-      subject: `New Support Ticket - ${subject}`,
-      html: ticketAdminNotifyEmail({
-        adminName: "David",
-        clientName: submitter?.name || "A client",
-        ticketSubject: subject,
-        ticketUrl: `${baseUrl}/admin/support`,
-        logoUrl,
-      }),
-    }).catch(() => {});
+    // Email admin about new ticket
+    getOrgEmail().then((orgEmail) => {
+      sendEmail({
+        to: orgEmail,
+        subject: `New Support Ticket - ${subject}`,
+        html: ticketAdminNotifyEmail({
+          adminName: "Admin",
+          clientName: submitter?.name || "A client",
+          ticketSubject: subject,
+          ticketUrl: `${baseUrl}/admin/support`,
+          logoUrl,
+        }),
+      }).catch(() => {});
+    });
 
     return NextResponse.json(ticket, { status: 201 });
   } catch (error) {

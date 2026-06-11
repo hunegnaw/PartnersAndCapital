@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, getOrgEmail } from "@/lib/email";
 import { accessRequestEmail, onboardingEmail, getEmailLogoUrl } from "@/lib/email-templates";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
@@ -60,9 +60,9 @@ export async function POST(request: Request) {
 
       // Fire-and-forget admin notification
       try {
-        getEmailLogoUrl().then((logoUrl) => {
+        Promise.all([getEmailLogoUrl(), getOrgEmail()]).then(([logoUrl, orgEmail]) => {
           sendEmail({
-            to: "theteam@partnersandcapital.com",
+            to: orgEmail,
             subject: `New Access Request from ${name}`,
             html: accessRequestEmail({ name, email: normalizedEmail, phone: phone || null, smsConsent: smsConsent === true, logoUrl }),
           }).catch(console.error);
@@ -166,11 +166,13 @@ export async function POST(request: Request) {
         }).catch(console.error);
 
         // Admin notification
-        sendEmail({
-          to: "theteam@partnersandcapital.com",
-          subject: `New Access Request from ${name}`,
-          html: accessRequestEmail({ name, email: normalizedEmail, phone: phone || null, smsConsent: smsConsent === true, logoUrl }),
-        }).catch(console.error);
+        getOrgEmail().then((orgEmail) => {
+          sendEmail({
+            to: orgEmail,
+            subject: `New Access Request from ${name}`,
+            html: accessRequestEmail({ name, email: normalizedEmail, phone: phone || null, smsConsent: smsConsent === true, logoUrl }),
+          }).catch(console.error);
+        });
       });
     } catch {
       // best-effort

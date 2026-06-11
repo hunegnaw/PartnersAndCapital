@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createBulkNotifications } from "@/lib/notifications";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, getOrgEmail } from "@/lib/email";
 import { ticketReplyEmail, getEmailLogoUrl } from "@/lib/email-templates";
 import { getEffectiveUserId, requireNotImpersonating } from "@/lib/impersonation";
 
@@ -99,14 +99,15 @@ export async function POST(
       );
     }
 
-    // Email david@partnersandcapital.com about client reply
+    // Email admin about client reply
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const logoUrl = await getEmailLogoUrl();
+    const orgEmail = await getOrgEmail();
     sendEmail({
-      to: "david@partnersandcapital.com",
+      to: orgEmail,
       subject: `Client replied to: ${ticket.subject}`,
       html: ticketReplyEmail({
-        userName: "David",
+        userName: "Admin",
         ticketSubject: ticket.subject,
         ticketUrl: `${baseUrl}/admin/support`,
         logoUrl,

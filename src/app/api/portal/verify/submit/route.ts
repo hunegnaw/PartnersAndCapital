@@ -3,7 +3,7 @@ import { requireClient } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { createBulkNotifications } from "@/lib/notifications";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, getOrgEmail } from "@/lib/email";
 import { verificationSubmittedEmail, getEmailLogoUrl } from "@/lib/email-templates";
 
 export async function POST(request: Request) {
@@ -113,9 +113,9 @@ export async function POST(request: Request) {
     const verificationUrl = `${baseUrl}/admin/verifications/${verification.id}`;
 
     try {
-      getEmailLogoUrl().then((logoUrl) => {
+      Promise.all([getEmailLogoUrl(), getOrgEmail()]).then(([logoUrl, orgEmail]) => {
         sendEmail({
-          to: "theteam@partnersandcapital.com",
+          to: orgEmail,
           subject: `Verification Pending: ${user.name || user.email}`,
           html: verificationSubmittedEmail({
             clientName: user.name || "Client",
