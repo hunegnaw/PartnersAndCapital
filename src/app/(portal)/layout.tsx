@@ -9,6 +9,7 @@ import { getOrganization } from "@/lib/organization";
 import { LogOut } from "lucide-react";
 import { ActivityBanner } from "@/components/portal/activity-banner";
 import { UnreadMessagesModal } from "@/components/portal/unread-messages-modal";
+import { MobileSidebarToggle, MobileSidebarWrapper } from "@/components/mobile-sidebar";
 
 const investorNav = [
   { href: "/dashboard", label: "Dashboard" },
@@ -136,8 +137,9 @@ export default async function PortalLayout({
         />
       )}
       {/* Top nav bar */}
-      <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-6">
+      <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-3">
+          <MobileSidebarToggle />
           <Link href="/dashboard" className={org?.logoUrl ? "block" : "font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 transition-colors hover:border-white/70"}>
             {org?.logoUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element */
@@ -146,20 +148,20 @@ export default async function PortalLayout({
               org?.name || "Partners + Capital"
             )}
           </Link>
-          <span className="bg-[#B07D3A] text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full tracking-wider uppercase">
+          <span className="hidden sm:inline bg-[#B07D3A] text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full tracking-wider uppercase">
             Client Portal
           </span>
         </div>
         <div className="flex items-center gap-5">
           <Link
             href="/documents"
-            className="text-white/60 hover:text-white text-sm transition-colors"
+            className="hidden md:inline text-white/60 hover:text-white text-sm transition-colors"
           >
             Documents
           </Link>
           <Link
             href="/advisors"
-            className="text-white/60 hover:text-white text-sm transition-colors"
+            className="hidden md:inline text-white/60 hover:text-white text-sm transition-colors"
           >
             Advisor Access
           </Link>
@@ -183,8 +185,7 @@ export default async function PortalLayout({
       </header>
 
       <div className="flex flex-1">
-        {/* Navy sidebar */}
-        <aside className="w-60 bg-[#2C3E5C] flex flex-col pt-6">
+        <MobileSidebarWrapper>
           <nav className="flex-1 px-4">
             {/* INVESTOR section */}
             <p className="text-[10px] font-semibold text-white/25 tracking-widest uppercase mb-3 px-3">
@@ -236,7 +237,7 @@ export default async function PortalLayout({
               </li>
             </ul>
           </nav>
-        </aside>
+        </MobileSidebarWrapper>
 
         <main className="flex-1 bg-[#f5f5f3] overflow-auto">{children}</main>
       </div>

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { SavedColorsProvider } from "@/components/providers/saved-colors-provider";
 import { getOrganization } from "@/lib/organization";
 import { SidebarNav } from "@/components/admin/sidebar-nav";
+import { MobileSidebarToggle, MobileSidebarWrapper } from "@/components/mobile-sidebar";
 
 export default async function AdminLayout({
   children,
@@ -43,8 +44,9 @@ export default async function AdminLayout({
   return (
     <div className="flex min-h-screen flex-col" style={{ fontFamily: "'Inter', sans-serif", "--radius": "5px" } as React.CSSProperties}>
       {/* Header */}
-      <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-6">
+      <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-3">
+          <MobileSidebarToggle />
           <Link href="/admin" className={org?.logoUrl ? "block" : "font-bold text-white text-sm tracking-widest uppercase border border-white/40 px-3 py-1.5 transition-colors hover:border-white/70"}>
             {org?.logoUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element */
@@ -53,20 +55,20 @@ export default async function AdminLayout({
               org?.name || "Partners + Capital"
             )}
           </Link>
-          <span className="bg-[#B07D3A] text-white text-[10px] font-semibold px-2.5 py-0.5 tracking-wider uppercase">
+          <span className="hidden sm:inline bg-[#B07D3A] text-white text-[10px] font-semibold px-2.5 py-0.5 tracking-wider uppercase">
             Admin Portal
           </span>
         </div>
         <div className="flex items-center gap-5">
           <Link
             href="/admin/audit-log"
-            className="text-white/60 hover:text-white text-sm transition-colors"
+            className="hidden md:inline text-white/60 hover:text-white text-sm transition-colors"
           >
             Audit Log
           </Link>
           <Link
             href="/admin/settings"
-            className="text-white/60 hover:text-white text-sm transition-colors"
+            className="hidden md:inline text-white/60 hover:text-white text-sm transition-colors"
           >
             Settings
           </Link>
@@ -82,10 +84,9 @@ export default async function AdminLayout({
       </header>
 
       <div className="flex flex-1">
-        {/* Navy sidebar */}
-        <aside className="w-60 bg-[#2C3E5C] flex flex-col pt-6">
+        <MobileSidebarWrapper>
           <SidebarNav />
-        </aside>
+        </MobileSidebarWrapper>
 
         <main className="flex-1 bg-[#f5f5f3] overflow-auto">
           <SavedColorsProvider>{children}</SavedColorsProvider>
