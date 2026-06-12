@@ -156,7 +156,7 @@ body {
   font-weight: var(--font-h1-weight, var(--font-hero-title-weight, 300)) !important;
   font-style: var(--font-h1-style, var(--font-hero-title-style, normal)) !important;
   color: var(--font-h1-color, inherit);
-  font-size: var(--font-h1-size, 48px) !important;
+  font-size: clamp(28px, 7vw, var(--font-h1-size, 48px)) !important;
 }
 
 .marketing-typography h2 {
@@ -224,7 +224,7 @@ body {
   font-weight: var(--font-h1-weight, var(--font-hero-title-weight, 300)) !important;
   font-style: var(--font-h1-style, var(--font-hero-title-style, normal)) !important;
   color: var(--font-h1-color, inherit);
-  font-size: var(--font-h1-size, 48px) !important;
+  font-size: clamp(28px, 7vw, var(--font-h1-size, 48px)) !important;
 }
 
 .marketing-typography .prose h2 {
