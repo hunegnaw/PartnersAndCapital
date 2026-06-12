@@ -21,7 +21,7 @@ export function MobileSidebarWrapper({ children }: { children: React.ReactNode }
   const pathname = usePathname()
 
   useEffect(() => {
-    setOpen(false)
+    Promise.resolve().then(() => setOpen(false))
   }, [pathname])
 
   useEffect(() => {
