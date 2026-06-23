@@ -276,6 +276,35 @@ DB_NAME="$9"
 # Add pm2 to PATH (installed at /home/master/.npm-global/bin)
 export PATH="/home/master/bin/npm/lib/node_modules/bin:/home/master/.npm-global/bin:$PATH"
 
+# Ensure Node.js >= 20.19 is on PATH (Prisma 7 requires it; the Cloudways PHP
+# stack default `node` is v18). Newer runtimes ship under /var/cw/systeam — pick
+# the highest one available so install/generate/migrate/seed AND the PM2-launched
+# app all run on a supported Node. Without this, a Cloudways platform update that
+# resets the default environment silently drops the deploy back to Node 18.
+pick_node20() {
+    local best="" bestmajor=0 major
+    for cand in /var/cw/systeam/node-v*/bin/node; do
+        [ -x "$cand" ] || continue
+        major=$("$cand" -v 2>/dev/null | sed 's/^v//' | cut -d. -f1)
+        if [ -n "$major" ] && [ "$major" -ge 20 ] && [ "$major" -gt "$bestmajor" ]; then
+            bestmajor="$major"; best="$cand"
+        fi
+    done
+    echo "$best"
+}
+NODE20="$(pick_node20)"
+if [ -n "$NODE20" ]; then
+    export PATH="$(dirname "$NODE20"):$PATH"
+fi
+NODE_VER="$(node -v 2>/dev/null)"
+NODE_MAJOR="$(echo "$NODE_VER" | sed 's/^v//' | cut -d. -f1)"
+echo "Using node $NODE_VER ($(command -v node)), npm $(npm -v 2>/dev/null)"
+if [ -z "$NODE_MAJOR" ] || [ "$NODE_MAJOR" -lt 20 ]; then
+    echo "ERROR: Node.js >= 20.19 required (Prisma 7) but found ${NODE_VER:-none}." >&2
+    echo "       No suitable runtime under /var/cw/systeam. Aborting before npm install." >&2
+    exit 1
+fi
+
 # Update current symlink
 ln -sfn "$DEPLOY_DIR" "$CURRENT_LINK"
 echo "Symlink: $CURRENT_LINK -> $DEPLOY_DIR"
