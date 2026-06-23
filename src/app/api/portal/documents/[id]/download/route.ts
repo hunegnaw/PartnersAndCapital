@@ -34,7 +34,7 @@ export async function GET(
 
     if (document.userId === userId) {
       hasAccess = true;
-    } else if (document.investmentId) {
+    } else if (!document.userId && document.investmentId) {
       const clientInvestment = await prisma.clientInvestment.findFirst({
         where: {
           userId,

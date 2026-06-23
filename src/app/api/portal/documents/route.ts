@@ -33,11 +33,14 @@ export async function GET(request: Request) {
     });
     const investmentIds = clientInvestments.map((ci) => ci.investmentId);
 
-    // Base ownership filter: documents assigned to user OR to user's investments
+    // Base ownership filter: documents assigned directly to the user, OR
+    // fund-wide documents (no specific owner) for the user's investments.
+    // A document scoped to a specific client (userId set) must NOT leak to
+    // other holders of the same investment.
     const ownershipFilter: Prisma.DocumentWhereInput = {
       OR: [
         { userId },
-        { investmentId: { in: investmentIds } },
+        { userId: null, investmentId: { in: investmentIds } },
       ],
     };
 
@@ -108,12 +111,15 @@ export async function GET(request: Request) {
       categoryCounts[group.type] = group._count.type;
     }
 
-    // Investment document counts for "By Investment" sidebar
+    // Investment document counts for "By Investment" sidebar.
+    // Count only fund-wide docs (no owner) plus this user's own docs for the
+    // investment — never another client's personally-scoped documents.
     const investmentDocs = await prisma.document.groupBy({
       by: ["investmentId"],
       where: {
         deletedAt: null,
         investmentId: { in: investmentIds },
+        OR: [{ userId }, { userId: null }],
       },
       _count: { investmentId: true },
     });

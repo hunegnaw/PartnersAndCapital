@@ -52,7 +52,10 @@ export async function POST(request: Request) {
     const accessible = documents.filter((doc) => {
       if (isAdmin) return true;
       if (doc.userId === userId) return true;
-      if (doc.investmentId && investmentIds.has(doc.investmentId)) return true;
+      // Fund-wide docs (no specific owner) are visible to all holders of the
+      // investment; client-scoped docs are not.
+      if (!doc.userId && doc.investmentId && investmentIds.has(doc.investmentId))
+        return true;
       return false;
     });
 

@@ -1167,6 +1167,19 @@ When no footer settings have been saved, the footer renders identically to the o
 
 ## Document Security
 
+### Document Visibility & Scoping
+
+Every document carries two optional assignment fields: a **client** (`userId`) and an **investment** (`investmentId`). Visibility in the client portal is determined by these two fields together:
+
+| Client assigned? | Investment assigned? | Who can see it |
+|---|---|---|
+| Yes | Yes or No | **Only that one client** (and their authorized advisors). |
+| No | Yes | **Every client who holds that investment** — a fund-wide document. |
+
+The key rule: **a document assigned to a specific client is private to that client**, even when an investment is also selected. The investment field on a client-scoped document is metadata for filing/filtering only — it does **not** expose the document to other holders of that investment. Only documents left with **no client** are treated as fund-wide and shared with all holders of the selected investment.
+
+This rule is enforced consistently across the portal document list, the dashboard "recent documents" panel, the single-file download, and the bulk ZIP download. (The admin upload dialog requires both a client and an investment, so admin-uploaded client documents are always private to the selected client.)
+
 ### Encryption
 
 All uploaded documents (K-1s, tax forms, investment agreements) are encrypted at rest using **AES-256-GCM**:

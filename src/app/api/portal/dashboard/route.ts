@@ -225,7 +225,7 @@ export async function GET() {
         deletedAt: null,
         OR: [
           { userId },
-          { investmentId: { in: clientInvestmentIds } },
+          { userId: null, investmentId: { in: clientInvestmentIds } },
         ],
       },
       select: {
