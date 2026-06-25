@@ -1,7 +1,8 @@
-import { auth } from "@/lib/auth";
+import { auth, twoFactorPending } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getOrganization } from "@/lib/organization";
+import { IdleTimeout } from "@/components/idle-timeout";
 import Link from "next/link";
 
 export default async function VerifyLayout({
@@ -13,6 +14,16 @@ export default async function VerifyLayout({
 
   if (!session?.user) {
     redirect("/login");
+  }
+
+  // Partial session (password OK, required 2FA not yet completed) — finish at /login.
+  if (twoFactorPending(session.user)) {
+    redirect("/login");
+  }
+
+  // Required 2FA not yet enrolled — enrollment takes priority over KYC verification.
+  if (session.user.requiresTwoFactorSetup) {
+    redirect("/setup-2fa");
   }
 
   // If already approved, go straight to dashboard
@@ -33,6 +44,7 @@ export default async function VerifyLayout({
       className="min-h-screen bg-[#f5f5f3] flex flex-col"
       style={{ fontFamily: "'Inter', sans-serif" }}
     >
+      <IdleTimeout />
       <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-6">
         <div className="flex items-center gap-3">
           <Link

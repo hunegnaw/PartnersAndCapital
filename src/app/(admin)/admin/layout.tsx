@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { auth, twoFactorPending } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
@@ -6,6 +6,7 @@ import { SavedColorsProvider } from "@/components/providers/saved-colors-provide
 import { getOrganization } from "@/lib/organization";
 import { SidebarNav } from "@/components/admin/sidebar-nav";
 import { MobileSidebarToggle, MobileSidebarWrapper } from "@/components/mobile-sidebar";
+import { IdleTimeout } from "@/components/idle-timeout";
 
 export default async function AdminLayout({
   children,
@@ -18,11 +19,20 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
+  // Password verified but the required second factor has not been completed —
+  // the session is only partial. Send back to /login to finish 2FA.
+  if (twoFactorPending(session.user)) {
+    redirect("/login");
+  }
+
+  // 2FA is mandatory for every admin — force enrollment before any admin page.
+  if (session.user.requiresTwoFactorSetup) {
+    redirect("/setup-2fa");
+  }
+
   if (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
     redirect("/dashboard");
   }
-
-  // 2FA setup requirement is handled by the login page redirect.
 
   const [org, adminUser] = await Promise.all([
     getOrganization(),
@@ -43,6 +53,7 @@ export default async function AdminLayout({
 
   return (
     <div className="flex min-h-screen flex-col" style={{ fontFamily: "'Inter', sans-serif", "--radius": "5px" } as React.CSSProperties}>
+      <IdleTimeout />
       {/* Header */}
       <header className="h-14 bg-[#1A2640] border-b border-white/10 flex items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-3">

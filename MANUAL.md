@@ -625,9 +625,22 @@ Partners + Capital supports SMS-based two-factor authentication. When enabled, a
 
 The organization-level 2FA policy (configured in `/admin/settings`) controls how 2FA is enforced across the platform:
 
-- **Optional** (default) -- Users can choose whether to enable SMS two-factor authentication on their account.
-- **Mandatory** -- All users must set up SMS two-factor authentication. Users who have not configured 2FA are redirected to the settings page after login and shown a "Required by your organization" alert. They cannot access the portal or admin panel until 2FA is set up. Users with 2FA already enabled cannot disable it (the "Disable 2FA" button is replaced with "Required by organization").
-- **Disabled** -- Two-factor authentication is turned off for all users. The 2FA section is completely hidden from the settings page, and login skips all 2FA checks even if a user previously had it enabled.
+- **Optional** (default) -- Clients/advisors can choose whether to enable SMS two-factor authentication on their account.
+- **Mandatory** -- All users must set up SMS two-factor authentication. Users who have not configured 2FA are redirected to the forced-enrollment page (`/setup-2fa`) after login. They cannot access the portal or admin panel until 2FA is set up. Users with 2FA already enabled cannot disable it.
+- **Disabled** -- Two-factor authentication is turned off for **non-admin** users. The 2FA section is hidden from their settings page, and their login skips 2FA checks.
+
+> **Admins always require 2FA.** Regardless of the org policy above — including "Disabled" — every user with the `ADMIN` or `SUPER_ADMIN` role must enroll in and use two-factor authentication. An admin without 2FA is forced through `/setup-2fa` on their next login; an enrolled admin is always SMS-challenged. This is enforced in `authorize()` (`src/lib/auth.ts`) and cannot be turned off from the settings UI.
+
+### Server-Side Enforcement (no client-only gates)
+
+2FA is enforced on the **server**, not just in the login UI:
+
+- A credentials login that passes the password check but has **not** completed its required SMS code still produces a (partial) session so the login screen can show the 2FA step. Such a session is rejected by every protected layout and by the `requireAuth()` API guard (`twoFactorPending()` in `src/lib/auth.ts`) — it cannot be used to view any page or call any protected API by navigating directly to a URL.
+- A user flagged for forced enrollment (`requiresTwoFactorSetup`) is redirected to `/setup-2fa` by every protected layout, and is blocked from all role-scoped APIs (`requireAdmin`/`requireClient`/`requireAdvisor`) except the 2FA setup endpoints themselves until enrollment completes.
+
+### Forced Enrollment Page (`/setup-2fa`)
+
+When a user must enroll (any admin, or any user under a mandatory policy), login sends them to `/setup-2fa`. This page lives in the public `(auth)` route group with its own session guard, so the redirect from the role-gated layouts never loops. After completing setup the user is signed out and returned to `/login` (with a confirmation notice) to sign in again with their newly enabled second factor.
 
 ### Setting Up 2FA (User Flow)
 
@@ -659,6 +672,17 @@ The organization-level 2FA policy (configured in `/admin/settings`) controls how
 - SMS is sent via Twilio. When `TWILIO_ACCOUNT_SID` is not set, codes are logged to the console (development/stub mode).
 - TOTP generation and verification is handled by the `otpauth` library.
 - Backup codes are hashed with bcrypt and stored in the `BackupCode` table.
+
+---
+
+## Session Security & Idle Timeout
+
+All authenticated users (clients, advisors, and admins) are automatically signed out after **15 minutes of inactivity**. This is enforced with two complementary layers:
+
+- **Client-side idle watcher** — `<IdleTimeout>` (`src/components/idle-timeout.tsx`) is mounted in every authenticated layout (admin, client portal, advisor, and verification). It tracks mouse, keyboard, scroll, and touch activity and signs the user out via `signOut()` after 15 idle minutes, redirecting to `/login?timeout=1`. The last-activity timestamp is shared across browser tabs through `localStorage`, so activity in one tab keeps the others alive and the whole session lapses together. Returning to a backgrounded tab re-checks immediately.
+- **Server-side rolling session** — the NextAuth JWT uses `maxAge: 15 min` with `updateAge: 5 min` (`src/lib/auth.ts`). The global `SessionProvider` re-fetches every 5 minutes (and on window focus), which rotates the token while a tab is active, so engaged users stay signed in. A token that stops being refreshed (tab closed, device asleep, or a stolen cookie used out-of-band) expires within ~15 minutes — replacing the previous 30-day default and bounding session-token exposure.
+
+When a user is bounced to the login page after a timeout, a notice ("You were signed out due to inactivity") is shown. The idle window is defined by the `DEFAULT_TIMEOUT_MS` constant in `idle-timeout.tsx` and `session.maxAge` in `auth.ts`.
 
 ---
 

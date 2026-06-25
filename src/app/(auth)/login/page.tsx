@@ -76,6 +76,13 @@ function LoginContent() {
   const [accessError, setAccessError] = useState("");
   const [accessSuccess, setAccessSuccess] = useState(false);
 
+  // Contextual notice when redirected back to login.
+  const notice = searchParams.get("timeout")
+    ? "You were signed out due to inactivity. Please sign in again."
+    : searchParams.get("setup") === "complete"
+    ? "Two-factor authentication is enabled. Please sign in again to continue."
+    : "";
+
   useEffect(() => {
     fetch("/api/stats")
       .then((r) => r.json())
@@ -123,7 +130,7 @@ function LoginContent() {
         if (session?.user?.twoFactorRequired && !session?.user?.twoFactorVerified) {
           setStep("2fa");
         } else if (session?.user?.requiresTwoFactorSetup) {
-          router.push("/settings");
+          router.push("/setup-2fa");
           router.refresh();
         } else {
           const role = session?.user?.role;
@@ -531,6 +538,11 @@ function LoginContent() {
 
         {/* Right panel — Form */}
         <div className="bg-white px-9 py-10 flex flex-col justify-center">
+          {notice && (
+            <div className="mb-5 rounded-md border border-[#E8D5B0] bg-[#FDF5E8] px-3 py-2.5 text-[12px] text-[#7A5520]">
+              {notice}
+            </div>
+          )}
           {renderRightPanel()}
 
           {/* Divider + Request access */}

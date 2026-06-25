@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { auth, twoFactorPending } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { NotificationBell } from "@/components/portal/notification-bell";
@@ -10,6 +10,7 @@ import { LogOut } from "lucide-react";
 import { ActivityBanner } from "@/components/portal/activity-banner";
 import { UnreadMessagesModal } from "@/components/portal/unread-messages-modal";
 import { MobileSidebarToggle, MobileSidebarWrapper } from "@/components/mobile-sidebar";
+import { IdleTimeout } from "@/components/idle-timeout";
 
 const investorNav = [
   { href: "/dashboard", label: "Dashboard" },
@@ -34,6 +35,16 @@ export default async function PortalLayout({
 
   if (!session?.user) {
     redirect("/login");
+  }
+
+  // Partial session (password OK, required 2FA not yet completed) — finish at /login.
+  if (twoFactorPending(session.user)) {
+    redirect("/login");
+  }
+
+  // Required 2FA not yet enrolled (mandatory policy) — force setup first.
+  if (session.user.requiresTwoFactorSetup) {
+    redirect("/setup-2fa");
   }
 
   const impersonation = await getImpersonationContext();
@@ -128,6 +139,7 @@ export default async function PortalLayout({
 
   return (
     <div className="flex min-h-screen flex-col" style={{ fontFamily: "'Inter', sans-serif", "--radius": "5px" } as React.CSSProperties}>
+      <IdleTimeout />
       <UnreadMessagesModal />
       <ActivityBanner />
       {impersonation && impersonatedClient && (

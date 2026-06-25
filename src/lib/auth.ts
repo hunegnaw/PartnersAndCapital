@@ -6,12 +6,20 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import type { User, Role } from "@prisma/client";
 import type { Adapter } from "next-auth/adapters";
+import type { Session } from "next-auth";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma) as Adapter,
   trustHost: true,
   session: {
     strategy: "jwt",
+    // Rolling 15-minute idle window. The token expires 15 minutes after the last
+    // time it was refreshed; the SessionProvider re-fetches every 5 minutes while
+    // a tab is open (rotating the token, since updateAge < maxAge), so active
+    // users stay signed in while an abandoned session lapses within ~15 minutes.
+    // The client-side <IdleTimeout> signs the user out for the same window.
+    maxAge: 15 * 60,
+    updateAge: 5 * 60,
   },
   pages: {
     signIn: "/login",
@@ -67,8 +75,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.role === "CLIENT" &&
           (!user.verification || user.verification.status !== "APPROVED");
 
-        // If policy = "disabled": skip 2FA entirely
-        if (twoFactorPolicy === "disabled") {
+        // Admins must always use 2FA, regardless of the org-wide policy.
+        const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
+
+        // If policy = "disabled": skip 2FA entirely — but never for admins.
+        if (twoFactorPolicy === "disabled" && !isAdmin) {
           // Update lastLoginAt (fire-and-forget)
           prisma.user
             .update({
@@ -106,8 +117,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           };
         }
 
-        // If policy = "mandatory" and user has no 2FA set up: flag for setup
-        if (twoFactorPolicy === "mandatory" && !user.twoFactorEnabled) {
+        // Force enrollment when 2FA is required but not yet set up — for any user
+        // under a "mandatory" policy, and for every admin regardless of policy.
+        if (!user.twoFactorEnabled && (twoFactorPolicy === "mandatory" || isAdmin)) {
           return {
             id: user.id,
             email: user.email,
@@ -261,6 +273,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
 });
+
+/**
+ * A credentials login that passed the password check but has NOT yet completed
+ * its required second factor still mints a valid session/JWT — NextAuth needs a
+ * non-null `authorize()` return to carry the `twoFactorRequired` flag back to the
+ * login UI. Such a partial session must NEVER be treated as fully authenticated.
+ * Enforce completion server-side (in layouts and API guards), since the login
+ * page's 2FA step is only a client-side prompt and can be skipped by navigating
+ * directly to a protected URL.
+ */
+export function twoFactorPending(user: Session["user"]): boolean {
+  return user.twoFactorRequired && !user.twoFactorVerified;
+}
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12);
