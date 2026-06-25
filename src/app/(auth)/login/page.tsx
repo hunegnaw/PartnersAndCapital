@@ -100,7 +100,7 @@ function LoginContent() {
 
   // Contextual notice when redirected back to login.
   const notice = searchParams.get("timeout")
-    ? "You were signed out due to inactivity. Please sign in again."
+    ? "You have been automatically logged out due to inactivity. Please sign in again."
     : searchParams.get("setup") === "complete"
     ? "Two-factor authentication is enabled. Please sign in again to continue."
     : "";
