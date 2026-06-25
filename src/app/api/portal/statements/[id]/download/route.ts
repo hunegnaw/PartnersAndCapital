@@ -1,19 +1,27 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/api-auth";
+import { auth, twoFactorPending } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getEffectiveUserId } from "@/lib/impersonation";
 import { decryptStatement } from "@/lib/statement-pdf";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await requireAuth();
-    if (user instanceof NextResponse) return user;
+    const { id } = await params;
+
+    // This route is opened directly from the "View Statement" email link, so a
+    // logged-out (or 2FA-incomplete) visitor must be sent to login and returned
+    // here afterwards — not shown a raw 401 — then served the PDF once signed in.
+    const session = await auth();
+    if (!session?.user || twoFactorPending(session.user)) {
+      const loginUrl = new URL("/login", new URL(request.url).origin);
+      loginUrl.searchParams.set("callbackUrl", `/api/portal/statements/${id}/download`);
+      return NextResponse.redirect(loginUrl);
+    }
 
     const { userId } = await getEffectiveUserId();
-    const { id } = await params;
 
     const statement = await prisma.statement.findUnique({
       where: { id },

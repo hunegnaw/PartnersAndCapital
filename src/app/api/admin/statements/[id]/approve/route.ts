@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 import { sendEmail } from "@/lib/email";
 import { statementReadyEmail, getEmailLogoUrl } from "@/lib/email-templates";
+import { createNotification } from "@/lib/notifications";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -65,6 +66,15 @@ export async function PATCH(
 
     const periodLabel = `${MONTH_NAMES[statement.periodStart.getMonth()]} ${statement.periodStart.getFullYear()}`;
 
+    // In-app notification — clicking it opens the statements tab in the portal.
+    await createNotification({
+      userId: statement.userId,
+      type: "DOCUMENT_UPLOADED",
+      title: "New Statement Available",
+      message: `Your ${periodLabel} statement is ready to view.`,
+      link: "/documents?tab=statements",
+    });
+
     try {
       await sendEmail({
         to: statement.user.email,
@@ -72,7 +82,9 @@ export async function PATCH(
         html: statementReadyEmail({
           userName: statement.user.name || statement.user.email,
           periodLabel,
-          portalUrl: `${baseUrl}/documents?tab=statements`,
+          // Deep-link straight to the PDF. The download route gates on login and
+          // ownership, redirecting logged-out clients through /login first.
+          portalUrl: `${baseUrl}/api/portal/statements/${id}/download`,
           orgEmail: org?.email,
           orgPhone: org?.phone,
           logoUrl,

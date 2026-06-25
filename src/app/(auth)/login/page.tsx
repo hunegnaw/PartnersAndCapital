@@ -76,6 +76,27 @@ function LoginContent() {
   const [accessError, setAccessError] = useState("");
   const [accessSuccess, setAccessSuccess] = useState(false);
 
+  // Where to go after a successful login. A safe, relative callbackUrl (e.g. a
+  // statement PDF deep link from an email) takes precedence over the default
+  // role-based landing page, so users return to what they clicked.
+  const callbackUrl = searchParams.get("callbackUrl");
+
+  function goAfterLogin(role: string | undefined) {
+    if (callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")) {
+      // Full navigation (works for both pages and file/API routes like the PDF).
+      window.location.href = callbackUrl;
+      return;
+    }
+    if (role === "ADMIN" || role === "SUPER_ADMIN") {
+      router.push("/admin");
+    } else if (role === "ADVISOR") {
+      router.push("/advisor/dashboard");
+    } else {
+      router.push("/dashboard");
+    }
+    router.refresh();
+  }
+
   // Contextual notice when redirected back to login.
   const notice = searchParams.get("timeout")
     ? "You were signed out due to inactivity. Please sign in again."
@@ -133,15 +154,7 @@ function LoginContent() {
           router.push("/setup-2fa");
           router.refresh();
         } else {
-          const role = session?.user?.role;
-          if (role === "ADMIN" || role === "SUPER_ADMIN") {
-            router.push("/admin");
-          } else if (role === "ADVISOR") {
-            router.push("/advisor/dashboard");
-          } else {
-            router.push("/dashboard");
-          }
-          router.refresh();
+          goAfterLogin(session?.user?.role);
         }
       }
     } catch {
@@ -175,15 +188,7 @@ function LoginContent() {
         setError(result.error === "CredentialsSignin" ? "Invalid verification code" : result.error);
       } else {
         const session = await getSession();
-        const role = session?.user?.role;
-        if (role === "ADMIN" || role === "SUPER_ADMIN") {
-          router.push("/admin");
-        } else if (role === "ADVISOR") {
-          router.push("/advisor/dashboard");
-        } else {
-          router.push("/dashboard");
-        }
-        router.refresh();
+        goAfterLogin(session?.user?.role);
       }
     } catch {
       setError("An unexpected error occurred");

@@ -28,6 +28,7 @@ function notificationIcon(type: string) {
   switch (type?.toUpperCase()) {
     case "DOCUMENT":
     case "DOCUMENT_UPLOAD":
+    case "DOCUMENT_UPLOADED":
       return <FileText className="h-4 w-4 text-blue-500" />;
     case "DISTRIBUTION":
     case "CAPITAL_CALL":
