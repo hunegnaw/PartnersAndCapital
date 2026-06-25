@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
-import { verifyTOTP } from "@/lib/two-factor";
+import { verifySmsCode } from "@/lib/two-factor";
 import { requireNotImpersonating } from "@/lib/impersonation";
 
 export async function POST(request: Request) {
@@ -44,13 +44,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify the TOTP code
-    const isValid = verifyTOTP(twoFactorSecret.secret, code);
-    if (!isValid) {
-      return NextResponse.json(
-        { error: "Invalid verification code" },
-        { status: 400 }
-      );
+    // Verify the single-use, expiring SMS code
+    const result = await verifySmsCode(user.id, code);
+    if (!result.ok) {
+      const error =
+        result.reason === "expired"
+          ? "That code has expired. Request a new code to continue."
+          : "Invalid verification code. Check the code or request a new one.";
+      return NextResponse.json({ error }, { status: 400 });
     }
 
     // Disable 2FA: update user, delete secret, delete backup codes

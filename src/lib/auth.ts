@@ -171,20 +171,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             };
           }
 
-          // Verify 2FA code - try TOTP first, then backup codes
-          const { verifyTOTP } = await import("@/lib/two-factor");
-          const secret = await prisma.twoFactorSecret.findUnique({
-            where: { userId: user.id },
-          });
+          // Verify 2FA code - try the SMS code first, then backup codes
+          const { verifySmsCode } = await import("@/lib/two-factor");
 
           let codeValid = false;
 
-          // Check if it's a TOTP code (6 digits)
-          if (/^\d{6}$/.test(twoFactorCode) && secret) {
-            codeValid = verifyTOTP(secret.secret, twoFactorCode);
+          // Check if it's a 6-digit SMS code (single-use, expires after the
+          // standard window — see SMS_CODE_EXPIRY_MINUTES).
+          if (/^\d{6}$/.test(twoFactorCode)) {
+            const result = await verifySmsCode(user.id, twoFactorCode);
+            codeValid = result.ok;
           }
 
-          // If TOTP didn't work, try backup codes
+          // If the SMS code didn't work, try backup codes
           if (!codeValid) {
             const backupCodes = await prisma.backupCode.findMany({
               where: { userId: user.id, used: false },

@@ -656,30 +656,36 @@ The management UI reuses the same `TwoFactorManage` / `TwoFactorSetup` component
 1. Navigate to `/settings` (or `/admin/settings` for admins).
 2. Find the "Two-Factor Authentication" section.
 3. Click "Set up two-factor authentication."
-4. Enter your phone number (with country code, e.g., +1 for US/Canada).
-5. A 6-digit verification code will be sent via SMS. Enter the code to verify.
+4. Enter your phone number (with country code, e.g., +1 for US/Canada). The on-screen copy tells you a code will be texted to confirm the number and that it expires in 10 minutes.
+5. A 6-digit verification code is texted to that number to **confirm it belongs to you**. Enter it to verify. The verify screen shows the number the code went to and offers **Resend code** and **Edit phone number** (so a mistyped or wrong number can be corrected without restarting).
 6. Save your backup codes in a safe place (10 one-time codes for emergency access).
 7. 2FA is now active on your account. A code will be sent to your phone on each login.
+
+This identical flow (verify-the-number → expiring code → resend/edit) is used for **both client and admin** onboarding — they share the same `TwoFactorSetup` component.
 
 ### Login with 2FA
 
 1. Enter email and password as normal.
 2. A verification code is automatically sent to your phone via SMS.
-3. Enter the 6-digit code to complete login.
+3. Enter the 6-digit code to complete login. The screen notes the code expires in 10 minutes; you can resend it.
 4. Alternatively, use a backup code if you cannot access your phone.
 
 ### Disabling 2FA
 
-1. Navigate to `/settings` and click "Disable 2FA."
+1. Navigate to `/settings` and click "Disable 2FA." (Admins cannot disable 2FA — it is mandatory for them.)
 2. A verification code will be sent to your phone for confirmation.
 3. Enter the code to disable 2FA.
 
+### SMS Code Expiration
+
+All SMS verification codes — login challenge, setup confirmation, and disable confirmation — are **single-use** and expire after a single consistent window, **`SMS_CODE_EXPIRY_MINUTES` (10 minutes)**, defined in `src/lib/two-factor-config.ts`. The expiry and a "never share this code" safety note are included in the SMS body and surfaced in the on-screen messaging. Submitting an expired code returns a distinct "That code has expired. Request a new code to continue." message (vs. a plain invalid-code message), prompting the user to resend.
+
 ### Technical Details
 
-- TOTP secrets are stored in the `TwoFactorSecret` table (used server-side to generate time-based codes).
+- A 6-digit SMS code is generated with `crypto.randomInt`, **hashed with bcrypt**, and stored on the user's `TwoFactorSecret` row (`smsCodeHash` + `smsCodeExpiresAt`). It is verified against the hash, checked for expiry, and **cleared on first successful use** (single-use). Helpers: `issueSmsCode` / `verifySmsCode` in `src/lib/two-factor.ts`.
+- The `secret` column on `TwoFactorSecret` remains (legacy TOTP secret), but live login/setup/disable verification now uses the stored SMS code, not a rolling TOTP window. This gives an exact, consistent expiration instead of the previous ~30–90 second TOTP validity.
 - The `twoFactorEnabled` flag on the User model tracks whether 2FA is active.
-- SMS is sent via Twilio. When `TWILIO_ACCOUNT_SID` is not set, codes are logged to the console (development/stub mode).
-- TOTP generation and verification is handled by the `otpauth` library.
+- SMS is sent via Twilio. When `TWILIO_ACCOUNT_SID` is not set, codes (with the expiry/safety message) are logged to the console (development/stub mode).
 - Backup codes are hashed with bcrypt and stored in the `BackupCode` table.
 
 ---

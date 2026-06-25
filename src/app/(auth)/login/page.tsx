@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import { loginSchema } from "@/lib/validation";
+import { SMS_CODE_EXPIRY_MINUTES } from "@/lib/two-factor-config";
 
 interface StatsData {
   totalDeployed: string;
@@ -254,7 +255,7 @@ function LoginContent() {
           <p className="text-[13px] text-[#5f5e5a] mb-7">
             {useBackupCode
               ? "Enter one of your backup codes to sign in."
-              : "Enter the 6-digit code sent to your device."}
+              : `Enter the 6-digit code sent to your phone. It expires in ${SMS_CODE_EXPIRY_MINUTES} minutes.`}
           </p>
 
           <form onSubmit={handleTwoFactor} className="space-y-4">

@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TwoFactorInput } from "@/components/auth/two-factor-input";
+import { SMS_CODE_EXPIRY_MINUTES } from "@/lib/two-factor-config";
 import {
   ShieldCheck,
   Loader2,
@@ -243,7 +244,9 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
         {step === "phone" && (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Enter the phone number where you would like to receive verification codes.
+              Enter the phone number where you would like to receive verification
+              codes. We&apos;ll text you a 6-digit code to confirm it — the code
+              expires in {SMS_CODE_EXPIRY_MINUTES} minutes.
             </p>
 
             <div className="space-y-2">
@@ -268,7 +271,8 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
         {step === "verify" && (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Enter the 6-digit code we sent to your phone.
+              Enter the 6-digit code we sent to {phone || "your phone"}. The code
+              expires in {SMS_CODE_EXPIRY_MINUTES} minutes.
             </p>
 
             <div className="py-2">
@@ -280,7 +284,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
               />
             </div>
 
-            <div className="text-center">
+            <div className="flex items-center justify-center gap-2">
               <Button
                 type="button"
                 variant="link"
@@ -289,6 +293,21 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
                 disabled={loading}
               >
                 Resend code
+              </Button>
+              <span className="text-muted-foreground">·</span>
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                onClick={() => {
+                  // Didn't get the code? Go back to fix the number.
+                  setVerifyCode("");
+                  setError("");
+                  setStep("phone");
+                }}
+                disabled={loading}
+              >
+                Edit phone number
               </Button>
             </div>
           </div>

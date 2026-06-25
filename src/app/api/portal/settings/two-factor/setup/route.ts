@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
-import { generateTOTPSecret, generateTOTPCode } from "@/lib/two-factor";
+import { generateTOTPSecret, issueSmsCode } from "@/lib/two-factor";
+import { smsCodeMessage } from "@/lib/two-factor-config";
 import { sendSMS } from "@/lib/sms";
 import { requireNotImpersonating } from "@/lib/impersonation";
 
@@ -35,9 +36,11 @@ export async function POST(request: Request) {
         data: { phone },
       });
 
-      // Generate current code and send via SMS
-      const code = generateTOTPCode(secret);
-      const sent = await sendSMS(phone, `Partners + Capital: Your verification code is ${code}`);
+      // Issue a single-use, expiring code and send it via SMS
+      const code = await issueSmsCode(user.id);
+      const sent = code
+        ? await sendSMS(phone, smsCodeMessage(code))
+        : false;
 
       if (!sent) {
         return NextResponse.json(
@@ -73,8 +76,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const code = generateTOTPCode(twoFactorSecret.secret);
-    const sent = await sendSMS(fullUser.phone, `Partners + Capital: Your verification code is ${code}`);
+    const code = await issueSmsCode(user.id);
+    const sent = code
+      ? await sendSMS(fullUser.phone, smsCodeMessage(code))
+      : false;
 
     if (!sent) {
       return NextResponse.json(
