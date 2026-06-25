@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Accordion,
@@ -44,6 +44,8 @@ import {
   type FontSetting,
 } from "@/lib/typography"
 import { ColorPicker } from "@/components/admin/color-picker"
+import { TwoFactorSetup } from "@/components/settings/two-factor-setup"
+import { TwoFactorManage } from "@/components/settings/two-factor-manage"
 
 interface Organization {
   id: string
@@ -95,6 +97,8 @@ export default function AdminSettingsPage() {
   const [privacyPolicy, setPrivacyPolicy] = useState("")
   const [termsOfService, setTermsOfService] = useState("")
   const [twoFactorPolicy, setTwoFactorPolicy] = useState("")
+  // Current admin's own 2FA enrollment state (null while loading).
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState<boolean | null>(null)
   const [typography, setTypography] = useState<TypographySettings>(DEFAULT_TYPOGRAPHY)
   const [logoPickerOpen, setLogoPickerOpen] = useState(false)
   const [logoScrolledPickerOpen, setLogoScrolledPickerOpen] = useState(false)
@@ -106,13 +110,29 @@ export default function AdminSettingsPage() {
   const [newDiscTitle, setNewDiscTitle] = useState("")
   const [newDiscBody, setNewDiscBody] = useState("")
 
+  // Re-read the admin's 2FA enrollment state after enrolling/regenerating.
+  const refreshTwoFactorStatus = useCallback(async () => {
+    try {
+      const r = await fetch("/api/portal/settings")
+      if (r.ok) {
+        const d = await r.json()
+        setTwoFactorEnabled(!!d.twoFactorEnabled)
+      }
+    } catch {
+      // Non-critical — leave the current state in place.
+    }
+  }, [])
+
   useEffect(() => {
     async function fetchSettings() {
       try {
-        // Fetch avatar
+        // Fetch the current admin's own profile (avatar + 2FA enrollment state)
         fetch("/api/portal/settings")
           .then((r) => r.ok ? r.json() : null)
-          .then((d) => { if (d?.profileImageUrl) setAvatarUrl(d.profileImageUrl) })
+          .then((d) => {
+            if (d?.profileImageUrl) setAvatarUrl(d.profileImageUrl)
+            if (d) setTwoFactorEnabled(!!d.twoFactorEnabled)
+          })
           .catch(() => {})
 
         const res = await fetch("/api/admin/settings")
@@ -713,6 +733,24 @@ export default function AdminSettingsPage() {
               <p className="text-xs text-muted-foreground">
                 Controls whether SMS-based two-factor authentication is required, optional, or disabled for all users.
               </p>
+            </div>
+
+            {/* The current admin's own two-factor authentication */}
+            <div className="border-t pt-4 space-y-3">
+              <div>
+                <p className="text-sm font-medium">Your Two-Factor Authentication</p>
+                <p className="text-xs text-muted-foreground">
+                  Two-factor authentication is required for all administrators and cannot be disabled.
+                </p>
+              </div>
+
+              {twoFactorEnabled === null ? (
+                <Skeleton className="h-24 w-full" />
+              ) : twoFactorEnabled ? (
+                <TwoFactorManage onDisabled={refreshTwoFactorStatus} disableDisabled />
+              ) : (
+                <TwoFactorSetup onComplete={refreshTwoFactorStatus} />
+              )}
             </div>
           </AccordionContent>
         </AccordionItem>

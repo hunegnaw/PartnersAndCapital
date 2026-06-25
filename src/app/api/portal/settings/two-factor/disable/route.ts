@@ -13,6 +13,15 @@ export async function POST(request: Request) {
     const user = await requireAuth();
     if (user instanceof NextResponse) return user;
 
+    // 2FA is mandatory for administrators — it can never be disabled, even via a
+    // direct API call that bypasses the (already disabled) settings button.
+    if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Two-factor authentication is required for administrators and cannot be disabled." },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { code } = body;
 

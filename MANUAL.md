@@ -642,6 +642,15 @@ The organization-level 2FA policy (configured in `/admin/settings`) controls how
 
 When a user must enroll (any admin, or any user under a mandatory policy), login sends them to `/setup-2fa`. This page lives in the public `(auth)` route group with its own session guard, so the redirect from the role-gated layouts never loops. After completing setup the user is signed out and returned to `/login` (with a confirmation notice) to sign in again with their newly enabled second factor.
 
+### Admin 2FA Management (`/admin/settings` → Security)
+
+Admins manage their own two-factor authentication in the **Security** section of `/admin/settings`, alongside the org-wide policy selector:
+
+- **Regenerate backup codes** — issues a fresh set of 10 one-time codes (invalidating the old set) after SMS re-verification.
+- **Disable** — intentionally unavailable. The button is replaced with "Required by organization", and the disable endpoint (`/api/portal/settings/two-factor/disable`) rejects any admin request with `403` regardless of how it is called, since 2FA is mandatory for admins.
+
+The management UI reuses the same `TwoFactorManage` / `TwoFactorSetup` components and `/api/portal/settings/*` endpoints as the client portal (all `requireAuth`, so they work for any role). The admin's enrollment state is read from `GET /api/portal/settings` (`twoFactorEnabled`).
+
 ### Setting Up 2FA (User Flow)
 
 1. Navigate to `/settings` (or `/admin/settings` for admins).
