@@ -194,6 +194,57 @@ function ensureSpace(doc: PDFKit.PDFDocument, needed: number) {
   }
 }
 
+// A chart key/legend, centered within [boxLeft, boxLeft+contentWidth] at y.
+// Line series get a short line marker; bar series get a small square (matching
+// the donut legend swatches).
+function drawChartLegend(
+  doc: PDFKit.PDFDocument,
+  boxLeft: number,
+  contentWidth: number,
+  y: number,
+  items: { color: string; shape: "line" | "bar"; label: string }[]
+) {
+  doc.font("Inter").fontSize(6);
+  const markerLine = 10;
+  const markerBox = 6;
+  const gap = 4;
+  const itemGap = 16;
+  const widths = items.map((it) => {
+    const m = it.shape === "line" ? markerLine : markerBox;
+    return m + gap + doc.widthOfString(it.label);
+  });
+  const total = widths.reduce((a, b) => a + b, 0) + itemGap * (items.length - 1);
+  let cx = boxLeft + Math.max(0, (contentWidth - total) / 2);
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    if (it.shape === "line") {
+      doc.save().moveTo(cx, y + 3).lineTo(cx + markerLine, y + 3)
+        .strokeColor(it.color).lineWidth(2).stroke().restore();
+      doc.fillColor(GRAY).font("Inter").fontSize(6)
+        .text(it.label, cx + markerLine + gap, y, { lineBreak: false });
+    } else {
+      doc.save().roundedRect(cx, y + 1, markerBox, markerBox, 1).fill(it.color).restore();
+      doc.fillColor(GRAY).font("Inter").fontSize(6)
+        .text(it.label, cx + markerBox + gap, y, { lineBreak: false });
+    }
+    cx += widths[i] + itemGap;
+  }
+}
+
+const COMBINED_LEGEND: { color: string; shape: "line" | "bar"; label: string }[] = [
+  { color: NAVY, shape: "line", label: "Portfolio Value" },
+  { color: GOLD, shape: "line", label: "Cumulative Distributions" },
+  { color: NAVY, shape: "bar", label: "Contributions" },
+  { color: GOLD, shape: "bar", label: "Distributions" },
+];
+
+const MINI_LEGEND: { color: string; shape: "line" | "bar"; label: string }[] = [
+  { color: NAVY, shape: "line", label: "Value" },
+  { color: GOLD, shape: "line", label: "Cumulative Distributions" },
+  { color: NAVY, shape: "bar", label: "Contributions" },
+  { color: GOLD, shape: "bar", label: "Distributions" },
+];
+
 // Combined portfolio performance chart box (page 1). Shared by the since-inception
 // and YTD charts so both render identically — only the title + data differ.
 async function drawCombinedChartBox(
@@ -233,6 +284,9 @@ async function drawCombinedChartBox(
       doc.font("Inter").fontSize(5).fillColor(NAVY)
         .text(formatCurrency(contrib), x - 20, barTopY - 8, { width: 40, align: "center", lineBreak: false });
     }
+
+    // Key / legend
+    drawChartLegend(doc, MARGIN, CONTENT_W, boxY + 182, COMBINED_LEGEND);
 
     doc.y = boxY + 208;
   } catch {
@@ -293,6 +347,9 @@ async function drawMiniChartBox(
       doc.font("Inter").fontSize(5).fillColor(NAVY)
         .text(formatCurrency(mc), mx - 20, mBarTopY - 8, { width: 40, align: "center", lineBreak: false });
     }
+
+    // Key / legend
+    drawChartLegend(doc, MARGIN, CONTENT_W, miniBoxY + 124, MINI_LEGEND);
 
     doc.y = miniBoxY + 146;
   } catch {
