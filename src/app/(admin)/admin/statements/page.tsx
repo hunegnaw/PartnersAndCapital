@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
@@ -92,6 +93,12 @@ export default function AdminStatementsPage() {
   const [genAllClients, setGenAllClients] = useState(true)
   const [clientSearch, setClientSearch] = useState("")
 
+  // Approval modal + email-suppression feature
+  const [emailSuppressionEnabled, setEmailSuppressionEnabled] = useState(false)
+  const [approveTarget, setApproveTarget] = useState<StatementRow | null>(null)
+  const [approveSendEmail, setApproveSendEmail] = useState(true)
+  const [approving, setApproving] = useState(false)
+
   const limit = 50
 
   const fetchStatements = useCallback(async () => {
@@ -114,6 +121,14 @@ export default function AdminStatementsPage() {
   useEffect(() => {
     Promise.resolve().then(fetchStatements)
   }, [fetchStatements])
+
+  // Load the email-suppression feature flag (controls whether the approve modal appears)
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setEmailSuppressionEnabled(Boolean(d.statementEmailSuppressionEnabled)) })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     async function loadClients() {
@@ -159,13 +174,32 @@ export default function AdminStatementsPage() {
     }
   }
 
-  async function handleApprove(id: string) {
+  // Clicking approve: open the confirmation modal when the feature is enabled,
+  // otherwise approve immediately (email sent — the existing behavior).
+  function openApprove(s: StatementRow) {
+    if (emailSuppressionEnabled) {
+      setApproveTarget(s)
+      setApproveSendEmail(true)
+    } else {
+      handleApprove(s.id, true)
+    }
+  }
+
+  async function handleApprove(id: string, sendEmail: boolean) {
+    setApproving(true)
     try {
-      const res = await fetch(`/api/admin/statements/${id}/approve`, { method: "PATCH" })
+      const res = await fetch(`/api/admin/statements/${id}/approve`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sendEmail }),
+      })
       if (!res.ok) throw new Error("Failed to approve")
+      setApproveTarget(null)
       await fetchStatements()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Approve failed")
+    } finally {
+      setApproving(false)
     }
   }
 
@@ -422,7 +456,7 @@ export default function AdminStatementsPage() {
                           </Button>
                           {s.status === "GENERATED" && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleApprove(s.id)} title="Approve">
+                              <Button variant="ghost" size="sm" onClick={() => openApprove(s)} title="Approve">
                                 <Check className="h-4 w-4 text-green-600" />
                               </Button>
                               <Button variant="ghost" size="sm" onClick={() => handleReject(s.id)} title="Reject">
@@ -556,6 +590,56 @@ export default function AdminStatementsPage() {
             <Button onClick={handleGenerate} disabled={generating}>
               {generating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               {generating ? "Generating..." : "Generate"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Approve Statement Dialog (shown when email-suppression feature is enabled) */}
+      <Dialog open={approveTarget !== null} onOpenChange={(o) => { if (!o) setApproveTarget(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Approve Statement</DialogTitle>
+          </DialogHeader>
+          {approveTarget && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Approve the {MONTH_NAMES[new Date(approveTarget.periodStart).getUTCMonth()]}{" "}
+                {new Date(approveTarget.periodStart).getUTCFullYear()} statement for{" "}
+                <span className="font-medium text-foreground">
+                  {approveTarget.user.name || approveTarget.user.email}
+                </span>.
+              </p>
+
+              <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+                <div>
+                  <Label htmlFor="approve-send-email" className="cursor-pointer">
+                    Send email notification to client
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {approveSendEmail
+                      ? "The client will receive an email with a link to view the statement."
+                      : "No email will be sent. The statement is still approved and available in the client portal."}
+                  </p>
+                </div>
+                <Switch
+                  id="approve-send-email"
+                  checked={approveSendEmail}
+                  onCheckedChange={setApproveSendEmail}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApproveTarget(null)} disabled={approving}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => approveTarget && handleApprove(approveTarget.id, approveSendEmail)}
+              disabled={approving}
+            >
+              {approving && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
+              {approveSendEmail ? "Approve & Send" : "Approve (No Email)"}
             </Button>
           </DialogFooter>
         </DialogContent>

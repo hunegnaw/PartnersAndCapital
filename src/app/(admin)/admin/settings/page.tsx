@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
@@ -66,6 +67,7 @@ interface Organization {
   termsOfService: string | null
   twoFactorPolicy: string | null
   typography: TypographySettings | null
+  statementEmailSuppressionEnabled?: boolean
 }
 
 export default function AdminSettingsPage() {
@@ -99,6 +101,8 @@ export default function AdminSettingsPage() {
   const [twoFactorPolicy, setTwoFactorPolicy] = useState("")
   // Current admin's own 2FA enrollment state (null while loading).
   const [twoFactorEnabled, setTwoFactorEnabled] = useState<boolean | null>(null)
+  // When on, approving a statement opens a modal with a "send email" toggle.
+  const [statementEmailSuppressionEnabled, setStatementEmailSuppressionEnabled] = useState(true)
   const [typography, setTypography] = useState<TypographySettings>(DEFAULT_TYPOGRAPHY)
   const [logoPickerOpen, setLogoPickerOpen] = useState(false)
   const [logoScrolledPickerOpen, setLogoScrolledPickerOpen] = useState(false)
@@ -155,6 +159,7 @@ export default function AdminSettingsPage() {
         setPrivacyPolicy(data.privacyPolicy || "")
         setTermsOfService(data.termsOfService || "")
         setTwoFactorPolicy(data.twoFactorPolicy || "OPTIONAL")
+        setStatementEmailSuppressionEnabled(data.statementEmailSuppressionEnabled !== false)
         if (data.typography) {
           setTypography({ ...DEFAULT_TYPOGRAPHY, ...data.typography })
         }
@@ -208,6 +213,7 @@ export default function AdminSettingsPage() {
           termsOfService: termsOfService || null,
           twoFactorPolicy: twoFactorPolicy || null,
           typography,
+          statementEmailSuppressionEnabled,
         }),
       })
 
@@ -751,6 +757,35 @@ export default function AdminSettingsPage() {
               ) : (
                 <TwoFactorSetup onComplete={refreshTwoFactorStatus} />
               )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Statements */}
+        <AccordionItem value="statements" className="border rounded-lg px-6">
+          <AccordionTrigger className="py-4">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <span className="text-base font-semibold">Statements</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pb-6 space-y-4">
+            <div className="flex items-start justify-between gap-4 rounded-lg border p-3 max-w-xl">
+              <div>
+                <Label htmlFor="stmt-email-suppression" className="cursor-pointer">
+                  Confirm before sending statement emails
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  When on, approving a statement opens a confirmation dialog with a
+                  toggle to suppress the client email. When off, approving sends the
+                  email immediately (the original one-click behavior).
+                </p>
+              </div>
+              <Switch
+                id="stmt-email-suppression"
+                checked={statementEmailSuppressionEnabled}
+                onCheckedChange={setStatementEmailSuppressionEnabled}
+              />
             </div>
           </AccordionContent>
         </AccordionItem>

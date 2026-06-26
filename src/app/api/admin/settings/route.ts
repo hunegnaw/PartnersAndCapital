@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { requireAdmin, requireSuperAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
+import {
+  SETTING_STATEMENT_EMAIL_SUPPRESSION,
+  getBooleanSetting,
+  setBooleanSetting,
+} from "@/lib/system-settings";
 
 export async function GET() {
   try {
@@ -17,7 +22,12 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json(organization);
+    const statementEmailSuppressionEnabled = await getBooleanSetting(
+      SETTING_STATEMENT_EMAIL_SUPPRESSION,
+      true
+    );
+
+    return NextResponse.json({ ...organization, statementEmailSuppressionEnabled });
   } catch (error) {
     console.error("Error fetching organization:", error);
     return NextResponse.json(
@@ -61,7 +71,15 @@ export async function PATCH(request: Request) {
       twoFactorPolicy,
       typography,
       footer,
+      statementEmailSuppressionEnabled,
     } = body;
+
+    if (statementEmailSuppressionEnabled !== undefined) {
+      await setBooleanSetting(
+        SETTING_STATEMENT_EMAIL_SUPPRESSION,
+        Boolean(statementEmailSuppressionEnabled)
+      );
+    }
 
     const updated = await prisma.organization.update({
       where: { id: organization.id },

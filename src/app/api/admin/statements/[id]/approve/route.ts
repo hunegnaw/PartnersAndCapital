@@ -21,6 +21,11 @@ export async function PATCH(
 
     const { id } = await params;
 
+    // Default to sending the client email unless explicitly suppressed from the
+    // approval modal (sendEmail: false).
+    const body = await request.json().catch(() => ({}));
+    const sendEmailToClient = body?.sendEmail !== false;
+
     const statement = await prisma.statement.findUnique({
       where: { id },
       include: { user: { select: { name: true, email: true } } },
@@ -74,6 +79,13 @@ export async function PATCH(
       message: `Your ${periodLabel} statement is ready to view.`,
       link: "/documents?tab=statements",
     });
+
+    // When the email is suppressed, the statement is still approved and visible
+    // in the client portal (status stays APPROVED) and the in-app notification
+    // above still fires — we simply skip the email and the SENT transition.
+    if (!sendEmailToClient) {
+      return NextResponse.json(updated);
+    }
 
     try {
       await sendEmail({
