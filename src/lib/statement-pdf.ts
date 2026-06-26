@@ -166,6 +166,129 @@ function ensureSpace(doc: PDFKit.PDFDocument, needed: number) {
   }
 }
 
+// Combined portfolio performance chart box (page 1). Shared by the since-inception
+// and YTD charts so both render identically — only the title + data differ.
+async function drawCombinedChartBox(
+  doc: PDFKit.PDFDocument,
+  title: string,
+  rows: StatementData["combinedChartData"]
+) {
+  ensureSpace(doc, 200);
+  const chartData = prepareChartData(rows);
+  const leftMax = Math.max(...rows.map((d) => d.netValue), 1) * 1.1;
+  const rightMax = Math.max(...rows.map((d) => d.cumulativeDistributions), 0) * 1.1;
+  const xLabels = chartData.map((d) => d.label);
+  try {
+    const { svg: svgStr } = renderChartSVG(chartData, 420, 140);
+    const chartPng = await svgToPng(svgStr, 420, 140);
+    const boxY = doc.y;
+    doc.save().roundedRect(MARGIN, boxY, CONTENT_W, 200, 4).fill(LIGHT_BG).restore();
+    doc.font("InterBold").fontSize(7).fillColor(GRAY)
+      .text(title, MARGIN + 12, boxY + 8, { lineBreak: false });
+    const imgX = MARGIN + 52;
+    const imgY = boxY + 24;
+    const imgW = CONTENT_W - 116;
+    const imgH = 140;
+    doc.image(chartPng, imgX, imgY, { width: imgW, height: imgH });
+    drawChartAxes(doc, imgX, imgY + 4, imgW, imgH - 16, leftMax, rightMax, xLabels);
+
+    // Buy-in labels above navy bars
+    const barMax = Math.max(...rows.map((d) => d.monthlyContribution), 1) * 2.5;
+    const chartPlotH = imgH - 16;
+    const n = rows.length;
+    for (let i = 0; i < n; i++) {
+      const contrib = rows[i].monthlyContribution;
+      if (contrib <= 0) continue;
+      const x = imgX + (i / Math.max(n - 1, 1)) * imgW;
+      const barH = (contrib / (barMax * 1.1)) * chartPlotH;
+      const barTopY = imgY + 4 + chartPlotH - barH;
+      doc.font("Inter").fontSize(5).fillColor(NAVY)
+        .text(formatCurrency(contrib), x - 20, barTopY - 8, { width: 40, align: "center", lineBreak: false });
+    }
+
+    doc.y = boxY + 208;
+  } catch {
+    doc.y += 10;
+  }
+}
+
+// Per-investment mini performance chart box. Shared by the since-inception and
+// YTD charts. An optional title is drawn just above the box (used for YTD).
+async function drawMiniChartBox(
+  doc: PDFKit.PDFDocument,
+  rows: StatementInvestmentData["chartData"],
+  title?: string
+) {
+  ensureSpace(doc, title ? 162 : 150);
+  try {
+    const mnths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const miniData = rows.map((d) => {
+      const [y, m] = d.month.split("-");
+      return {
+        month: d.month,
+        label: `${mnths[parseInt(m, 10) - 1]} '${y.slice(2)}`,
+        value: d.value,
+        distributions: d.distributions,
+        monthlyContribution: d.monthlyContribution,
+        monthlyDistribution: d.monthlyDistribution,
+      };
+    });
+    const miniLeftMax = Math.max(...miniData.map((d) => d.value), 1) * 1.1;
+    const miniRightMax = Math.max(...miniData.map((d) => d.distributions), 0) * 1.1;
+    const miniXLabels = miniData.map((d) => d.label);
+    const { svg: miniSvg } = renderMiniChartSVG(miniData, 380, 90);
+    const miniPng = await svgToPng(miniSvg, 380, 90);
+    if (title) {
+      doc.font("InterBold").fontSize(7).fillColor(GRAY)
+        .text(title, MARGIN, doc.y, { lineBreak: false });
+      doc.y += 12;
+    }
+    const miniBoxY = doc.y;
+    doc.save().roundedRect(MARGIN, miniBoxY, CONTENT_W, 140, 4).fill(LIGHT_BG).restore();
+    const mImgX = MARGIN + 52;
+    const mImgY = miniBoxY + 8;
+    const mImgW = CONTENT_W - 116;
+    const mImgH = 100;
+    doc.image(miniPng, mImgX, mImgY, { width: mImgW, height: mImgH });
+    drawChartAxes(doc, mImgX, mImgY + 4, mImgW, mImgH - 18, miniLeftMax, miniRightMax, miniXLabels);
+
+    // Buy-in labels above navy bars
+    const mBarMax = Math.max(...miniData.map((d) => d.monthlyContribution || 0), 1) * 2.5;
+    const mPlotH = mImgH - 18;
+    const mN = miniData.length;
+    for (let i = 0; i < mN; i++) {
+      const mc = miniData[i].monthlyContribution || 0;
+      if (mc <= 0) continue;
+      const mx = mImgX + (i / Math.max(mN - 1, 1)) * mImgW;
+      const mBarH = (mc / (mBarMax * 1.1)) * mPlotH;
+      const mBarTopY = mImgY + 4 + mPlotH - mBarH;
+      doc.font("Inter").fontSize(5).fillColor(NAVY)
+        .text(formatCurrency(mc), mx - 20, mBarTopY - 8, { width: 40, align: "center", lineBreak: false });
+    }
+
+    doc.y = miniBoxY + 146;
+  } catch {
+    doc.y += 4;
+  }
+}
+
+// Compact strip drawn under a YTD chart: capital additions + distributions YTD.
+function drawYtdSummaryStrip(doc: PDFKit.PDFDocument, contributions: number, distributions: number) {
+  ensureSpace(doc, 34);
+  const y = doc.y;
+  const half = CONTENT_W / 2;
+  doc.save().roundedRect(MARGIN, y, CONTENT_W, 28, 4).fill(LIGHT_BG).restore();
+  doc.font("Inter").fontSize(6).fillColor(GRAY)
+    .text("YTD CAPITAL ADDITIONS", MARGIN + 12, y + 6, { lineBreak: false, characterSpacing: 1 });
+  doc.font("InterBold").fontSize(10).fillColor(NAVY)
+    .text(formatCurrency(contributions), MARGIN + 12, y + 14, { lineBreak: false });
+  doc.font("Inter").fontSize(6).fillColor(GRAY)
+    .text("YTD DISTRIBUTIONS", MARGIN + half + 12, y + 6, { lineBreak: false, characterSpacing: 1 });
+  doc.font("InterBold").fontSize(10).fillColor(GOLD)
+    .text(formatCurrency(distributions), MARGIN + half + 12, y + 14, { lineBreak: false });
+  doc.y = y + 34;
+}
+
 function drawTableRow(
   doc: PDFKit.PDFDocument,
   cols: { text: string; width: number; align?: "left" | "right" }[],
@@ -388,47 +511,15 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       }
       doc.y = summaryY + 38;
 
-      // ── COMBINED CHART ──
+      // ── COMBINED CHART (since inception) ──
       if (data.combinedChartData.length >= 1) {
-        ensureSpace(doc, 200);
-        const chartData = prepareChartData(data.combinedChartData);
-        const leftMax = Math.max(...data.combinedChartData.map((d) => d.netValue), 1) * 1.1;
-        const rightMax = Math.max(...data.combinedChartData.map((d) => d.cumulativeDistributions), 0) * 1.1;
-        const xLabels = chartData.map((d) => d.label);
-        try {
-          const { svg: svgStr } = renderChartSVG(chartData, 420, 140);
-          const chartPng = await svgToPng(svgStr, 420, 140);
-          const boxY = doc.y;
-          doc.save()
-            .roundedRect(MARGIN, boxY, CONTENT_W, 200, 4)
-            .fill(LIGHT_BG).restore();
-          doc.font("InterBold").fontSize(7).fillColor(GRAY)
-            .text("PORTFOLIO PERFORMANCE", MARGIN + 12, boxY + 8, { lineBreak: false });
-          const imgX = MARGIN + 52;
-          const imgY = boxY + 24;
-          const imgW = CONTENT_W - 116;
-          const imgH = 140;
-          doc.image(chartPng, imgX, imgY, { width: imgW, height: imgH });
-          drawChartAxes(doc, imgX, imgY + 4, imgW, imgH - 16, leftMax, rightMax, xLabels);
+        await drawCombinedChartBox(doc, "PORTFOLIO PERFORMANCE", data.combinedChartData);
+      }
 
-          // Buy-in labels above navy bars
-          const barMax = Math.max(...data.combinedChartData.map((d) => d.monthlyContribution), 1) * 2.5;
-          const chartPlotH = imgH - 16;
-          const n = data.combinedChartData.length;
-          for (let i = 0; i < n; i++) {
-            const contrib = data.combinedChartData[i].monthlyContribution;
-            if (contrib <= 0) continue;
-            const x = imgX + (i / Math.max(n - 1, 1)) * imgW;
-            const barH = (contrib / (barMax * 1.1)) * chartPlotH;
-            const barTopY = imgY + 4 + chartPlotH - barH;
-            doc.font("Inter").fontSize(5).fillColor(NAVY)
-              .text(formatCurrency(contrib), x - 20, barTopY - 8, { width: 40, align: "center", lineBreak: false });
-          }
-
-          doc.y = boxY + 208;
-        } catch {
-          doc.y += 10;
-        }
+      // ── COMBINED CHART (year to date) ──
+      if (data.combinedChartDataYTD.length >= 1) {
+        await drawCombinedChartBox(doc, "YTD PERFORMANCE", data.combinedChartDataYTD);
+        drawYtdSummaryStrip(doc, data.ytdContributions, data.ytdDistributions);
       }
 
       // ── DONUT CHARTS (Asset Class + Investment Allocation) ──
@@ -562,47 +653,15 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         } catch { /* skip donut */ }
         doc.y = donutY + 58;
 
-        // Mini chart
+        // Mini chart (since inception)
         if (inv.chartData.length >= 1) {
-          ensureSpace(doc, 150);
-          try {
-            const miniData = inv.chartData.map((d) => {
-              const [y, m] = d.month.split("-");
-              const mnths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-              return { month: d.month, label: `${mnths[parseInt(m, 10) - 1]} '${y.slice(2)}`, value: d.value, distributions: d.distributions, monthlyContribution: d.monthlyContribution, monthlyDistribution: d.monthlyDistribution };
-            });
-            const miniLeftMax = Math.max(...miniData.map((d) => d.value), 1) * 1.1;
-            const miniRightMax = Math.max(...miniData.map((d) => d.distributions), 0) * 1.1;
-            const miniXLabels = miniData.map((d) => d.label);
-            const { svg: miniSvg } = renderMiniChartSVG(miniData, 380, 90);
-            const miniPng = await svgToPng(miniSvg, 380, 90);
-            const miniBoxY = doc.y;
-            doc.save().roundedRect(MARGIN, miniBoxY, CONTENT_W, 140, 4).fill(LIGHT_BG).restore();
-            const mImgX = MARGIN + 52;
-            const mImgY = miniBoxY + 8;
-            const mImgW = CONTENT_W - 116;
-            const mImgH = 100;
-            doc.image(miniPng, mImgX, mImgY, { width: mImgW, height: mImgH });
-            drawChartAxes(doc, mImgX, mImgY + 4, mImgW, mImgH - 18, miniLeftMax, miniRightMax, miniXLabels);
+          await drawMiniChartBox(doc, inv.chartData);
+        }
 
-            // Buy-in labels above navy bars
-            const mBarMax = Math.max(...miniData.map((d) => d.monthlyContribution || 0), 1) * 2.5;
-            const mPlotH = mImgH - 18;
-            const mN = miniData.length;
-            for (let i = 0; i < mN; i++) {
-              const mc = miniData[i].monthlyContribution || 0;
-              if (mc <= 0) continue;
-              const mx = mImgX + (i / Math.max(mN - 1, 1)) * mImgW;
-              const mBarH = (mc / (mBarMax * 1.1)) * mPlotH;
-              const mBarTopY = mImgY + 4 + mPlotH - mBarH;
-              doc.font("Inter").fontSize(5).fillColor(NAVY)
-                .text(formatCurrency(mc), mx - 20, mBarTopY - 8, { width: 40, align: "center", lineBreak: false });
-            }
-
-            doc.y = miniBoxY + 146;
-          } catch {
-            doc.y += 4;
-          }
+        // Mini chart (year to date)
+        if (inv.chartDataYTD.length >= 1) {
+          await drawMiniChartBox(doc, inv.chartDataYTD, "YTD PERFORMANCE");
+          drawYtdSummaryStrip(doc, inv.totalDepositsYTD, inv.totalDistributionsYTD);
         }
 
         // Activity tables

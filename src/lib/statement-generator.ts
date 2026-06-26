@@ -32,6 +32,15 @@ export interface StatementInvestmentData {
     monthlyContribution: number;
     monthlyDistribution: number;
   }[];
+  // Same shape as chartData but windowed to the current calendar year
+  // (Jan 1 → statement month). `distributions` resets to 0 on Jan 1 (true YTD).
+  chartDataYTD: {
+    month: string;
+    value: number;
+    distributions: number;
+    monthlyContribution: number;
+    monthlyDistribution: number;
+  }[];
   commentary: string | null;
   commentaryTitle: string | null;
   upcomingDistributions: {
@@ -61,6 +70,17 @@ export interface StatementData {
     monthlyDistribution: number;
     monthlyContribution: number;
   }[];
+  // Combined performance windowed to the current calendar year (Jan 1 → statement
+  // month). `cumulativeDistributions` resets to 0 on Jan 1 (true YTD).
+  combinedChartDataYTD: {
+    month: string;
+    netValue: number;
+    cumulativeDistributions: number;
+    monthlyDistribution: number;
+    monthlyContribution: number;
+  }[];
+  ytdContributions: number;
+  ytdDistributions: number;
   allocation: {
     name: string;
     value: number;
@@ -162,6 +182,12 @@ export async function collectStatementData(
   const investmentsData: StatementInvestmentData[] = [];
 
   const allMonthlyData: Map<
+    string,
+    { netValue: number; cumDist: number; monthDist: number; monthContrib: number }
+  > = new Map();
+
+  // Same aggregation but for the current-year (YTD) window.
+  const allMonthlyDataYTD: Map<
     string,
     { netValue: number; cumDist: number; monthDist: number; monthContrib: number }
   > = new Map();
@@ -336,6 +362,48 @@ export async function collectStatementData(
       cursor.setMonth(cursor.getMonth() + 1);
     }
 
+    // ── YTD series: Jan 1 of the statement year → statement month ──
+    // Same metrics as the since-inception chart, but `distributions` is a
+    // running total reset to 0 on Jan 1 (true year-to-date). `value` stays the
+    // actual position balance each month. Months before this investment existed
+    // simply show $0, keeping the x-axis aligned across investments.
+    const stmtMonthIdx = periodStart.getMonth();
+    const ytdChartData: { month: string; value: number; distributions: number; monthlyContribution: number; monthlyDistribution: number }[] = [];
+    let ytdRunningDist = 0;
+    for (let j = 0; j <= stmtMonthIdx; j++) {
+      const mStart = new Date(periodYear, j, 1);
+      const mEnd = new Date(periodYear, j + 1, 0, 23, 59, 59, 999);
+      const monthKey = `${periodYear}-${String(j + 1).padStart(2, "0")}`;
+
+      let cumContrib = 0;
+      let mContrib = 0;
+      for (const c of allContribs) {
+        if (c.date <= mEnd) cumContrib += Number(c.amount);
+        if (c.date >= mStart && c.date <= mEnd) mContrib += Number(c.amount);
+      }
+      let mDist = 0;
+      for (const d of allDistros) {
+        if (d.date >= mStart && d.date <= mEnd) mDist += Number(d.amount);
+      }
+      ytdRunningDist += mDist;
+
+      const ytdValue = Math.min(cumContrib, invested);
+      ytdChartData.push({
+        month: monthKey,
+        value: ytdValue,
+        distributions: ytdRunningDist,
+        monthlyContribution: mContrib,
+        monthlyDistribution: mDist,
+      });
+
+      const exYtd = allMonthlyDataYTD.get(monthKey) || { netValue: 0, cumDist: 0, monthDist: 0, monthContrib: 0 };
+      exYtd.netValue += ytdValue;
+      exYtd.cumDist += ytdRunningDist;
+      exYtd.monthDist += mDist;
+      exYtd.monthContrib += mContrib;
+      allMonthlyDataYTD.set(monthKey, exYtd);
+    }
+
     const [invCommentary, invUpcoming] = await Promise.all([
       prisma.statementCommentary.findUnique({
         where: { investmentId_month_year: { investmentId: ci.investmentId, month: periodMonth, year: periodYear } },
@@ -360,6 +428,7 @@ export async function collectStatementData(
       totalDepositsYTD: totalDepositsYTD,
       totalDistributionsYTD,
       chartData: miniChartData,
+      chartDataYTD: ytdChartData,
       commentary: invCommentary?.body || null,
       commentaryTitle: invCommentary?.title || null,
       upcomingDistributions: invUpcoming.map((d) => ({
@@ -379,6 +448,19 @@ export async function collectStatementData(
       monthlyDistribution: Math.round(d.monthDist * 100) / 100,
       monthlyContribution: Math.round(d.monthContrib * 100) / 100,
     }));
+
+  const combinedChartDataYTD = Array.from(allMonthlyDataYTD.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, d]) => ({
+      month,
+      netValue: Math.round(d.netValue * 100) / 100,
+      cumulativeDistributions: Math.round(d.cumDist * 100) / 100,
+      monthlyDistribution: Math.round(d.monthDist * 100) / 100,
+      monthlyContribution: Math.round(d.monthContrib * 100) / 100,
+    }));
+
+  const ytdContributions = investmentsData.reduce((s, inv) => s + inv.totalDepositsYTD, 0);
+  const ytdDistributions = investmentsData.reduce((s, inv) => s + inv.totalDistributionsYTD, 0);
 
   const currentValue = totalInvested;
   const totalReturnPct =
@@ -435,6 +517,9 @@ export async function collectStatementData(
     allocation,
     investmentAllocation,
     combinedChartData,
+    combinedChartDataYTD,
+    ytdContributions,
+    ytdDistributions,
     banners: Array.from(uniqueBanners.values()).map((b) => ({
       title: b.title,
       description: b.description,
