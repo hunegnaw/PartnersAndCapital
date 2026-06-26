@@ -1,4 +1,5 @@
 import { getOrganization } from "@/lib/organization";
+import { injectEmailDisclosures } from "@/lib/email-templates";
 
 interface SendEmailParams {
   to: string;
@@ -28,6 +29,9 @@ export async function sendEmail({
   const orgEmail = org?.email || process.env.EMAIL_FROM || "";
   const orgName = org?.name || process.env.EMAIL_FROM_NAME || "Partners + Capital";
 
+  // Inject any "show on emails" disclosures (just above the footer) into every email.
+  const bodyHtml = await injectEmailDisclosures(html);
+
   try {
     const params = new URLSearchParams({
       apikey: apiKey,
@@ -35,7 +39,7 @@ export async function sendEmail({
       fromName: fromName || orgName,
       to,
       subject,
-      bodyHtml: html,
+      bodyHtml,
       isTransactional: "true",
     });
 

@@ -109,7 +109,7 @@ export default function AdminSettingsPage() {
   const [faviconPickerOpen, setFaviconPickerOpen] = useState(false)
 
   // Statement disclosures
-  const [disclosures, setDisclosures] = useState<{ id: string; title: string; body: string; sortOrder: number; isActive: boolean }[]>([])
+  const [disclosures, setDisclosures] = useState<{ id: string; title: string; body: string; sortOrder: number; isActive: boolean; showOnStatements: boolean; showOnEmails: boolean }[]>([])
   const [disclosuresLoading, setDisclosuresLoading] = useState(true)
   const [newDiscTitle, setNewDiscTitle] = useState("")
   const [newDiscBody, setNewDiscBody] = useState("")
@@ -864,12 +864,14 @@ export default function AdminSettingsPage() {
           <AccordionTrigger className="py-4">
             <div className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-muted-foreground" />
-              <span className="text-base font-semibold">Statement Disclosures</span>
+              <span className="text-base font-semibold">Disclosures</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="pb-6 space-y-4">
             <p className="text-sm text-muted-foreground">
-              Disclosures shown at the bottom of client statements. Drag to reorder. Toggle to enable/disable.
+              Reusable disclosures. Use the per-disclosure toggles to show each one on
+              client statements (last page), in every outgoing email (above the footer),
+              or both. The enable/disable button hides a disclosure everywhere.
             </p>
             {disclosuresLoading ? (
               <Skeleton className="h-24" />
@@ -912,6 +914,30 @@ export default function AdminSettingsPage() {
                         rows={2}
                         className="text-sm"
                       />
+                      <div className="flex flex-wrap items-center gap-6 pt-1">
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            id={`disc-stmt-${d.id}`}
+                            checked={d.showOnStatements}
+                            onCheckedChange={(v) => {
+                              setDisclosures(disclosures.map((x) => x.id === d.id ? { ...x, showOnStatements: v } : x))
+                              updateDisclosure(d.id, { showOnStatements: v })
+                            }}
+                          />
+                          <Label htmlFor={`disc-stmt-${d.id}`} className="text-xs cursor-pointer">Show on statements</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            id={`disc-email-${d.id}`}
+                            checked={d.showOnEmails}
+                            onCheckedChange={(v) => {
+                              setDisclosures(disclosures.map((x) => x.id === d.id ? { ...x, showOnEmails: v } : x))
+                              updateDisclosure(d.id, { showOnEmails: v })
+                            }}
+                          />
+                          <Label htmlFor={`disc-email-${d.id}`} className="text-xs cursor-pointer">Show on emails</Label>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}

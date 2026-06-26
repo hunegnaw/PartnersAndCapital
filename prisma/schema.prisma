@@ -1202,13 +1202,16 @@ model StatementBannerPlacement {
 }
 
 model StatementDisclosure {
-  id        String   @id @default(cuid())
-  title     String
-  body      String   @db.Text
-  sortOrder Int      @default(0)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String   @id @default(cuid())
+  title            String
+  body             String   @db.Text
+  sortOrder        Int      @default(0)
+  isActive         Boolean  @default(true)
+  // Where the disclosure is displayed. Existing rows default to statements only.
+  showOnStatements Boolean  @default(true)
+  showOnEmails     Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model StatementCommentary {

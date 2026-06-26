@@ -145,7 +145,7 @@ export async function collectStatementData(
       },
     }),
     prisma.statementDisclosure.findMany({
-      where: { isActive: true },
+      where: { isActive: true, showOnStatements: true },
       orderBy: { sortOrder: "asc" },
     }),
     prisma.clientInvestment.findMany({

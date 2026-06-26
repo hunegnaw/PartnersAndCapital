@@ -783,9 +783,9 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         }
       }
 
-      // ── DISCLOSURES ──
+      // ── DISCLOSURES (own page, last, after everything) ──
       if (data.disclosures.length > 0) {
-        ensureSpace(doc, 80);
+        startNewPage(doc);
         doc.font("Cormorant").fontSize(18).fillColor(NAVY)
           .text("Disclosures", MARGIN, doc.y);
         doc.y += 4;

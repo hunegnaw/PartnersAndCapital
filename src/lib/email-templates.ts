@@ -23,6 +23,58 @@ export async function getEmailLogoUrl(): Promise<string | null> {
   return cachedLogoUrl;
 }
 
+// Placeholder rendered by emailWrapper; replaced with active email disclosures
+// (or removed) by injectEmailDisclosures() at send time.
+const EMAIL_DISCLOSURES_MARKER = "<!--EMAIL_DISCLOSURES-->";
+
+let cachedEmailDisclosures: { title: string; body: string }[] | undefined;
+let emailDisclosuresCacheTime = 0;
+
+async function getEmailDisclosures(): Promise<{ title: string; body: string }[]> {
+  const now = Date.now();
+  if (cachedEmailDisclosures !== undefined && now - emailDisclosuresCacheTime < LOGO_CACHE_TTL) {
+    return cachedEmailDisclosures;
+  }
+  const rows = await prisma.statementDisclosure.findMany({
+    where: { isActive: true, showOnEmails: true },
+    orderBy: { sortOrder: "asc" },
+    select: { title: true, body: true },
+  });
+  cachedEmailDisclosures = rows;
+  emailDisclosuresCacheTime = now;
+  return rows;
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Replaces the disclosures marker in a wrapped email with the active email
+ * disclosures (shown just above the footer), or removes it when there are none.
+ * Called by sendEmail() so EVERY outgoing email picks them up. No-op for any
+ * email body that doesn't contain the marker.
+ */
+export async function injectEmailDisclosures(html: string): Promise<string> {
+  if (!html.includes(EMAIL_DISCLOSURES_MARKER)) return html;
+  const disclosures = await getEmailDisclosures();
+  if (disclosures.length === 0) {
+    return html.split(EMAIL_DISCLOSURES_MARKER).join("");
+  }
+  const inner = disclosures
+    .map(
+      (d) =>
+        `<p style="margin: 0 0 8px 0; font-size: 11px; color: #9a9a9a; line-height: 1.5;"><strong style="color: #7a7a7a;">${escapeHtml(d.title)}</strong> ${escapeHtml(d.body).replace(/\n/g, "<br />")}</p>`
+    )
+    .join("");
+  const row = `<tr><td style="padding: 20px 40px; border-top: 1px solid #e8e5e0;">${inner}</td></tr>`;
+  return html.split(EMAIL_DISCLOSURES_MARKER).join(row);
+}
+
 function emailWrapper(content: string, logoUrl?: string | null): string {
   const headerContent = logoUrl
     ? `<img src="${logoUrl}" alt="Partners + Capital" style="max-height: 32px; width: auto;" />`
@@ -52,6 +104,8 @@ function emailWrapper(content: string, logoUrl?: string | null): string {
               ${content}
             </td>
           </tr>
+          <!-- Disclosures (injected at send time, just above the footer) -->
+          ${EMAIL_DISCLOSURES_MARKER}
           <!-- Footer -->
           <tr>
             <td style="padding: 24px 40px; border-top: 1px solid #e8e5e0; text-align: center;">

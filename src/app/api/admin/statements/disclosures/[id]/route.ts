@@ -20,6 +20,8 @@ export async function PATCH(
         body: body.body,
         isActive: body.isActive,
         sortOrder: body.sortOrder,
+        showOnStatements: body.showOnStatements,
+        showOnEmails: body.showOnEmails,
       },
     });
 
