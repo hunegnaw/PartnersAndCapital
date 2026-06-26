@@ -305,9 +305,9 @@ if [ -z "$NODE_MAJOR" ] || [ "$NODE_MAJOR" -lt 20 ]; then
     exit 1
 fi
 
-# Update current symlink
-ln -sfn "$DEPLOY_DIR" "$CURRENT_LINK"
-echo "Symlink: $CURRENT_LINK -> $DEPLOY_DIR"
+# NOTE: the `current` symlink is intentionally NOT advanced here. It is flipped
+# later, only AFTER migrations succeed, so the release pointer can never get ahead
+# of the database schema (see "advance current symlink" below).
 
 # Clean old releases (keep last 5)
 cd "$RELEASES_DIR" && ls -1dt */ 2>/dev/null | tail -n +6 | xargs rm -rf 2>/dev/null || true
@@ -331,7 +331,7 @@ if [ -f "prisma/schema.prisma" ]; then
     npx prisma generate
 
     echo "Running database migrations..."
-    # Auto-recover from failed migrations
+    # Auto-recover from interrupted/failed migrations (roll back so deploy re-applies).
     MIGRATE_STATUS=$(npx prisma migrate status 2>&1 || true)
     if echo "$MIGRATE_STATUS" | grep -q "failed"; then
         echo "Recovering failed migrations..."
@@ -339,8 +339,38 @@ if [ -f "prisma/schema.prisma" ]; then
             [ -n "$migration" ] && npx prisma migrate resolve --rolled-back "$migration" 2>/dev/null || true
         done
     fi
-    npx prisma migrate deploy
+
+    # Drift guard: a previously-applied migration was edited after the fact. Abort
+    # with actionable guidance instead of failing cryptically / blocking deploys.
+    if echo "$MIGRATE_STATUS" | grep -qiE "modified after it was applied|checksum"; then
+        echo "ERROR: Migration drift detected — a previously-applied migration was modified." >&2
+        echo "       Aborting: the app was NOT restarted and the previous release is still live." >&2
+        echo "       Fix on the server (from $DEPLOY_DIR), then re-run the deploy:" >&2
+        echo "         - restore the affected migration.sql to its originally-applied content, OR" >&2
+        echo "         - capture the change as a NEW migration." >&2
+        echo "       Inspect with: npx prisma migrate status" >&2
+        echo "----- migrate status output -----" >&2
+        echo "$MIGRATE_STATUS" >&2
+        exit 1
+    fi
+
+    # Apply migrations. On failure, abort the whole deploy — no symlink flip, no
+    # restart — so the previous release keeps serving against its own schema.
+    if ! npx prisma migrate deploy; then
+        echo "ERROR: Database migrations FAILED — aborting deploy." >&2
+        echo "       The app was NOT restarted; the previous release is still live and the" >&2
+        echo "       'current' symlink was not advanced." >&2
+        exit 1
+    fi
     echo "Migrations applied"
+
+    # Confirm the schema is actually up to date before seeding / restarting.
+    if ! npx prisma migrate status 2>&1 | grep -qi "up to date"; then
+        echo "ERROR: Post-migration check did not confirm the schema is up to date —" >&2
+        echo "       aborting before restart. Run 'npx prisma migrate status' to investigate." >&2
+        exit 1
+    fi
+    echo "Schema verified up to date"
 
     # Run seed (idempotent — uses upserts, safe to run every deploy)
     echo "Running database seed..."
@@ -354,6 +384,12 @@ npm prune --production 2>/dev/null || true
 
 # Create logs dir for PM2
 mkdir -p "$DEPLOY_DIR/logs"
+
+# Advance current symlink — only now, after migrations succeeded and the schema
+# was verified, so the release pointer never gets ahead of the database. PM2
+# below launches whatever `current` points to.
+ln -sfn "$DEPLOY_DIR" "$CURRENT_LINK"
+echo "Symlink: $CURRENT_LINK -> $DEPLOY_DIR"
 
 # Determine app name and restart with PM2
 APP_NAME="partnersandcapital-production"
