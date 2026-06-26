@@ -88,6 +88,34 @@ function formatActivityDate(d: Date): string {
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
 }
 
+// Disclosure bodies are rich text (HTML) from the editor. pdfkit can't render
+// HTML, so convert to clean structured plain text: list items become bullet
+// lines, block tags become paragraph breaks, remaining tags are stripped, and
+// common entities are decoded. (Inline bold/italic is not styled in the PDF.)
+function htmlToPlainText(html: string): string {
+  if (!html) return "";
+  let s = html;
+  s = s.replace(/<li[^>]*>/gi, "\n•  ").replace(/<\/li>/gi, "");
+  s = s.replace(/<br\s*\/?>/gi, "\n");
+  s = s.replace(/<\/(p|div|h[1-6]|blockquote|ul|ol|tr)>/gi, "\n");
+  s = s.replace(/<[^>]+>/g, "");
+  s = s
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&rsquo;/gi, "’")
+    .replace(/&lsquo;/gi, "‘")
+    .replace(/&ldquo;/gi, "“")
+    .replace(/&rdquo;/gi, "”")
+    .replace(/&mdash;/gi, "—")
+    .replace(/&ndash;/gi, "–");
+  s = s.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  return s;
+}
+
 async function svgToPng(svg: string, width: number, height: number): Promise<Buffer> {
   const svgBuf = Buffer.from(svg);
   return sharp(svgBuf).resize(width * 2, height * 2).png().toBuffer();
@@ -794,12 +822,12 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         doc.y += 10;
 
         for (const d of data.disclosures) {
+          // The title is an internal label only — not rendered. Body is rich text.
+          const text = htmlToPlainText(d.body);
+          if (!text) continue;
           ensureSpace(doc, 40);
-          doc.font("InterBold").fontSize(9).fillColor("#333333")
-            .text(d.title, MARGIN, doc.y, { width: CONTENT_W });
-          doc.moveDown(0.2);
           doc.font("Inter").fontSize(8).fillColor(GRAY)
-            .text(d.body, MARGIN, doc.y, { width: CONTENT_W, lineGap: 2 });
+            .text(text, MARGIN, doc.y, { width: CONTENT_W, lineGap: 2 });
           doc.moveDown(0.6);
         }
       }

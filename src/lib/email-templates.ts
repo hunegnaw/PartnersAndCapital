@@ -27,10 +27,10 @@ export async function getEmailLogoUrl(): Promise<string | null> {
 // (or removed) by injectEmailDisclosures() at send time.
 const EMAIL_DISCLOSURES_MARKER = "<!--EMAIL_DISCLOSURES-->";
 
-let cachedEmailDisclosures: { title: string; body: string }[] | undefined;
+let cachedEmailDisclosures: { body: string }[] | undefined;
 let emailDisclosuresCacheTime = 0;
 
-async function getEmailDisclosures(): Promise<{ title: string; body: string }[]> {
+async function getEmailDisclosures(): Promise<{ body: string }[]> {
   const now = Date.now();
   if (cachedEmailDisclosures !== undefined && now - emailDisclosuresCacheTime < LOGO_CACHE_TTL) {
     return cachedEmailDisclosures;
@@ -38,26 +38,20 @@ async function getEmailDisclosures(): Promise<{ title: string; body: string }[]>
   const rows = await prisma.statementDisclosure.findMany({
     where: { isActive: true, showOnEmails: true },
     orderBy: { sortOrder: "asc" },
-    select: { title: true, body: true },
+    select: { body: true },
   });
   cachedEmailDisclosures = rows;
   emailDisclosuresCacheTime = now;
   return rows;
 }
 
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 /**
  * Replaces the disclosures marker in a wrapped email with the active email
  * disclosures (shown just above the footer), or removes it when there are none.
  * Called by sendEmail() so EVERY outgoing email picks them up. No-op for any
- * email body that doesn't contain the marker.
+ * email body that doesn't contain the marker. The disclosure title is internal
+ * only and is never rendered; the body is rich text (HTML from the editor) and
+ * is emitted as-is, wrapped in fine-print styling that its block tags inherit.
  */
 export async function injectEmailDisclosures(html: string): Promise<string> {
   if (!html.includes(EMAIL_DISCLOSURES_MARKER)) return html;
@@ -68,7 +62,7 @@ export async function injectEmailDisclosures(html: string): Promise<string> {
   const inner = disclosures
     .map(
       (d) =>
-        `<p style="margin: 0 0 8px 0; font-size: 11px; color: #9a9a9a; line-height: 1.5;"><strong style="color: #7a7a7a;">${escapeHtml(d.title)}</strong> ${escapeHtml(d.body).replace(/\n/g, "<br />")}</p>`
+        `<div style="margin: 0 0 8px 0; font-size: 11px; color: #9a9a9a; line-height: 1.5;">${d.body}</div>`
     )
     .join("");
   const row = `<tr><td style="padding: 20px 40px; border-top: 1px solid #e8e5e0;">${inner}</td></tr>`;

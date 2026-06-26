@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Accordion,
@@ -47,6 +47,7 @@ import {
 import { ColorPicker } from "@/components/admin/color-picker"
 import { TwoFactorSetup } from "@/components/settings/two-factor-setup"
 import { TwoFactorManage } from "@/components/settings/two-factor-manage"
+import { RichTextEditor } from "@/components/admin/rich-text-editor"
 
 interface Organization {
   id: string
@@ -113,6 +114,10 @@ export default function AdminSettingsPage() {
   const [disclosuresLoading, setDisclosuresLoading] = useState(true)
   const [newDiscTitle, setNewDiscTitle] = useState("")
   const [newDiscBody, setNewDiscBody] = useState("")
+  // Remount key to clear the add-disclosure editor after a successful add.
+  const [newDiscEditorKey, setNewDiscEditorKey] = useState(0)
+  // Per-disclosure debounce timers for auto-saving the rich-text body.
+  const discSaveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
   // Re-read the admin's 2FA enrollment state after enrolling/regenerating.
   const refreshTwoFactorStatus = useCallback(async () => {
@@ -285,7 +290,7 @@ export default function AdminSettingsPage() {
   }
 
   async function addDisclosure() {
-    if (!newDiscTitle || !newDiscBody) return
+    if (!newDiscTitle) return
     try {
       const res = await fetch("/api/admin/statements/disclosures", {
         method: "POST",
@@ -294,9 +299,10 @@ export default function AdminSettingsPage() {
       })
       if (res.ok) {
         const d = await res.json()
-        setDisclosures([...disclosures, d])
+        setDisclosures((prev) => [...prev, d])
         setNewDiscTitle("")
         setNewDiscBody("")
+        setNewDiscEditorKey((k) => k + 1) // clear the editor
       }
     } catch {}
   }
@@ -310,9 +316,16 @@ export default function AdminSettingsPage() {
       })
       if (res.ok) {
         const updated = await res.json()
-        setDisclosures(disclosures.map((d) => (d.id === id ? { ...d, ...updated } : d)))
+        setDisclosures((prev) => prev.map((d) => (d.id === id ? { ...d, ...updated } : d)))
       }
     } catch {}
+  }
+
+  // Update the body locally on each keystroke; debounce the save to the server.
+  function handleDiscBodyChange(id: string, html: string) {
+    setDisclosures((prev) => prev.map((x) => (x.id === id ? { ...x, body: html } : x)))
+    if (discSaveTimers.current[id]) clearTimeout(discSaveTimers.current[id])
+    discSaveTimers.current[id] = setTimeout(() => updateDisclosure(id, { body: html }), 800)
   }
 
   async function deleteDisclosure(id: string) {
@@ -881,12 +894,18 @@ export default function AdminSettingsPage() {
                   <Card key={d.id} className={d.isActive ? "" : "opacity-50"}>
                     <CardContent className="p-4 space-y-2">
                       <div className="flex items-start justify-between gap-2">
-                        <Input
-                          value={d.title}
-                          onChange={(e) => setDisclosures(disclosures.map((x) => x.id === d.id ? { ...x, title: e.target.value } : x))}
-                          onBlur={() => updateDisclosure(d.id, { title: d.title })}
-                          className="font-semibold text-sm"
-                        />
+                        <div className="flex-1 space-y-1">
+                          <Input
+                            value={d.title}
+                            onChange={(e) => setDisclosures(disclosures.map((x) => x.id === d.id ? { ...x, title: e.target.value } : x))}
+                            onBlur={() => updateDisclosure(d.id, { title: d.title })}
+                            placeholder="Internal label"
+                            className="font-semibold text-sm"
+                          />
+                          <p className="text-[11px] text-muted-foreground">
+                            Internal label only — not shown on statements or emails.
+                          </p>
+                        </div>
                         <div className="flex items-center gap-1 shrink-0">
                           <Button
                             type="button"
@@ -907,12 +926,9 @@ export default function AdminSettingsPage() {
                           </Button>
                         </div>
                       </div>
-                      <Textarea
-                        value={d.body}
-                        onChange={(e) => setDisclosures(disclosures.map((x) => x.id === d.id ? { ...x, body: e.target.value } : x))}
-                        onBlur={() => updateDisclosure(d.id, { body: d.body })}
-                        rows={2}
-                        className="text-sm"
+                      <RichTextEditor
+                        content={d.body}
+                        onChange={(html) => handleDiscBodyChange(d.id, html)}
                       />
                       <div className="flex flex-wrap items-center gap-6 pt-1">
                         <div className="flex items-center gap-2">
@@ -947,15 +963,14 @@ export default function AdminSettingsPage() {
                     <Input
                       value={newDiscTitle}
                       onChange={(e) => setNewDiscTitle(e.target.value)}
-                      placeholder="Disclosure title..."
+                      placeholder="Internal label (not shown to clients)"
                     />
-                    <Textarea
-                      value={newDiscBody}
-                      onChange={(e) => setNewDiscBody(e.target.value)}
-                      placeholder="Disclosure text..."
-                      rows={2}
+                    <RichTextEditor
+                      key={newDiscEditorKey}
+                      content={newDiscBody}
+                      onChange={setNewDiscBody}
                     />
-                    <Button type="button" variant="outline" size="sm" onClick={addDisclosure} disabled={!newDiscTitle || !newDiscBody}>
+                    <Button type="button" variant="outline" size="sm" onClick={addDisclosure} disabled={!newDiscTitle}>
                       Add Disclosure
                     </Button>
                   </CardContent>
