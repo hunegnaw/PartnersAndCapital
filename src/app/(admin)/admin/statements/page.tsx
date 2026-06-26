@@ -22,6 +22,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { statementYearOptions } from "@/lib/utils"
 import {
   AlertCircle,
   Loader2,
@@ -489,7 +490,7 @@ export default function AdminStatementsPage() {
                 <Select value={String(genYear)} onValueChange={(v) => v && setGenYear(parseInt(v, 10))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {[2024, 2025, 2026, 2027].map((y) => (
+                    {statementYearOptions().map((y) => (
                       <SelectItem key={y} value={String(y)}>{y}</SelectItem>
                     ))}
                   </SelectContent>

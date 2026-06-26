@@ -119,3 +119,17 @@ export function formatDateLong(date: Date | string): string {
     timeZone: TZ,
   }).format(d);
 }
+
+/**
+ * Year options for statement pickers: from next year back to 2010, descending
+ * (most recent first). Lets admins generate and manage statements for historical
+ * periods, not just the last couple of years.
+ */
+export const STATEMENT_START_YEAR = 2010;
+
+export function statementYearOptions(): number[] {
+  const end = new Date().getFullYear() + 1;
+  const years: number[] = [];
+  for (let y = end; y >= STATEMENT_START_YEAR; y--) years.push(y);
+  return years;
+}

@@ -35,7 +35,7 @@ import {
   X,
   Plus,
 } from "lucide-react"
-import { formatCurrency, formatDateOnly } from "@/lib/utils"
+import { formatCurrency, formatDateOnly, statementYearOptions } from "@/lib/utils"
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -243,7 +243,7 @@ export function ClientStatementsTab({ clientId, clientName }: { clientId: string
                 <Select value={String(genYear)} onValueChange={(v) => v && setGenYear(parseInt(v, 10))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {[2024, 2025, 2026, 2027].map((y) => (
+                    {statementYearOptions().map((y) => (
                       <SelectItem key={y} value={String(y)}>{y}</SelectItem>
                     ))}
                   </SelectContent>

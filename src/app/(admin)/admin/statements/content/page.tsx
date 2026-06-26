@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog"
 import { ArrowLeft, Plus, Trash2, Loader2, Pencil } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { statementYearOptions } from "@/lib/utils"
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -190,7 +191,7 @@ export default function StatementContentPage() {
           <Select value={String(year)} onValueChange={(v) => v && setYear(parseInt(v, 10))}>
             <SelectTrigger className="w-[90px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {[2024, 2025, 2026, 2027].map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+              {statementYearOptions().map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
