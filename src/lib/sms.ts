@@ -9,19 +9,27 @@ const client =
 
 export async function sendSMS(to: string, body: string): Promise<boolean> {
   if (!client || !fromNumber) {
-    console.log(`[SMS STUB] To: ${to} | Body: ${body}`);
+    // Twilio not configured → no real SMS is sent. Logged as a WARNING (not a
+    // plain console.log) so it shows up even when only checking the error stream.
+    const missing = [
+      !accountSid && "TWILIO_ACCOUNT_SID",
+      !authToken && "TWILIO_AUTH_TOKEN",
+      !fromNumber && "TWILIO_PHONE_NUMBER",
+    ]
+      .filter(Boolean)
+      .join(", ");
+    console.warn(
+      `[SMS] STUB — not sent (Twilio not configured; missing: ${missing || "client"}). To=${to}`
+    );
     return true;
   }
 
   try {
-    await client.messages.create({
-      body,
-      from: fromNumber,
-      to,
-    });
+    const message = await client.messages.create({ body, from: fromNumber, to });
+    console.info(`[SMS] sent to ${to} sid=${message.sid} status=${message.status}`);
     return true;
   } catch (error) {
-    console.error("[SMS] Failed to send:", error);
+    console.error("[SMS] Failed to send to", to, "-", error);
     return false;
   }
 }

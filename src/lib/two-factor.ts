@@ -49,8 +49,10 @@ export async function issueSmsCode(userId: string): Promise<string | null> {
       where: { userId },
       data: { smsCodeHash, smsCodeExpiresAt },
     });
-  } catch {
-    // No TwoFactorSecret row (setup not initiated) — cannot issue.
+  } catch (error) {
+    // No TwoFactorSecret row (setup not initiated), or the DB write failed —
+    // log it instead of failing silently so this isn't invisible in prod.
+    console.error(`[2FA] issueSmsCode: failed to store code for user ${userId}:`, error);
     return null;
   }
   return code;
@@ -89,6 +91,7 @@ export async function sendTwoFactorCode(userId: string): Promise<boolean> {
     where: { userId },
   });
   if (!twoFactorSecret) {
+    console.error(`[2FA] sendTwoFactorCode: no TwoFactorSecret for user ${userId}`);
     return false;
   }
 
@@ -97,6 +100,7 @@ export async function sendTwoFactorCode(userId: string): Promise<boolean> {
     select: { phone: true },
   });
   if (!user?.phone) {
+    console.error(`[2FA] sendTwoFactorCode: no phone on file for user ${userId}`);
     return false;
   }
 
