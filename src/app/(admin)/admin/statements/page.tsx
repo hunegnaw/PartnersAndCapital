@@ -36,6 +36,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Trash2,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -73,12 +76,50 @@ function formatCurrency(n: number): string {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(n)
 }
 
+// Clickable, sortable column header (matches the distributions table pattern).
+function SortHead({
+  label,
+  sortKey,
+  sortBy,
+  sortDir,
+  onSort,
+  align = "left",
+}: {
+  label: string
+  sortKey: string
+  sortBy: string
+  sortDir: "asc" | "desc"
+  onSort: (key: string, dir: "asc" | "desc") => void
+  align?: "left" | "right"
+}) {
+  const active = sortBy === sortKey
+  return (
+    <th className={`p-3 text-xs font-medium text-muted-foreground uppercase ${align === "right" ? "text-right" : "text-left"}`}>
+      <button
+        type="button"
+        className={`inline-flex items-center gap-1 uppercase hover:text-foreground transition-colors ${align === "right" ? "flex-row-reverse" : ""}`}
+        onClick={() => onSort(sortKey, active ? (sortDir === "asc" ? "desc" : "asc") : "asc")}
+      >
+        {label}
+        {active ? (
+          sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-30" />
+        )}
+      </button>
+    </th>
+  )
+}
+
 export default function AdminStatementsPage() {
   const [statements, setStatements] = useState<StatementRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
+  const [sortBy, setSortBy] = useState("period")
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
   const [statusFilter, setStatusFilter] = useState<string>("ALL")
   const [statusCounts, setStatusCounts] = useState<Record<string, number>>({})
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -99,12 +140,12 @@ export default function AdminStatementsPage() {
   const [approveSendEmail, setApproveSendEmail] = useState(true)
   const [approving, setApproving] = useState(false)
 
-  const limit = 50
-
   const fetchStatements = useCallback(async () => {
     try {
-      const params = new URLSearchParams({ page: String(page), limit: String(limit) })
+      const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) })
       if (statusFilter !== "ALL") params.set("status", statusFilter)
+      params.set("sortBy", sortBy)
+      params.set("sortDir", sortDir)
       const res = await fetch(`/api/admin/statements?${params}`)
       if (!res.ok) throw new Error("Failed to fetch statements")
       const data = await res.json()
@@ -116,7 +157,7 @@ export default function AdminStatementsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, statusFilter])
+  }, [page, pageSize, statusFilter, sortBy, sortDir])
 
   useEffect(() => {
     Promise.resolve().then(fetchStatements)
@@ -302,7 +343,7 @@ export default function AdminStatementsPage() {
       c.email.toLowerCase().includes(clientSearch.toLowerCase())
   )
 
-  const totalPages = Math.ceil(total / limit)
+  const totalPages = Math.ceil(total / pageSize)
 
   if (loading) {
     return (
@@ -398,12 +439,12 @@ export default function AdminStatementsPage() {
                     onChange={toggleAll}
                   />
                 </th>
-                <th className="p-3 text-left text-xs font-medium text-muted-foreground uppercase">Client</th>
-                <th className="p-3 text-left text-xs font-medium text-muted-foreground uppercase">Period</th>
-                <th className="p-3 text-right text-xs font-medium text-muted-foreground uppercase">Total Invested</th>
-                <th className="p-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
-                <th className="p-3 text-left text-xs font-medium text-muted-foreground uppercase">Generated</th>
-                <th className="p-3 text-left text-xs font-medium text-muted-foreground uppercase">Approved By</th>
+                <SortHead label="Client" sortKey="client" sortBy={sortBy} sortDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
+                <SortHead label="Period" sortKey="period" sortBy={sortBy} sortDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
+                <SortHead label="Total Invested" sortKey="totalInvested" sortBy={sortBy} sortDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} align="right" />
+                <SortHead label="Status" sortKey="status" sortBy={sortBy} sortDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
+                <SortHead label="Generated" sortKey="generated" sortBy={sortBy} sortDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
+                <SortHead label="Approved By" sortKey="approver" sortBy={sortBy} sortDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
                 <th className="p-3 text-right text-xs font-medium text-muted-foreground uppercase">Actions</th>
               </tr>
             </thead>
@@ -484,18 +525,39 @@ export default function AdminStatementsPage() {
       </Card>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
+      {total > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="text-sm text-muted-foreground">
-            Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}
+            Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total}
           </span>
-          <div className="flex items-center gap-1">
-            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(page + 1)}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Per page</span>
+              <Select
+                value={String(pageSize)}
+                onValueChange={(v) => { if (v) { setPageSize(parseInt(v, 10)); setPage(1) } }}
+              >
+                <SelectTrigger className="h-8 w-[80px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[25, 50, 100].map((n) => (
+                    <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm text-muted-foreground px-1">
+                {page} / {totalPages || 1}
+              </span>
+              <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       )}

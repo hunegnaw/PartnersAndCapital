@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
@@ -13,7 +14,32 @@ export async function GET(request: Request) {
     const year = searchParams.get("year");
     const clientId = searchParams.get("clientId");
     const page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = parseInt(searchParams.get("limit") || "50", 10);
+    const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") || "50", 10)));
+    const sortBy = searchParams.get("sortBy") || "period";
+    const sortDir = searchParams.get("sortDir") === "asc" ? "asc" : "desc";
+
+    let orderBy: Prisma.StatementOrderByWithRelationInput | Prisma.StatementOrderByWithRelationInput[];
+    switch (sortBy) {
+      case "client":
+        orderBy = [{ user: { name: sortDir } }, { user: { email: sortDir } }];
+        break;
+      case "totalInvested":
+        orderBy = { totalInvested: sortDir };
+        break;
+      case "status":
+        orderBy = { status: sortDir };
+        break;
+      case "generated":
+        orderBy = { generatedAt: sortDir };
+        break;
+      case "approver":
+        orderBy = { approver: { name: sortDir } };
+        break;
+      case "period":
+      default:
+        orderBy = [{ periodStart: sortDir }, { createdAt: "desc" }];
+        break;
+    }
 
     const where: Record<string, unknown> = { deletedAt: null };
 
@@ -35,9 +61,9 @@ export async function GET(request: Request) {
           user: { select: { id: true, name: true, email: true } },
           approver: { select: { id: true, name: true } },
         },
-        orderBy: [{ periodStart: "desc" }, { createdAt: "desc" }],
-        skip: (page - 1) * limit,
-        take: limit,
+        orderBy,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
       }),
       prisma.statement.count({ where }),
     ]);
@@ -62,7 +88,7 @@ export async function GET(request: Request) {
       })),
       total,
       page,
-      limit,
+      pageSize,
       statusCounts,
     });
   } catch (error) {

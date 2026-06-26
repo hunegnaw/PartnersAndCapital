@@ -1,0 +1,38 @@
+47:  ArrowUp,
+49:  ArrowUpDown,
+121:function SortHead({
+123:  sortKey,
+124:  currentSort,
+126:  onSort,
+130:  sortKey: string
+131:  currentSort: string
+133:  onSort: (key: string, dir: "asc" | "desc") => void
+136:  const active = currentSort === sortKey
+142:        onClick={() => {
+144:            onSort(sortKey, currentDir === "asc" ? "desc" : "asc")
+146:            onSort(sortKey, "asc")
+152:          currentDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+154:          <ArrowUpDown className="h-3 w-3 opacity-30" />
+181:  // Sort state
+182:  const [sortBy, setSortBy] = useState("date")
+183:  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
+222:      params.set("sortBy", sortBy)
+223:      params.set("sortDir", sortDir)
+236:  }, [page, pageSize, search, typeFilter, investmentFilter, showDeleted, sortBy, sortDir])
+349:            <Button variant="destructive" size="sm" onClick={() => setBulkDeleteOpen(true)}>
+354:          <Button variant="outline" onClick={() => { setBulkInvestmentId(""); setBulkSelectOpen(true) }}>
+358:          <Button onClick={openDialog}>
+461:                <SortHead label="Date" sortKey="date" currentSort={sortBy} currentDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
+462:                <SortHead label="Client" sortKey="client" currentSort={sortBy} currentDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
+463:                <SortHead label="Investment" sortKey="investment" currentSort={sortBy} currentDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
+464:                <SortHead label="Amount" sortKey="amount" currentSort={sortBy} currentDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} className="text-right" />
+465:                <SortHead label="Type" sortKey="type" currentSort={sortBy} currentDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
+467:                <SortHead label="Status" sortKey="status" currentSort={sortBy} currentDir={sortDir} onSort={(k, d) => { setSortBy(k); setSortDir(d); setPage(1) }} />
+543:                        onClick={() => {
+604:            <Button variant="outline" onClick={() => setBulkSelectOpen(false)}>
+609:              onClick={() => {
+638:            <Button variant="outline" onClick={() => setBulkDeleteOpen(false)} disabled={bulkDeleting}>
+644:              onClick={async () => {
+704:                        onClick={() => selectClientInvestment(ci)}
+726:                  onClick={() => setDialogOpen(false)}
+805:                  onClick={() => setDialogStep(1)}
