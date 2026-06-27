@@ -21,7 +21,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { AlertCircle, CheckCircle, UserPlus } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { AlertCircle, CheckCircle, UserPlus, Plus, Pencil, Trash2, RotateCcw, Loader2 } from "lucide-react"
 import { PaginationControls } from "@/components/ui/pagination-controls"
 import { formatDate } from "@/lib/utils"
 
@@ -44,6 +55,19 @@ export default function AdminAccessRequestsPage() {
   const [statusFilter, setStatusFilter] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Create/edit modal + delete confirm
+  const [formOpen, setFormOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<AccessRequest | null>(null)
+  const [fName, setFName] = useState("")
+  const [fEmail, setFEmail] = useState("")
+  const [fPhone, setFPhone] = useState("")
+  const [fSms, setFSms] = useState(false)
+  const [fStatus, setFStatus] = useState("PENDING")
+  const [saving, setSaving] = useState(false)
+  const [formError, setFormError] = useState("")
+  const [deleteTarget, setDeleteTarget] = useState<AccessRequest | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const fetchRequests = useCallback(async () => {
     setLoading(true)
@@ -71,17 +95,81 @@ export default function AdminAccessRequestsPage() {
     Promise.resolve().then(() => fetchRequests())
   }, [fetchRequests])
 
-  const handleMarkReviewed = async (id: string) => {
+  const handleSetStatus = async (id: string, status: string) => {
     try {
-      const res = await fetch("/api/admin/access-requests", {
+      const res = await fetch(`/api/admin/access-requests/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status: "REVIEWED" }),
+        body: JSON.stringify({ status }),
       })
       if (!res.ok) throw new Error("Failed to update")
       fetchRequests()
     } catch {
-      // ignore
+      setError("Failed to update status")
+    }
+  }
+
+  const openCreate = () => {
+    setEditTarget(null)
+    setFName(""); setFEmail(""); setFPhone(""); setFSms(false); setFStatus("PENDING")
+    setFormError("")
+    setFormOpen(true)
+  }
+
+  const openEdit = (r: AccessRequest) => {
+    setEditTarget(r)
+    setFName(r.name); setFEmail(r.email); setFPhone(r.phone || ""); setFSms(r.smsConsent); setFStatus(r.status)
+    setFormError("")
+    setFormOpen(true)
+  }
+
+  const handleSave = async () => {
+    if (!fName.trim() || !fEmail.trim()) {
+      setFormError("Name and email are required")
+      return
+    }
+    setSaving(true)
+    setFormError("")
+    try {
+      const url = editTarget
+        ? `/api/admin/access-requests/${editTarget.id}`
+        : "/api/admin/access-requests"
+      const res = await fetch(url, {
+        method: editTarget ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: fName.trim(),
+          email: fEmail.trim(),
+          phone: fPhone.trim() || null,
+          smsConsent: fSms,
+          status: fStatus,
+        }),
+      })
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}))
+        throw new Error(d.error || "Failed to save")
+      }
+      setFormOpen(false)
+      fetchRequests()
+    } catch (e) {
+      setFormError(e instanceof Error ? e.message : "Failed to save")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/admin/access-requests/${deleteTarget.id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Failed to delete")
+      setDeleteTarget(null)
+      fetchRequests()
+    } catch {
+      setError("Failed to delete request")
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -96,6 +184,10 @@ export default function AdminAccessRequestsPage() {
             Review access requests submitted from the login page
           </p>
         </div>
+        <Button onClick={openCreate}>
+          <Plus className="h-4 w-4" />
+          New Request
+        </Button>
       </div>
 
       {error && (
@@ -192,16 +284,25 @@ export default function AdminAccessRequestsPage() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">{formatDate(req.createdAt)}</TableCell>
                     <TableCell className="text-right">
-                      {req.status === "PENDING" && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleMarkReviewed(req.id)}
-                        >
-                          <CheckCircle className="h-3.5 w-3.5" />
-                          Mark Reviewed
+                      <div className="flex items-center justify-end gap-1">
+                        {req.status === "PENDING" ? (
+                          <Button variant="ghost" size="sm" onClick={() => handleSetStatus(req.id, "REVIEWED")} title="Mark as reviewed">
+                            <CheckCircle className="h-3.5 w-3.5" />
+                            <span className="hidden lg:inline">Mark Reviewed</span>
+                          </Button>
+                        ) : (
+                          <Button variant="ghost" size="sm" onClick={() => handleSetStatus(req.id, "PENDING")} title="Mark as pending">
+                            <RotateCcw className="h-3.5 w-3.5" />
+                            <span className="hidden lg:inline">Mark Pending</span>
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="sm" onClick={() => openEdit(req)} title="Edit">
+                          <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                      )}
+                        <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(req)} title="Delete">
+                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -219,6 +320,84 @@ export default function AdminAccessRequestsPage() {
         pageSize={pageSize}
         onPageChange={setPage}
       />
+
+      {/* Create / Edit dialog */}
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editTarget ? "Edit Access Request" : "New Access Request"}</DialogTitle>
+            <DialogDescription>
+              {editTarget
+                ? "Update this access request."
+                : "Manually log an access request (e.g. one received by phone or email)."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {formError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{formError}</AlertDescription>
+              </Alert>
+            )}
+            <div className="space-y-1.5">
+              <Label htmlFor="ar-name">Name</Label>
+              <Input id="ar-name" value={fName} onChange={(e) => setFName(e.target.value)} placeholder="Full name" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="ar-email">Email</Label>
+              <Input id="ar-email" type="email" value={fEmail} onChange={(e) => setFEmail(e.target.value)} placeholder="name@example.com" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="ar-phone">Phone (optional)</Label>
+              <Input id="ar-phone" type="tel" value={fPhone} onChange={(e) => setFPhone(e.target.value)} placeholder="+1 (555) 123-4567" />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <Label htmlFor="ar-sms" className="cursor-pointer">SMS opt-in</Label>
+              <Switch id="ar-sms" checked={fSms} onCheckedChange={setFSms} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Status</Label>
+              <Select value={fStatus} onValueChange={(v) => v && setFStatus(v)}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="REVIEWED">Reviewed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFormOpen(false)} disabled={saving}>Cancel</Button>
+            <Button onClick={handleSave} disabled={saving || !fName.trim() || !fEmail.trim()}>
+              {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+              {editTarget ? "Save Changes" : "Create Request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirm */}
+      <Dialog open={deleteTarget !== null} onOpenChange={(o) => { if (!o) setDeleteTarget(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Access Request</DialogTitle>
+            <DialogDescription>
+              Permanently delete the access request from{" "}
+              <span className="font-medium text-foreground">{deleteTarget?.name}</span>{" "}
+              ({deleteTarget?.email})? This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+              {deleting && <Loader2 className="h-4 w-4 animate-spin" />}
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

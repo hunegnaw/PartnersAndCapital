@@ -1594,9 +1594,14 @@ Navigate to **Manage > Access Requests** in the admin sidebar. The page shows:
 
 - **Table columns:** Name, Email, Phone, SMS (Opted In badge or --), Status (PENDING/REVIEWED), Date, Actions
 - **Filter:** Filter by status (All/Pending/Reviewed)
-- **Mark Reviewed:** Click "Mark Reviewed" on any pending request to update its status
+- **Full CRUD:**
+  - **Create:** "New Request" button opens a dialog to manually log a request (name, email, phone, SMS opt-in, status) — e.g. one received by phone or email.
+  - **Update:** Per-row **Edit** opens the same dialog to change any field; a one-click status toggle switches **Mark Reviewed ⇄ Mark Pending** (reviewed rows are no longer dead-ends).
+  - **Delete:** Per-row trash icon with a confirm dialog.
+- **Filter:** Filter by status (All/Pending/Reviewed)
 - **Pagination:** Standard pagination for large lists
 - **Sidebar badge:** Shows the count of pending requests in the admin sidebar
+- All create/update/delete actions are audit-logged.
 
 ### Login Page Redesign
 
@@ -1610,7 +1615,8 @@ The login page uses a split-panel layout:
 | Route | Methods | Auth | Rate Limit |
 |-------|---------|------|------------|
 | `/api/access-requests` | POST | Public | 3/hour per IP |
-| `/api/admin/access-requests` | GET, PATCH | Admin | -- |
+| `/api/admin/access-requests` | GET, POST | Admin | -- |
+| `/api/admin/access-requests/[id]` | PATCH, DELETE | Admin | -- |
 
 ### Email Notification
 

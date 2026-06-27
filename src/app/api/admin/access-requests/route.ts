@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { createAuditLog } from "@/lib/audit";
 
 export async function GET(request: Request) {
   try {
@@ -40,35 +41,42 @@ export async function GET(request: Request) {
   }
 }
 
-export async function PATCH(request: Request) {
+// Create an access request manually (e.g. a request received by phone/email).
+export async function POST(request: Request) {
   try {
     const user = await requireAdmin();
     if (user instanceof NextResponse) return user;
 
-    const { id, status } = await request.json();
+    const body = await request.json();
+    const name = (body.name || "").trim();
+    const email = (body.email || "").trim();
+    const phone = body.phone ? String(body.phone).trim() : null;
+    const smsConsent = Boolean(body.smsConsent);
+    const status = body.status === "REVIEWED" ? "REVIEWED" : "PENDING";
 
-    if (!id || !status) {
-      return NextResponse.json(
-        { error: "ID and status are required" },
-        { status: 400 }
-      );
+    if (!name || !email) {
+      return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
     }
 
-    if (!["PENDING", "REVIEWED"].includes(status)) {
-      return NextResponse.json(
-        { error: "Invalid status" },
-        { status: 400 }
-      );
-    }
-
-    const updated = await prisma.accessRequest.update({
-      where: { id },
-      data: { status },
+    const created = await prisma.accessRequest.create({
+      data: { name, email, phone, smsConsent, status },
     });
 
-    return NextResponse.json(updated);
+    await createAuditLog({
+      userId: user.id,
+      action: "CREATE_ACCESS_REQUEST",
+      targetType: "AccessRequest",
+      targetId: created.id,
+      details: { name, email },
+      request,
+    });
+
+    return NextResponse.json(created, { status: 201 });
   } catch (error) {
-    console.error("Error updating access request:", error);
+    console.error("Error creating access request:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
