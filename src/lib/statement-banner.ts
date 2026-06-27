@@ -61,27 +61,49 @@ export async function renderBannerImage(
     imgDataUrl = await imageToDataUrl(banner.imageUrl);
   }
 
+  const imgWidth = Math.round(width * 0.5);
+
   const element = {
     type: "div" as const,
     props: {
       style: {
         display: "flex",
-        width: "100%",
-        height: "100%",
+        position: "relative" as const,
+        width,
+        height: finalHeight,
         borderRadius: 8,
         overflow: "hidden" as const,
         backgroundColor: bgColor,
-        ...(imgDataUrl ? { backgroundImage: `url(${imgDataUrl})`, backgroundSize: "50% 100%", backgroundPosition: "left center", backgroundRepeat: "no-repeat" } : {}),
       },
       children: [
-        // Gradient overlay
+        // Image on the left — cover-cropped (preserves aspect ratio, matches the
+        // web preview). Previously stretched via backgroundSize:"50% 100%", which
+        // elongated the image in the PDF.
+        ...(imgDataUrl ? [{
+          type: "img" as const,
+          props: {
+            src: imgDataUrl,
+            style: {
+              position: "absolute" as const,
+              left: 0,
+              top: 0,
+              width: imgWidth,
+              height: finalHeight,
+              objectFit: "cover" as const,
+            },
+          },
+        }] : []),
+        // Gradient overlay + text
         {
           type: "div" as const,
           props: {
             style: {
+              position: "absolute" as const,
+              left: 0,
+              top: 0,
               display: "flex",
-              width: "100%",
-              height: "100%",
+              width,
+              height: finalHeight,
               borderRadius: 8,
               background: imgDataUrl
                 ? `linear-gradient(to right, transparent 15%, ${bgColor} 45%)`

@@ -466,6 +466,10 @@ export default function AdminBannersPage() {
                 <Button variant="outline" size="sm" onClick={() => setMediaOpen(true)}>Browse</Button>
                 {imageUrl && <Button variant="ghost" size="sm" onClick={() => setImageUrl("")}>Clear</Button>}
               </div>
+              <p className="text-xs text-muted-foreground">
+                Use a landscape image (~2:1), e.g. 800×400px. It&apos;s shown on the left
+                and cover-cropped (not stretched), so the center stays in view.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
