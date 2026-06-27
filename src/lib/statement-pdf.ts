@@ -750,10 +750,10 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         }
 
         // Activity tables
-        drawActivityTable(doc, "Recent Payments & Credits", inv.recentActivity);
+        drawActivityTable(doc, "Current Month Distributions & Credits", inv.recentActivity);
         drawActivityTable(
           doc,
-          "Previous Payments & Activity",
+          "Previous Distributions & Activity",
           inv.previousActivity,
           "Total Deposits YTD",
           inv.totalDepositsYTD + inv.totalDistributionsYTD

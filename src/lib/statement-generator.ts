@@ -123,9 +123,8 @@ export async function collectStatementData(
   const periodMonth = periodStart.getMonth() + 1;
   const periodYear = periodStart.getFullYear();
 
-  const threeMonthsAgo = new Date(periodStart);
-  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
+  // Year-to-date start: Jan 1 of the statement year. The "Previous Distributions
+  // & Activity" table covers ytdStart → periodEnd (all months of the year so far).
   const ytdStart = new Date(periodYear, 0, 1);
 
   const [user, org, disclosures, clientInvestments] = await Promise.all([
@@ -232,7 +231,7 @@ export async function collectStatementData(
             clientInvestmentId: ci.id,
             deletedAt: null,
             status: "COMPLETED",
-            date: { gte: threeMonthsAgo, lt: periodStart },
+            date: { gte: ytdStart, lte: periodEnd },
           },
           orderBy: { date: "desc" },
         }),
@@ -241,7 +240,7 @@ export async function collectStatementData(
             clientInvestmentId: ci.id,
             deletedAt: null,
             status: "COMPLETED",
-            date: { gte: threeMonthsAgo, lt: periodStart },
+            date: { gte: ytdStart, lte: periodEnd },
           },
           orderBy: { date: "desc" },
         }),
