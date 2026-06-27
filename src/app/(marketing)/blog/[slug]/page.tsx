@@ -40,6 +40,13 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   if (!post) notFound();
 
+  // Disclosures flagged to show on the blog (rendered as fine print under the article).
+  const blogDisclosures = await prisma.statementDisclosure.findMany({
+    where: { isActive: true, showOnBlog: true },
+    orderBy: { sortOrder: "asc" },
+    select: { id: true, body: true },
+  });
+
   // Fire-and-forget view count increment
   prisma.blogPost.update({
     where: { id: post.id },
@@ -117,6 +124,19 @@ export default async function BlogPostPage({ params }: PageProps) {
                 </Link>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Blog disclaimers (from Settings → Disclosures, "Show on blog") */}
+        {blogDisclosures.length > 0 && (
+          <div className="mt-12 pt-6 border-t border-gray-200 space-y-3 text-xs text-gray-400 leading-relaxed">
+            {blogDisclosures.map((d) => (
+              <div
+                key={d.id}
+                className="[&_p]:m-0 [&_p]:mb-2 [&_a]:underline"
+                dangerouslySetInnerHTML={{ __html: d.body }}
+              />
+            ))}
           </div>
         )}
       </article>

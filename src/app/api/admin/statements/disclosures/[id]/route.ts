@@ -22,6 +22,7 @@ export async function PATCH(
         sortOrder: body.sortOrder,
         showOnStatements: body.showOnStatements,
         showOnEmails: body.showOnEmails,
+        showOnBlog: body.showOnBlog,
       },
     });
 

@@ -1210,6 +1210,7 @@ model StatementDisclosure {
   // Where the disclosure is displayed. Existing rows default to statements only.
   showOnStatements Boolean  @default(true)
   showOnEmails     Boolean  @default(false)
+  showOnBlog       Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

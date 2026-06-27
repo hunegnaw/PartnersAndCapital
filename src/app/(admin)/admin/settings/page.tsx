@@ -110,7 +110,7 @@ export default function AdminSettingsPage() {
   const [faviconPickerOpen, setFaviconPickerOpen] = useState(false)
 
   // Statement disclosures
-  const [disclosures, setDisclosures] = useState<{ id: string; title: string; body: string; sortOrder: number; isActive: boolean; showOnStatements: boolean; showOnEmails: boolean }[]>([])
+  const [disclosures, setDisclosures] = useState<{ id: string; title: string; body: string; sortOrder: number; isActive: boolean; showOnStatements: boolean; showOnEmails: boolean; showOnBlog: boolean }[]>([])
   const [disclosuresLoading, setDisclosuresLoading] = useState(true)
   const [newDiscTitle, setNewDiscTitle] = useState("")
   const [newDiscBody, setNewDiscBody] = useState("")
@@ -884,7 +884,8 @@ export default function AdminSettingsPage() {
             <p className="text-sm text-muted-foreground">
               Reusable disclosures. Use the per-disclosure toggles to show each one on
               client statements (last page), in every outgoing email (above the footer),
-              or both. The enable/disable button hides a disclosure everywhere.
+              at the bottom of blog posts, or any combination. The enable/disable button
+              hides a disclosure everywhere.
             </p>
             {disclosuresLoading ? (
               <Skeleton className="h-24" />
@@ -952,6 +953,17 @@ export default function AdminSettingsPage() {
                             }}
                           />
                           <Label htmlFor={`disc-email-${d.id}`} className="text-xs cursor-pointer">Show on emails</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            id={`disc-blog-${d.id}`}
+                            checked={d.showOnBlog}
+                            onCheckedChange={(v) => {
+                              setDisclosures(disclosures.map((x) => x.id === d.id ? { ...x, showOnBlog: v } : x))
+                              updateDisclosure(d.id, { showOnBlog: v })
+                            }}
+                          />
+                          <Label htmlFor={`disc-blog-${d.id}`} className="text-xs cursor-pointer">Show on blog</Label>
                         </div>
                       </div>
                     </CardContent>
