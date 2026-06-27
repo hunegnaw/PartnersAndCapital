@@ -423,14 +423,19 @@ function drawActivityTable(
   doc.y = titleY + 14;
 
   const colW = [100, 140, 120, CONTENT_W - 360];
-  const headerY = doc.y;
-  drawTableRow(doc, [
+  const headerCells: { text: string; width: number; align?: "left" | "right" }[] = [
     { text: "POSTED DATE", width: colW[0] },
     { text: "DESCRIPTION", width: colW[1] },
     { text: "PAYMENT METHOD", width: colW[2] },
     { text: "AMOUNT", width: colW[3], align: "right" },
-  ], headerY, { bg: TABLE_HEADER_BG, bold: true, fontSize: 7 });
-  doc.y = headerY + 24;
+  ];
+  // Draws the column header at the current y; reused on each continuation page.
+  const drawHeader = () => {
+    const hY = doc.y;
+    drawTableRow(doc, headerCells, hY, { bg: TABLE_HEADER_BG, bold: true, fontSize: 7 });
+    doc.y = hY + 24;
+  };
+  drawHeader();
 
   if (items.length === 0) {
     doc.font("Inter").fontSize(9).fillColor("#999999")
@@ -438,7 +443,11 @@ function drawActivityTable(
     doc.y += 24;
   } else {
     for (const item of items) {
-      ensureSpace(doc, 24);
+      // If the next row would overflow, start a new page and repeat the header.
+      if (doc.y + 24 > PAGE_H - FOOTER_H - 10) {
+        startNewPage(doc);
+        drawHeader();
+      }
       const rowY = doc.y;
       drawTableRow(doc, [
         { text: formatActivityDate(item.date), width: colW[0] },
@@ -602,8 +611,8 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         { label: "Total Distributions", value: formatCurrency(data.totalDistributions), color: GOLD },
         { label: "Total Return", value: formatPct(data.totalReturnPct), color: NAVY },
       ];
-      if (data.weightedIrr) metrics.push({ label: "Net IRR", value: formatPct(data.weightedIrr), color: NAVY });
-      if (data.weightedApr) metrics.push({ label: "Net APR", value: formatPct(data.weightedApr), color: NAVY });
+      if (data.weightedIrr) metrics.push({ label: "IRR", value: formatPct(data.weightedIrr), color: NAVY });
+      if (data.weightedApr) metrics.push({ label: "APR", value: formatPct(data.weightedApr), color: NAVY });
 
       let mx = MARGIN;
       for (const m of metrics) {
@@ -936,6 +945,12 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       const orgLegal = data.org.legalName || data.org.name;
       const footerParts = [orgLegal, data.org.email, data.org.address].filter(Boolean);
       const pageCount = doc.bufferedPageRange().count;
+      // Generation timestamp (Eastern Time), stamped once at render and baked into
+      // the stored PDF — shown next to the page number.
+      const genNow = new Date();
+      const genDate = new Intl.DateTimeFormat("en-US", { month: "2-digit", day: "2-digit", year: "2-digit", timeZone: "America/New_York" }).format(genNow);
+      const genTime = new Intl.DateTimeFormat("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, timeZone: "America/New_York" }).format(genNow);
+      const generatedStamp = `Statement generated on ${genDate} at ${genTime} ET`;
       for (let p = 0; p < pageCount; p++) {
         doc.switchToPage(p);
         const footerY = PAGE_H - FOOTER_H;
@@ -947,7 +962,7 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         doc.font("Inter").fontSize(7).fillColor("#999999")
           .text(`© ${new Date().getFullYear()} ${orgLegal}`, MARGIN, footerY + 20, { width: CONTENT_W, align: "center", lineBreak: false });
         doc.font("Inter").fontSize(7).fillColor("#999999")
-          .text(`Page ${p + 1} of ${pageCount}`, MARGIN, footerY + 32, { width: CONTENT_W, align: "center", lineBreak: false });
+          .text(`Page ${p + 1} of ${pageCount}  |  ${generatedStamp}`, MARGIN, footerY + 32, { width: CONTENT_W, align: "center", lineBreak: false });
       }
 
       doc.end();
