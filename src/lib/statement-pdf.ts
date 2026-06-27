@@ -245,6 +245,18 @@ const MINI_LEGEND: { color: string; shape: "line" | "bar"; label: string }[] = [
   { color: GOLD, shape: "bar", label: "Distributions" },
 ];
 
+// Plain-language definitions shown at the end of every statement, before the
+// disclosures. Convenience explanations only — the closing note makes that clear.
+const GLOSSARY: { term: string; definition: string }[] = [
+  { term: "Portfolio Value", definition: "The current estimated worth of your holdings as of the statement date." },
+  { term: "Total Distributions", definition: "Cash paid out to you to date, including income and returns of capital." },
+  { term: "Total Return", definition: "Combined gain from distributions plus any change in value, shown as a percentage or dollar figure." },
+  { term: "ROI (Return on Investment)", definition: "Total profit relative to the amount invested, expressed as a percentage. Does not account for time held." },
+  { term: "IRR (Internal Rate of Return)", definition: "Annualized return that factors in the timing of cash flows. Reflects the time value of money." },
+  { term: "APR (Annual Percentage Rate)", definition: "A simple annualized rate, typically used for borrowing or flat-rate returns, without compounding or timing adjustments." },
+];
+const GLOSSARY_NOTE = "These definitions are simplified explanations for convenience only and do not govern your investment. Refer to your offering documents for binding terms.";
+
 // Combined portfolio performance chart box (page 1). Shared by the since-inception
 // and YTD charts so both render identically — only the title + data differ.
 async function drawCombinedChartBox(
@@ -402,8 +414,7 @@ function drawActivityTable(
   doc: PDFKit.PDFDocument,
   title: string,
   items: StatementInvestmentData["recentActivity"],
-  totalLabel?: string,
-  totalAmount?: number
+  summaries?: { label: string; amount: number; emptyNote?: string }[]
 ) {
   ensureSpace(doc, 60);
   const titleY = doc.y;
@@ -441,14 +452,22 @@ function drawActivityTable(
     }
   }
 
-  if (totalLabel && totalAmount !== undefined) {
-    ensureSpace(doc, 24);
-    const totalY = doc.y;
-    drawTableRow(doc, [
-      { text: totalLabel, width: colW[0] + colW[1] + colW[2] },
-      { text: formatCurrency(totalAmount), width: colW[3], align: "right" },
-    ], totalY, { bg: LIGHT_BG, bold: true });
-    doc.y = totalY + 24;
+  // YTD summary lines — each a plain one-liner (same body font, no highlight),
+  // a separate category. A note replaces the amount when it's a zero deposit.
+  if (summaries && summaries.length > 0) {
+    doc.y += 2;
+    for (const s of summaries) {
+      ensureSpace(doc, 22);
+      const y = doc.y;
+      const valueText = s.amount > 0
+        ? formatCurrency(s.amount)
+        : (s.emptyNote || formatCurrency(0));
+      drawTableRow(doc, [
+        { text: s.label, width: colW[0] + colW[1] + colW[2] },
+        { text: valueText, width: colW[3], align: "right" },
+      ], y);
+      doc.y = y + 22;
+    }
   }
 
   doc.y += 4;
@@ -755,8 +774,10 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           doc,
           "Previous Distributions & Activity",
           inv.previousActivity,
-          "Total Deposits YTD",
-          inv.totalDepositsYTD + inv.totalDistributionsYTD
+          [
+            { label: "Total Deposits YTD", amount: inv.totalDepositsYTD, emptyNote: "No deposits this year" },
+            { label: "Total Distributions YTD", amount: inv.totalDistributionsYTD },
+          ]
         );
 
         doc.y += 8;
@@ -868,9 +889,31 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         }
       }
 
-      // ── DISCLOSURES (own page, last, after everything) ──
+      // ── GLOSSARY OF INVESTMENT TERMS (end matter, before disclosures) ──
+      startNewPage(doc);
+      doc.font("Cormorant").fontSize(18).fillColor(NAVY)
+        .text("Glossary of Investment Terms", MARGIN, doc.y);
+      doc.y += 4;
+      doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
+        .strokeColor(GOLD).lineWidth(1.5).stroke().restore();
+      doc.y += 10;
+      for (const g of GLOSSARY) {
+        ensureSpace(doc, 34);
+        doc.font("InterBold").fontSize(9).fillColor("#333333")
+          .text(`${g.term}: `, MARGIN, doc.y, { width: CONTENT_W, continued: true });
+        doc.font("Inter").fontSize(9).fillColor(GRAY)
+          .text(g.definition, { lineGap: 1 });
+        doc.moveDown(0.5);
+      }
+      ensureSpace(doc, 30);
+      doc.moveDown(0.2);
+      doc.font("Inter").fontSize(8).fillColor("#999999")
+        .text(GLOSSARY_NOTE, MARGIN, doc.y, { width: CONTENT_W, lineGap: 2 });
+
+      // ── DISCLOSURES (after the glossary) ──
       if (data.disclosures.length > 0) {
-        startNewPage(doc);
+        ensureSpace(doc, 80);
+        doc.moveDown(1);
         doc.font("Cormorant").fontSize(18).fillColor(NAVY)
           .text("Disclosures", MARGIN, doc.y);
         doc.y += 4;

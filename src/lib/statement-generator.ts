@@ -124,7 +124,9 @@ export async function collectStatementData(
   const periodYear = periodStart.getFullYear();
 
   // Year-to-date start: Jan 1 of the statement year. The "Previous Distributions
-  // & Activity" table covers ytdStart → periodEnd (all months of the year so far).
+  // & Activity" table covers ytdStart → the start of the statement month (prior
+  // months this year); the statement month itself is shown in the Current Month
+  // table. The YTD total lines still reflect the full year through periodEnd.
   const ytdStart = new Date(periodYear, 0, 1);
 
   const [user, org, disclosures, clientInvestments] = await Promise.all([
@@ -231,7 +233,7 @@ export async function collectStatementData(
             clientInvestmentId: ci.id,
             deletedAt: null,
             status: "COMPLETED",
-            date: { gte: ytdStart, lte: periodEnd },
+            date: { gte: ytdStart, lt: periodStart },
           },
           orderBy: { date: "desc" },
         }),
@@ -240,7 +242,7 @@ export async function collectStatementData(
             clientInvestmentId: ci.id,
             deletedAt: null,
             status: "COMPLETED",
-            date: { gte: ytdStart, lte: periodEnd },
+            date: { gte: ytdStart, lt: periodStart },
           },
           orderBy: { date: "desc" },
         }),
