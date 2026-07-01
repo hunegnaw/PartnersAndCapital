@@ -90,6 +90,11 @@ export async function renderBannerImage(
               width: imgWidth,
               height: finalHeight,
               objectFit: "cover" as const,
+              // Satori doesn't clip an absolutely-positioned child to the
+              // parent's border-radius, so round the image's left corners
+              // directly (it sits flush against the left edge).
+              borderTopLeftRadius: 8,
+              borderBottomLeftRadius: 8,
             },
           },
         }] : []),
