@@ -60,8 +60,8 @@ export interface StatementData {
   currentValue: number;
   totalDistributions: number;
   totalReturnPct: number;
-  weightedIrr: number;
-  weightedApr: number;
+  weightedIrr: number | null;
+  weightedApr: number | null;
   investments: StatementInvestmentData[];
   combinedChartData: {
     month: string;
@@ -179,7 +179,8 @@ export async function collectStatementData(
   let totalDistributions = 0;
   let weightedIrr = 0;
   let weightedApr = 0;
-  let totalWeight = 0;
+  let irrWeight = 0;
+  let aprWeight = 0;
   const investmentsData: StatementInvestmentData[] = [];
 
   const allMonthlyData: Map<
@@ -202,10 +203,11 @@ export async function collectStatementData(
 
     if (ci.irr != null) {
       weightedIrr += Number(ci.irr) * invested;
-      totalWeight += invested;
+      irrWeight += invested;
     }
     if (ci.adminApr != null) {
       weightedApr += Number(ci.adminApr) * invested;
+      aprWeight += invested;
     }
 
     const [recentContribs, recentDistros, prevContribs, prevDistros, ytdDistros, allContribs, allDistros] =
@@ -512,8 +514,8 @@ export async function collectStatementData(
     currentValue,
     totalDistributions,
     totalReturnPct,
-    weightedIrr: totalWeight > 0 ? Math.round((weightedIrr / totalWeight) * 100) / 100 : 0,
-    weightedApr: totalWeight > 0 ? Math.round((weightedApr / totalWeight) * 100) / 100 : 0,
+    weightedIrr: irrWeight > 0 ? Math.round((weightedIrr / irrWeight) * 100) / 100 : null,
+    weightedApr: aprWeight > 0 ? Math.round((weightedApr / aprWeight) * 100) / 100 : null,
     investments: investmentsData,
     allocation,
     investmentAllocation,

@@ -611,8 +611,8 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
         { label: "Total Distributions", value: formatCurrency(data.totalDistributions), color: GOLD },
         { label: "Total Return", value: formatPct(data.totalReturnPct), color: NAVY },
       ];
-      if (data.weightedIrr) metrics.push({ label: "IRR", value: formatPct(data.weightedIrr), color: NAVY });
-      if (data.weightedApr) metrics.push({ label: "APR", value: formatPct(data.weightedApr), color: NAVY });
+      if (data.weightedIrr != null) metrics.push({ label: "IRR", value: formatPct(data.weightedIrr), color: NAVY });
+      if (data.weightedApr != null) metrics.push({ label: "APR", value: formatPct(data.weightedApr), color: NAVY });
 
       let mx = MARGIN;
       for (const m of metrics) {

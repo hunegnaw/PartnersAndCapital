@@ -1,0 +1,220 @@
+
+> partnersandcapital.com@0.1.0 build
+> prisma generate && next build --webpack
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+
+✔ Generated Prisma Client (v7.8.0) to ./node_modules/.prisma/client in 739ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+
+▲ Next.js 16.2.4 (webpack)
+- Environments: .env.production, .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 21.9s
+  Running TypeScript ...
+  Finished TypeScript in 29.4s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/112) ...
+  Generating static pages using 11 workers (28/112) 
+  Generating static pages using 11 workers (56/112) 
+  Generating static pages using 11 workers (84/112) 
+✓ Generating static pages using 11 workers (112/112) in 1060ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /[slug]
+├ ƒ /admin
+├ ƒ /admin/access-requests
+├ ƒ /admin/activity
+├ ƒ /admin/advisors
+├ ƒ /admin/asset-classes
+├ ƒ /admin/audit-log
+├ ƒ /admin/blog
+├ ƒ /admin/blog/[id]/edit
+├ ƒ /admin/blog/categories
+├ ƒ /admin/blog/new
+├ ƒ /admin/brand-palette
+├ ƒ /admin/clients
+├ ƒ /admin/clients/[id]
+├ ƒ /admin/distributions
+├ ƒ /admin/documents
+├ ƒ /admin/footer
+├ ƒ /admin/investments
+├ ƒ /admin/investments/[id]
+├ ƒ /admin/media
+├ ƒ /admin/pages
+├ ƒ /admin/pages/[id]/edit
+├ ƒ /admin/pages/new
+├ ƒ /admin/settings
+├ ƒ /admin/statements
+├ ƒ /admin/statements/banners
+├ ƒ /admin/statements/content
+├ ƒ /admin/support
+├ ƒ /admin/users
+├ ƒ /admin/verifications
+├ ƒ /admin/verifications/[id]
+├ ƒ /advisor-accept
+├ ƒ /advisor/clients/[id]
+├ ƒ /advisor/clients/[id]/documents
+├ ƒ /advisor/dashboard
+├ ƒ /advisors
+├ ƒ /api/access-requests
+├ ƒ /api/admin/access-requests
+├ ƒ /api/admin/access-requests/[id]
+├ ƒ /api/admin/activity
+├ ƒ /api/admin/activity/[id]
+├ ƒ /api/admin/advisors
+├ ƒ /api/admin/asset-classes
+├ ƒ /api/admin/asset-classes/[id]
+├ ƒ /api/admin/audit-log
+├ ƒ /api/admin/blog
+├ ƒ /api/admin/blog/[id]
+├ ƒ /api/admin/blog/categories
+├ ƒ /api/admin/blog/categories/[id]
+├ ƒ /api/admin/blog/reorder
+├ ƒ /api/admin/blog/tags
+├ ƒ /api/admin/blog/tags/[id]
+├ ƒ /api/admin/client-investments
+├ ƒ /api/admin/clients
+├ ƒ /api/admin/clients/[id]
+├ ƒ /api/admin/clients/[id]/approve-kyc
+├ ƒ /api/admin/clients/export
+├ ƒ /api/admin/contributions/[id]
+├ ƒ /api/admin/distributions
+├ ƒ /api/admin/distributions/[id]
+├ ƒ /api/admin/document-types
+├ ƒ /api/admin/document-types/[id]
+├ ƒ /api/admin/documents
+├ ƒ /api/admin/documents/[id]
+├ ƒ /api/admin/documents/[id]/download
+├ ƒ /api/admin/footer
+├ ƒ /api/admin/impersonate
+├ ƒ /api/admin/investments
+├ ƒ /api/admin/investments/[id]
+├ ƒ /api/admin/investments/[id]/clients
+├ ƒ /api/admin/investments/[id]/clients/[clientInvestmentId]
+├ ƒ /api/admin/investments/[id]/clients/[clientInvestmentId]/distributions
+├ ƒ /api/admin/investments/[id]/distributions
+├ ƒ /api/admin/investments/[id]/updates
+├ ƒ /api/admin/investments/[id]/valuations
+├ ƒ /api/admin/investments/[id]/valuations/[valuationId]
+├ ƒ /api/admin/media
+├ ƒ /api/admin/media/[id]
+├ ƒ /api/admin/messages
+├ ƒ /api/admin/messages/[id]
+├ ƒ /api/admin/pages
+├ ƒ /api/admin/pages/[id]
+├ ƒ /api/admin/pages/reorder
+├ ƒ /api/admin/saved-colors
+├ ƒ /api/admin/saved-colors/seed
+├ ƒ /api/admin/settings
+├ ƒ /api/admin/sidebar-counts
+├ ƒ /api/admin/statements
+├ ƒ /api/admin/statements/[id]
+├ ƒ /api/admin/statements/[id]/approve
+├ ƒ /api/admin/statements/[id]/preview
+├ ƒ /api/admin/statements/[id]/regenerate
+├ ƒ /api/admin/statements/[id]/reject
+├ ƒ /api/admin/statements/banners
+├ ƒ /api/admin/statements/banners/[id]
+├ ƒ /api/admin/statements/banners/[id]/assign
+├ ƒ /api/admin/statements/banners/[id]/assignments
+├ ƒ /api/admin/statements/bulk-approve
+├ ƒ /api/admin/statements/bulk-reject
+├ ƒ /api/admin/statements/commentary
+├ ƒ /api/admin/statements/commentary/[id]
+├ ƒ /api/admin/statements/disclosures
+├ ƒ /api/admin/statements/disclosures/[id]
+├ ƒ /api/admin/statements/disclosures/reorder
+├ ƒ /api/admin/statements/generate
+├ ƒ /api/admin/statements/upcoming-distributions
+├ ƒ /api/admin/statements/upcoming-distributions/[id]
+├ ƒ /api/admin/stats
+├ ƒ /api/admin/support
+├ ƒ /api/admin/support/[id]
+├ ƒ /api/admin/users
+├ ƒ /api/admin/users/[id]
+├ ƒ /api/admin/verifications
+├ ƒ /api/admin/verifications/[id]
+├ ƒ /api/admin/verifications/[id]/download
+├ ƒ /api/advisor/clients/[id]
+├ ƒ /api/advisor/clients/[id]/documents
+├ ƒ /api/advisor/dashboard
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/auth/advisor-accept
+├ ƒ /api/auth/forgot-password
+├ ƒ /api/auth/reset-password
+├ ƒ /api/auth/signup
+├ ƒ /api/blog
+├ ƒ /api/blog/[slug]
+├ ƒ /api/blog/recent
+├ ƒ /api/contact
+├ ƒ /api/health
+├ ƒ /api/newsletter
+├ ƒ /api/organization
+├ ƒ /api/portal/advisors
+├ ƒ /api/portal/advisors/[id]
+├ ƒ /api/portal/advisors/[id]/resend
+├ ƒ /api/portal/banners
+├ ƒ /api/portal/capital-activity
+├ ƒ /api/portal/dashboard
+├ ƒ /api/portal/documents
+├ ƒ /api/portal/documents/[id]/download
+├ ƒ /api/portal/documents/download-zip
+├ ƒ /api/portal/investments
+├ ƒ /api/portal/investments/[id]
+├ ƒ /api/portal/investments/[id]/valuations
+├ ƒ /api/portal/messages
+├ ƒ /api/portal/messages/[id]
+├ ƒ /api/portal/messages/unread-count
+├ ƒ /api/portal/notifications
+├ ƒ /api/portal/settings
+├ ƒ /api/portal/settings/avatar
+├ ƒ /api/portal/settings/password
+├ ƒ /api/portal/settings/two-factor/disable
+├ ƒ /api/portal/settings/two-factor/setup
+├ ƒ /api/portal/settings/two-factor/verify
+├ ƒ /api/portal/statements
+├ ƒ /api/portal/statements/[id]/download
+├ ƒ /api/portal/support
+├ ƒ /api/portal/support/[id]
+├ ƒ /api/portal/verify
+├ ƒ /api/portal/verify/submit
+├ ƒ /api/portal/verify/upload
+├ ƒ /api/stats
+├ ƒ /blog
+├ ƒ /blog/[slug]
+├ ƒ /capital-activity
+├ ƒ /dashboard
+├ ƒ /documents
+├ ƒ /forgot-password
+├ ƒ /investments
+├ ƒ /investments/[id]
+├ ƒ /login
+├ ƒ /messages
+├ ƒ /privacy-policy
+├ ƒ /reset-password
+├ ƒ /settings
+├ ƒ /setup-2fa
+├ ƒ /signout
+├ ƒ /support
+├ ƒ /terms-of-use
+└ ƒ /verify
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+npm notice
+npm notice New minor version of npm available! 11.8.0 -> 11.18.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.18.0
+npm notice To update run: npm install -g npm@11.18.0
+npm notice
