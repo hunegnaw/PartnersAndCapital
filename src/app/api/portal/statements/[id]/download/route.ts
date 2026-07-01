@@ -16,7 +16,13 @@ export async function GET(
     // here afterwards — not shown a raw 401 — then served the PDF once signed in.
     const session = await auth();
     if (!session?.user || twoFactorPending(session.user)) {
-      const loginUrl = new URL("/login", new URL(request.url).origin);
+      // Build the login URL from the canonical public origin, NOT from
+      // request.url — behind the Apache reverse proxy the Node server sees the
+      // internal host (localhost:4000), which would otherwise leak into the
+      // redirect (e.g. https://localhost:4000/login...). NEXTAUTH_URL is the
+      // public domain in production.
+      const base = process.env.NEXTAUTH_URL || new URL(request.url).origin;
+      const loginUrl = new URL("/login", base);
       loginUrl.searchParams.set("callbackUrl", `/api/portal/statements/${id}/download`);
       return NextResponse.redirect(loginUrl);
     }
