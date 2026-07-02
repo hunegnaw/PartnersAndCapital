@@ -1231,6 +1231,23 @@ model StatementCommentary {
   @@index([month, year])
 }
 
+// Firm-wide market commentary that appears on EVERY client's statement for a
+// given period, regardless of which investments they hold. One entry per
+// month/year (a single "note to all partners"). Rendered above the per-
+// investment commentary on the Market Commentary page.
+model StatementGeneralCommentary {
+  id        String   @id @default(cuid())
+  month     Int
+  year      Int
+  title     String?
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([month, year])
+  @@index([month, year])
+}
+
 model StatementUpcomingDistribution {
   id           String   @id @default(cuid())
   investmentId String

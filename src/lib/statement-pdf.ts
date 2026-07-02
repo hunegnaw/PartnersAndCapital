@@ -791,7 +791,9 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
       }
 
       // ── MARKET COMMENTARY & UPCOMING DISTRIBUTIONS (dedicated page) ──
-      const hasCommentary = data.investments.some((inv) => inv.commentary);
+      const hasGeneral = !!data.generalCommentary;
+      const hasInvCommentary = data.investments.some((inv) => inv.commentary);
+      const hasCommentary = hasGeneral || hasInvCommentary;
       const hasUpcoming = data.investments.some((inv) => inv.upcomingDistributions.length > 0);
 
       if (hasCommentary || hasUpcoming) {
@@ -816,6 +818,22 @@ async function renderPDF(data: StatementData): Promise<Buffer> {
           doc.save().moveTo(MARGIN, doc.y).lineTo(PAGE_W - MARGIN, doc.y)
             .strokeColor(GOLD).lineWidth(2).stroke().restore();
           doc.y += 14;
+
+          // Firm-wide "note to all partners" — rendered first, above the
+          // per-investment commentary.
+          if (data.generalCommentary) {
+            ensureSpace(doc, 70);
+            doc.font("Cormorant").fontSize(18).fillColor(NAVY)
+              .text(data.generalCommentary.title || "A Note to Our Partners", MARGIN, doc.y, { width: CONTENT_W });
+            doc.y += 2;
+            doc.save().moveTo(MARGIN, doc.y).lineTo(MARGIN + 80, doc.y)
+              .strokeColor(GOLD).lineWidth(1).stroke().restore();
+            doc.y += 6;
+
+            doc.font("Inter").fontSize(9).fillColor("#333333")
+              .text(data.generalCommentary.body, MARGIN, doc.y, { width: CONTENT_W, lineGap: 3 });
+            doc.moveDown(1.2);
+          }
 
           for (const inv of data.investments) {
             if (!inv.commentary) continue;

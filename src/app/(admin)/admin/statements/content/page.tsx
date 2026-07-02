@@ -49,6 +49,12 @@ export default function StatementContentPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
+  // General (all-clients) commentary — one per period, upsert inline
+  const [genTitle, setGenTitle] = useState("")
+  const [genBody, setGenBody] = useState("")
+  const [genExists, setGenExists] = useState(false)
+  const [genSaving, setGenSaving] = useState(false)
+
   // Commentary dialog
   const [commOpen, setCommOpen] = useState(false)
   const [commEditId, setCommEditId] = useState<string | null>(null)
@@ -67,12 +73,19 @@ export default function StatementContentPage() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const [commRes, distRes] = await Promise.all([
+      const [commRes, distRes, genRes] = await Promise.all([
         fetch(`/api/admin/statements/commentary?month=${month}&year=${year}`),
         fetch(`/api/admin/statements/upcoming-distributions?month=${month}&year=${year}`),
+        fetch(`/api/admin/statements/general-commentary?month=${month}&year=${year}`),
       ])
       if (commRes.ok) setCommentaries(await commRes.json())
       if (distRes.ok) setUpcoming(await distRes.json())
+      if (genRes.ok) {
+        const gen = await genRes.json()
+        setGenExists(!!gen)
+        setGenTitle(gen?.title || "")
+        setGenBody(gen?.body || "")
+      }
     } catch {} finally { setLoading(false) }
   }, [month, year])
 
@@ -121,6 +134,31 @@ export default function StatementContentPage() {
       setDistDesc("")
     }
     setDistOpen(true)
+  }
+
+  async function saveGeneral() {
+    if (!genBody.trim()) return
+    setGenSaving(true)
+    try {
+      await fetch("/api/admin/statements/general-commentary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ month, year, title: genTitle || null, body: genBody }),
+      })
+      await fetchData()
+    } catch {} finally { setGenSaving(false) }
+  }
+
+  async function deleteGeneral() {
+    if (!confirm("Remove the all-clients commentary for this period?")) return
+    setGenSaving(true)
+    try {
+      await fetch(`/api/admin/statements/general-commentary?month=${month}&year=${year}`, { method: "DELETE" })
+      setGenTitle("")
+      setGenBody("")
+      setGenExists(false)
+      await fetchData()
+    } catch {} finally { setGenSaving(false) }
   }
 
   async function saveCommentary() {
@@ -178,7 +216,7 @@ export default function StatementContentPage() {
           <Link href="/admin/statements"><Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4" /></Button></Link>
           <div>
             <h1 className="text-2xl font-bold">Statement Content</h1>
-            <p className="text-muted-foreground mt-1">Market commentary and upcoming distributions per investment per period.</p>
+            <p className="text-muted-foreground mt-1">Firm-wide and per-investment market commentary, plus upcoming distributions, per period.</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -205,7 +243,45 @@ export default function StatementContentPage() {
           </TabsList>
 
           <TabsContent value="commentary" className="mt-4 space-y-4">
-            <div className="flex justify-end">
+            {/* Firm-wide commentary — appears on EVERY client's statement */}
+            <Card className="border-[#B07D3A]/40 bg-[#FDF5E8]/40">
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-sm">All-Clients Commentary</h3>
+                      {genExists
+                        ? <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-[#B07D3A] text-white">LIVE</span>
+                        : <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground">NOT SET</span>}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Speaks to every client. Appears at the top of the Market Commentary page on all {MONTH_NAMES[month - 1]} {year} statements.
+                    </p>
+                  </div>
+                  {genExists && (
+                    <Button variant="ghost" size="sm" onClick={deleteGeneral} disabled={genSaving}>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Title (optional)</Label>
+                  <Input value={genTitle} onChange={(e) => setGenTitle(e.target.value)} placeholder="A Note to Our Partners" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Commentary</Label>
+                  <Textarea value={genBody} onChange={(e) => setGenBody(e.target.value)} rows={5} placeholder="Firm-wide market outlook, macro conditions, a personal note to all clients..." />
+                </div>
+                <div className="flex justify-end">
+                  <Button onClick={saveGeneral} disabled={genSaving || !genBody.trim()}>
+                    {genSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Save All-Clients Commentary
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex items-center justify-between pt-2">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Per-Investment Commentary</p>
               <Button onClick={() => openCommDialog()}><Plus className="h-4 w-4 mr-2" />Add Commentary</Button>
             </div>
             {commentaries.length === 0 ? (

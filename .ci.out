@@ -6,7 +6,7 @@ Loaded Prisma config from prisma.config.ts.
 
 Prisma schema loaded from prisma/schema.prisma.
 
-✔ Generated Prisma Client (v7.8.0) to ./node_modules/.prisma/client in 825ms
+✔ Generated Prisma Client (v7.8.0) to ./node_modules/.prisma/client in 852ms
 
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
@@ -15,15 +15,15 @@ Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 - Environments: .env.production, .env
 
   Creating an optimized production build ...
-✓ Compiled successfully in 25.3s
+✓ Compiled successfully in 39.7s
   Running TypeScript ...
-  Finished TypeScript in 26.5s ...
+  Finished TypeScript in 25.6s ...
   Collecting page data using 11 workers ...
-  Generating static pages using 11 workers (0/112) ...
-  Generating static pages using 11 workers (28/112) 
-  Generating static pages using 11 workers (56/112) 
-  Generating static pages using 11 workers (84/112) 
-✓ Generating static pages using 11 workers (112/112) in 862ms
+  Generating static pages using 11 workers (0/113) ...
+  Generating static pages using 11 workers (28/113) 
+  Generating static pages using 11 workers (56/113) 
+  Generating static pages using 11 workers (84/113) 
+✓ Generating static pages using 11 workers (113/113) in 845ms
   Finalizing page optimization ...
   Collecting build traces ...
 
@@ -134,6 +134,7 @@ Route (app)
 ├ ƒ /api/admin/statements/disclosures
 ├ ƒ /api/admin/statements/disclosures/[id]
 ├ ƒ /api/admin/statements/disclosures/reorder
+├ ƒ /api/admin/statements/general-commentary
 ├ ƒ /api/admin/statements/generate
 ├ ƒ /api/admin/statements/upcoming-distributions
 ├ ƒ /api/admin/statements/upcoming-distributions/[id]

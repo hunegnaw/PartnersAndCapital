@@ -81,6 +81,9 @@ export interface StatementData {
   }[];
   ytdContributions: number;
   ytdDistributions: number;
+  // Firm-wide commentary shown to every client for this period (above the
+  // per-investment commentary). Null when the admin hasn't written one.
+  generalCommentary: { title: string | null; body: string } | null;
   allocation: {
     name: string;
     value: number;
@@ -129,7 +132,7 @@ export async function collectStatementData(
   // table. The YTD total lines still reflect the full year through periodEnd.
   const ytdStart = new Date(periodYear, 0, 1);
 
-  const [user, org, disclosures, clientInvestments] = await Promise.all([
+  const [user, org, disclosures, clientInvestments, generalCommentary] = await Promise.all([
     prisma.user.findUniqueOrThrow({
       where: { id: userId },
       select: { name: true, email: true },
@@ -154,6 +157,9 @@ export async function collectStatementData(
       include: {
         investment: { include: { assetClass: true } },
       },
+    }),
+    prisma.statementGeneralCommentary.findUnique({
+      where: { month_year: { month: periodMonth, year: periodYear } },
     }),
   ]);
 
@@ -523,6 +529,9 @@ export async function collectStatementData(
     combinedChartDataYTD,
     ytdContributions,
     ytdDistributions,
+    generalCommentary: generalCommentary
+      ? { title: generalCommentary.title, body: generalCommentary.body }
+      : null,
     banners: Array.from(uniqueBanners.values()).map((b) => ({
       title: b.title,
       description: b.description,
