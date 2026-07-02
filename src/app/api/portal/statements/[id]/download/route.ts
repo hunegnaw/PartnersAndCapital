@@ -28,14 +28,23 @@ export async function GET(
     }
 
     const { userId } = await getEffectiveUserId();
+    const isAdmin =
+      session.user.role === "ADMIN" || session.user.role === "SUPER_ADMIN";
 
     const statement = await prisma.statement.findUnique({
       where: { id },
     });
 
+    // Clients may only open their own statement; admins may open any (the
+    // "new statement" email is often opened by an admin while testing, or an
+    // admin may follow a client's link). Anyone else gets a generic 404 so we
+    // don't reveal whether the statement exists.
+    const canAccess =
+      !!statement && (statement.userId === userId || isAdmin);
+
     if (
       !statement ||
-      statement.userId !== userId ||
+      !canAccess ||
       !statement.filePath ||
       !["APPROVED", "SENT"].includes(statement.status)
     ) {
