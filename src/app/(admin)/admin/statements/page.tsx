@@ -39,6 +39,7 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  Search,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -118,9 +119,13 @@ export default function AdminStatementsPage() {
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(50)
-  const [sortBy, setSortBy] = useState("period")
+  const [sortBy, setSortBy] = useState("generated")
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
   const [statusFilter, setStatusFilter] = useState<string>("ALL")
+  const [searchInput, setSearchInput] = useState("")
+  const [search, setSearch] = useState("")
+  const [monthFilter, setMonthFilter] = useState<string>("ALL")
+  const [yearFilter, setYearFilter] = useState<string>("ALL")
   const [statusCounts, setStatusCounts] = useState<Record<string, number>>({})
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [generating, setGenerating] = useState(false)
@@ -144,6 +149,9 @@ export default function AdminStatementsPage() {
     try {
       const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) })
       if (statusFilter !== "ALL") params.set("status", statusFilter)
+      if (search) params.set("search", search)
+      if (monthFilter !== "ALL") params.set("month", monthFilter)
+      if (yearFilter !== "ALL") params.set("year", yearFilter)
       params.set("sortBy", sortBy)
       params.set("sortDir", sortDir)
       const res = await fetch(`/api/admin/statements?${params}`)
@@ -157,11 +165,21 @@ export default function AdminStatementsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, statusFilter, sortBy, sortDir])
+  }, [page, pageSize, statusFilter, search, monthFilter, yearFilter, sortBy, sortDir])
 
   useEffect(() => {
     Promise.resolve().then(fetchStatements)
   }, [fetchStatements])
+
+  // Debounce the search box so we fetch as the admin pauses typing, not on
+  // every keystroke. Reset to page 1 whenever the query changes.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearch(searchInput.trim())
+      setPage(1)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [searchInput])
 
   // Load the email-suppression feature flag (controls whether the approve modal appears)
   useEffect(() => {
@@ -411,6 +429,50 @@ export default function AdminStatementsPage() {
         </TabsList>
       </Tabs>
 
+      {/* Search & filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            className="pl-8"
+            placeholder="Search client name, email, or approver..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+        </div>
+        <Select value={monthFilter} onValueChange={(v) => { if (v) { setMonthFilter(v); setPage(1) } }}>
+          <SelectTrigger className="h-9 w-[150px]">
+            <SelectValue placeholder="All months" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All months</SelectItem>
+            {MONTH_NAMES.map((m, i) => (
+              <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={yearFilter} onValueChange={(v) => { if (v) { setYearFilter(v); setPage(1) } }}>
+          <SelectTrigger className="h-9 w-[120px]">
+            <SelectValue placeholder="All years" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All years</SelectItem>
+            {statementYearOptions().map((y) => (
+              <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {(search || monthFilter !== "ALL" || yearFilter !== "ALL") && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setSearchInput(""); setSearch(""); setMonthFilter("ALL"); setYearFilter("ALL"); setPage(1) }}
+          >
+            Clear
+          </Button>
+        )}
+      </div>
+
       {/* Bulk actions */}
       {selected.size > 0 && (
         <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
@@ -458,7 +520,9 @@ export default function AdminStatementsPage() {
               ) : (
                 statements.map((s) => {
                   const period = new Date(s.periodStart)
-                  const periodLabel = `${MONTH_NAMES[period.getMonth()]} ${period.getFullYear()}`
+                  // periodStart is UTC midnight on the 1st — read it in UTC so
+                  // it doesn't shift a month back in timezones behind UTC.
+                  const periodLabel = `${MONTH_NAMES[period.getUTCMonth()]} ${period.getUTCFullYear()}`
                   return (
                     <tr key={s.id} className="border-b hover:bg-muted/50">
                       <td className="p-3">

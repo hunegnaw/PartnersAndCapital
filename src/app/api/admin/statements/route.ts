@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { statementYearOptions } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
@@ -13,9 +14,10 @@ export async function GET(request: Request) {
     const month = searchParams.get("month");
     const year = searchParams.get("year");
     const clientId = searchParams.get("clientId");
+    const search = searchParams.get("search")?.trim();
     const page = parseInt(searchParams.get("page") || "1", 10);
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") || "50", 10)));
-    const sortBy = searchParams.get("sortBy") || "period";
+    const sortBy = searchParams.get("sortBy") || "generated";
     const sortDir = searchParams.get("sortDir") === "asc" ? "asc" : "desc";
 
     let orderBy: Prisma.StatementOrderByWithRelationInput | Prisma.StatementOrderByWithRelationInput[];
@@ -45,13 +47,28 @@ export async function GET(request: Request) {
 
     if (status) where.status = status;
     if (clientId) where.userId = clientId;
-    if (month && year) {
+
+    // Free-text search across client name/email and approver name.
+    // MySQL's default collation is case-insensitive, so `contains` matches
+    // regardless of case without a Postgres-only `mode: "insensitive"`.
+    if (search) {
+      where.OR = [
+        { user: { name: { contains: search } } },
+        { user: { email: { contains: search } } },
+        { approver: { name: { contains: search } } },
+      ];
+    }
+
+    // Period filter. periodStart is stored as UTC midnight on the 1st of the
+    // month, so match with UTC-constructed dates. A month with no year matches
+    // that month across every selectable year via an exact `in` list.
+    if (month) {
       const m = parseInt(month, 10);
-      const y = parseInt(year, 10);
-      where.periodStart = new Date(y, m - 1, 1);
+      const years = year ? [parseInt(year, 10)] : statementYearOptions();
+      where.periodStart = { in: years.map((y) => new Date(Date.UTC(y, m - 1, 1))) };
     } else if (year) {
       const y = parseInt(year, 10);
-      where.periodStart = { gte: new Date(y, 0, 1), lt: new Date(y + 1, 0, 1) };
+      where.periodStart = { gte: new Date(Date.UTC(y, 0, 1)), lt: new Date(Date.UTC(y + 1, 0, 1)) };
     }
 
     const [statements, total] = await Promise.all([

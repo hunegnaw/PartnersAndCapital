@@ -1017,8 +1017,11 @@ export async function generateStatement(
     const pdfBuffer = await renderPDF(data);
     const { filePath, fileSize } = await encryptAndSave(pdfBuffer);
 
-    const monthName = MONTH_NAMES[periodStart.getMonth()];
-    const year = periodStart.getFullYear();
+    // periodStart is stored as UTC midnight on the first of the month, so read
+    // it with UTC accessors — local accessors shift it to the previous month
+    // for readers in timezones behind UTC.
+    const monthName = MONTH_NAMES[periodStart.getUTCMonth()];
+    const year = periodStart.getUTCFullYear();
     const fileName = `Statement-${monthName}-${year}.pdf`;
 
     let statement;
@@ -1061,8 +1064,8 @@ export async function generateStatement(
 
     const bannerAssignments = await prisma.statementBannerAssignment.findMany({
       where: {
-        month: periodStart.getMonth() + 1,
-        year: periodStart.getFullYear(),
+        month: periodStart.getUTCMonth() + 1,
+        year: periodStart.getUTCFullYear(),
         OR: [{ userId }, { userId: null }],
         banner: { deletedAt: null, isArchived: false },
       },
