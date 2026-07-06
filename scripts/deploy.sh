@@ -245,6 +245,10 @@ Options +FollowSymLinks
 RewriteEngine On
 RewriteBase /
 
+# Canonical host: redirect www → apex (cert must cover both names)
+RewriteCond %{HTTP_HOST} ^www\.(.+)\$ [NC]
+RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
+
 # Serve uploaded media directly — symlink exists at public_html/uploads
 RewriteCond %{REQUEST_URI} ^/uploads/
 RewriteRule ^(.*)\$ - [L]

@@ -823,6 +823,16 @@ If a deployment causes issues:
 
 The server retains the last 5 releases. Rollback switches the `current` symlink to the previous release and restarts PM2.
 
+### Apache `.htaccess` (reverse proxy + canonical host)
+
+The deploy script generates the server's `.htaccess` on each deploy (it is not committed to the repo). It:
+
+- Proxies all non-`/uploads/` traffic to the Next.js process (`127.0.0.1:4000` production, `40001` staging).
+- Serves `/uploads/` media directly via a symlink to the shared uploads dir.
+- Redirects `www.<domain>` → apex with a 301 (canonical host).
+
+**Note on the `www` redirect:** this rule runs in Apache *after* the TLS handshake, so it only helps requests that reach the server. The Let's Encrypt certificate must therefore cover **both** the apex and the `www` subdomain — otherwise browsers that go straight to `https://www…` (Safari HTTPS-First / any client with HSTS pinned) fail the handshake with a "Not Private" error before the redirect can run. Add `www` as a SAN when issuing/renewing the cert in the hosting panel.
+
 ### PM2 Management
 
 Common PM2 commands for managing the application on the server:
