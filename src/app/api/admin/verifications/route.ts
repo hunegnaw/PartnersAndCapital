@@ -11,6 +11,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
+    const includeDeleted = searchParams.get("includeDeleted") === "true";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const pageSize = Math.min(
       100,
@@ -18,6 +19,7 @@ export async function GET(request: Request) {
     );
 
     const where: Prisma.VerificationWhereInput = {
+      ...(includeDeleted ? {} : { deletedAt: null }),
       ...(status ? { status: status as Prisma.EnumVerificationStatusFilter } : {}),
       ...(search
         ? {

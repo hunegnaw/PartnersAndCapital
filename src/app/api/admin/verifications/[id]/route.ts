@@ -16,8 +16,8 @@ export async function GET(
 
     const { id } = await params;
 
-    const verification = await prisma.verification.findUnique({
-      where: { id },
+    const verification = await prisma.verification.findFirst({
+      where: { id, deletedAt: null },
       include: {
         user: {
           select: {
@@ -71,8 +71,8 @@ export async function PATCH(
       );
     }
 
-    const verification = await prisma.verification.findUnique({
-      where: { id },
+    const verification = await prisma.verification.findFirst({
+      where: { id, deletedAt: null },
       include: { user: { select: { id: true, name: true, email: true } } },
     });
 
@@ -159,6 +159,53 @@ export async function PATCH(
     return NextResponse.json(updated);
   } catch (error) {
     console.error("Error updating verification:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// Soft delete — sets deletedAt (never hard-deletes), matching the rest of the site.
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const admin = await requireAdmin();
+    if (admin instanceof NextResponse) return admin;
+
+    const { id } = await params;
+
+    const verification = await prisma.verification.findFirst({
+      where: { id, deletedAt: null },
+      include: { user: { select: { id: true, email: true } } },
+    });
+
+    if (!verification) {
+      return NextResponse.json(
+        { error: "Verification not found" },
+        { status: 404 }
+      );
+    }
+
+    await prisma.verification.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+
+    await createAuditLog({
+      userId: admin.id,
+      action: "VERIFICATION_DELETED",
+      targetType: "Verification",
+      targetId: id,
+      details: { clientId: verification.userId, email: verification.user.email },
+      request,
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting verification:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

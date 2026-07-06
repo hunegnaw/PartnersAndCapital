@@ -22,8 +22,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { formatDate } from "@/lib/utils";
-import { Search } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 
 interface VerificationItem {
   id: string;
@@ -71,6 +73,8 @@ export default function AdminVerificationsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
   const pageSize = 20;
+  const [deleteTarget, setDeleteTarget] = useState<VerificationItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchVerifications = useCallback(async () => {
     setLoading(true);
@@ -96,6 +100,24 @@ export default function AdminVerificationsPage() {
   useEffect(() => {
     Promise.resolve().then(() => fetchVerifications());
   }, [fetchVerifications]);
+
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/verifications/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setDeleteTarget(null);
+        await fetchVerifications();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   const totalPages = Math.ceil(total / pageSize);
 
@@ -162,13 +184,14 @@ export default function AdminVerificationsPage() {
                   <TableHead>Status</TableHead>
                   <TableHead>Submitted</TableHead>
                   <TableHead>Updated</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {verifications.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={6}
                       className="text-center py-12 text-muted-foreground"
                     >
                       No verifications found.
@@ -196,6 +219,19 @@ export default function AdminVerificationsPage() {
                         {v.submittedAt ? formatDate(v.submittedAt) : "—"}
                       </TableCell>
                       <TableCell>{formatDate(v.updatedAt)}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Delete verification"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteTarget(v);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -212,6 +248,21 @@ export default function AdminVerificationsPage() {
         total={total}
         pageSize={pageSize}
         onPageChange={setPage}
+      />
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}
+        title="Delete Verification"
+        description={
+          deleteTarget
+            ? `Delete the verification record for ${deleteTarget.user.name || deleteTarget.user.email}? It will be removed from the list but can be restored by an administrator.`
+            : ""
+        }
+        confirmLabel="Delete"
+        onConfirm={handleDelete}
+        loading={deleting}
+        variant="destructive"
       />
     </div>
   );

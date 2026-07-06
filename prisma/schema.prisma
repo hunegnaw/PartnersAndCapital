@@ -232,12 +232,14 @@ model Verification {
   submittedAt           DateTime?
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
+  deletedAt             DateTime?
 
   user                  User                @relation("UserVerification", fields: [userId], references: [id], onDelete: Cascade)
   reviewedBy            User?               @relation("VerificationReviewer", fields: [reviewedById], references: [id])
 
   @@index([status])
   @@index([submittedAt])
+  @@index([deletedAt])
 }
 
 // ============================================================

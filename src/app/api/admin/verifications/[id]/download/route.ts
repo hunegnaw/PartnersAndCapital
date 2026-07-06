@@ -22,8 +22,8 @@ export async function GET(
       );
     }
 
-    const verification = await prisma.verification.findUnique({
-      where: { id },
+    const verification = await prisma.verification.findFirst({
+      where: { id, deletedAt: null },
       select: {
         idDocumentPath: true,
         idDocumentName: true,
