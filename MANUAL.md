@@ -1765,6 +1765,7 @@ The `pageSize` parameter supports values up to 500 (previously 100).
 - Global color picker with native picker, hex input, transparent option, opacity slider, and organization-wide saved color palette
 - Editable footer with toggleable modules (logo, navigation, newsletter, contact, tagline, copyright, disclaimer) and customizable colors
 - Media picker integration on Logo URL and Favicon URL fields in admin settings (browse/upload button with image preview)
+- Favicon override (white-label): the built-in favicon comes from the file-convention icons `src/app/icon.png` + `src/app/favicon.ico` (both derived from the brand mark, emitted with hashed cache-busting URLs). When an organization sets a **Favicon URL** in Settings → Branding, `OrganizationProvider` overrides it at runtime — it removes the default `<link rel="icon">` tags and injects one pointing at the org favicon, so the configured favicon wins. This matches how the rest of branding (colors, logo, name) is applied client-side, keeping pages statically prerendered. If no org favicon is set, the built-in default is used.
 - SEO-friendly media filenames (slugified original names instead of UUIDs) with in-place rename support
 - Drag-and-drop file upload in media picker (in addition to click-to-upload)
 - Drag-and-drop reordering for logo gallery items in the page block editor

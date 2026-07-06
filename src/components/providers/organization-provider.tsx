@@ -11,6 +11,7 @@ interface OrgConfig {
   accentColor: string;
   logoUrl?: string | null;
   logoScrolledUrl?: string | null;
+  faviconUrl?: string | null;
   disclaimer?: string | null;
   email?: string | null;
   phone?: string | null;
@@ -48,6 +49,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
           accentColor: data.accentColor || defaultOrg.accentColor,
           logoUrl: data.logoUrl,
           logoScrolledUrl: data.logoScrolledUrl,
+          faviconUrl: data.faviconUrl,
           disclaimer: data.disclaimer,
           email: data.email,
           phone: data.phone,
@@ -58,6 +60,23 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       })
       .catch(console.error);
   }, []);
+
+  // When the organization sets a custom favicon, override the built-in default
+  // (the app/icon.png + app/favicon.ico file-convention icons). We remove those
+  // link tags and point to the org favicon so it's the authoritative icon; if no
+  // org favicon is set, the built-in default is left in place.
+  useEffect(() => {
+    const favicon = org.faviconUrl;
+    if (!favicon) return;
+    const head = document.head;
+    head
+      .querySelectorAll("link[rel~='icon']")
+      .forEach((el) => el.remove());
+    const link = document.createElement("link");
+    link.rel = "icon";
+    link.href = favicon;
+    head.appendChild(link);
+  }, [org.faviconUrl]);
 
   return (
     <OrganizationContext.Provider value={org}>
