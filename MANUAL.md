@@ -205,7 +205,7 @@ The public-facing marketing site replaces the previous Squarespace website. It r
 
 All public pages share a common layout with:
 
-- **Header:** Sticky dark navy bar with "PARTNERS + CAPITAL" logo (bordered, links to admin dashboard for admins, client dashboard for clients, or home for visitors), database-driven navigation links (configured via page settings), and a gold-outlined "Investor Login" button with LogIn icon. On the homepage, the header starts transparent and transitions to solid on scroll. Navigation links are pulled from CMS pages that have "Show in navigation" enabled, sorted by nav order. Fallback nav shows only "Home" when no pages have navigation enabled.
+- **Header:** Sticky dark navy bar with "PARTNERS + CAPITAL" logo (bordered, links to admin dashboard for admins, client dashboard for clients, or home for visitors), database-driven navigation links (configured via page settings), and a gold-outlined "Investor Login" button with LogIn icon. On the homepage, the header starts transparent and transitions to solid on scroll. Navigation links are pulled from CMS pages that have "Show in navigation" enabled, sorted by nav order. Fallback nav shows only "Home" when no pages have navigation enabled. On mobile, the header stacks vertically with the logo centered on top and the hamburger menu button centered directly below it; on desktop it lays out as a single row (logo left, nav center, login right).
 - **Footer:** Dark navy background with 3-column grid (branding + address, database-driven navigation links + Investor Login, newsletter signup form), copyright line, and legal disclaimer.
 
 ### Public Routes
@@ -389,6 +389,8 @@ To set a hero background image:
 4. The image preview appears with an X button to clear it.
 
 Blog posts also use the same shared `PageHero` component with title and image only.
+
+The hero background uses a fixed (parallax) attachment on desktop only (`md:bg-fixed`). On mobile it falls back to normal scroll attachment, because iOS Safari renders `background-attachment: fixed` upscaled and blurry.
 
 ### Page API Routes
 

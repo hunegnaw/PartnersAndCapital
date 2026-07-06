@@ -45,7 +45,7 @@ export function MarketingHeader({ transparent = true, navLinks: navLinksProp }: 
         solid ? "bg-[#1A2640]" : "bg-transparent"
       }`}
     >
-      <nav className="w-full px-16 py-4 flex items-center justify-between">
+      <nav className="w-full px-16 py-4 flex flex-col items-center gap-3 md:flex-row md:items-center md:justify-between md:gap-0">
         {/* Logo */}
         <Link
           href={logoHref}
