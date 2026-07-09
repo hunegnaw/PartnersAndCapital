@@ -22,6 +22,7 @@ import {
   Plus,
   Pencil,
   Archive,
+  ArchiveRestore,
   AlertCircle,
   Download,
 } from "lucide-react";
@@ -86,6 +87,7 @@ export default function AdminDashboard() {
     undefined
   );
   const [archiving, setArchiving] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState<string | null>(null);
 
   // Fetch stats
   useEffect(() => {
@@ -175,6 +177,30 @@ export default function AdminDashboard() {
       );
     } finally {
       setArchiving(null);
+    }
+  }
+
+  async function handleUnarchive(clientId: string) {
+    if (restoring) return;
+    if (!confirm("Unarchive this client? They will return to active views."))
+      return;
+
+    setRestoring(clientId);
+    try {
+      const res = await fetch(`/api/admin/clients/${clientId}/restore`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to unarchive client");
+      }
+      fetchClients();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to unarchive client"
+      );
+    } finally {
+      setRestoring(null);
     }
   }
 
@@ -459,7 +485,7 @@ export default function AdminDashboard() {
                         className="flex items-center justify-end gap-1"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {!client.deletedAt && (
+                        {!client.deletedAt ? (
                           <>
                             <Button
                               variant="ghost"
@@ -475,10 +501,22 @@ export default function AdminDashboard() {
                               className="h-8 w-8 p-0 text-[#888780] hover:text-red-600"
                               onClick={() => handleArchive(client.id)}
                               disabled={archiving === client.id}
+                              title="Archive client"
                             >
                               <Archive className="h-3.5 w-3.5" />
                             </Button>
                           </>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-[#888780] hover:text-foreground"
+                            onClick={() => handleUnarchive(client.id)}
+                            disabled={restoring === client.id}
+                            title="Unarchive client"
+                          >
+                            <ArchiveRestore className="h-3.5 w-3.5" />
+                          </Button>
                         )}
                       </div>
                     </td>

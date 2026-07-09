@@ -1563,8 +1563,10 @@ Use the existing **Archived** tab on the client list page to see deleted/archive
 
 ### Unarchiving a Client
 
-1. On the client list page, switch to the **Archived** tab.
-2. Click the **unarchive** icon (Super Admin only) on the archived client's row. A confirmation dialog appears.
+The **unarchive** action is available on the archived-client rows of both the **Clients** list page (`/admin/clients`) and the **Client Management** table on the admin dashboard (`/admin`).
+
+1. On either page, switch to the **Archived** tab.
+2. Click the **unarchive** icon (Super Admin only) on the archived client's row. A confirmation appears.
 3. Click **Unarchive** — the client's `deletedAt` is cleared and they return to the **Active** tab and active views (regaining portal access if their account status allows). The action is audit-logged as `RESTORE_CLIENT` (`POST /api/admin/clients/[id]/restore`). If an active account already uses that email, the restore is blocked with a clear message to avoid a unique-constraint collision.
 
 ### Permissions
