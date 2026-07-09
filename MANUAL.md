@@ -1532,7 +1532,7 @@ The chart only renders when there are 2 or more months of data. Data comes from 
 
 ## Soft Delete (Investments & Clients)
 
-Investments and clients can be soft-deleted by **Super Admins only**. Soft delete hides records from normal views without destroying any data. The action can be reversed by a database administrator.
+Investments and clients can be soft-deleted by **Super Admins only**. Soft delete hides records from normal views without destroying any data. Archived clients can be **unarchived from the UI** (see below); other soft-deleted records can be reversed by a database administrator.
 
 ### Deleting an Investment
 
@@ -1560,6 +1560,12 @@ In both cases, the client's investment data is preserved. Deleted clients appear
 ### Viewing Deleted Clients
 
 Use the existing **Archived** tab on the client list page to see deleted/archived clients.
+
+### Unarchiving a Client
+
+1. On the client list page, switch to the **Archived** tab.
+2. Click the **unarchive** icon (Super Admin only) on the archived client's row. A confirmation dialog appears.
+3. Click **Unarchive** — the client's `deletedAt` is cleared and they return to the **Active** tab and active views (regaining portal access if their account status allows). The action is audit-logged as `RESTORE_CLIENT` (`POST /api/admin/clients/[id]/restore`). If an active account already uses that email, the restore is blocked with a clear message to avoid a unique-constraint collision.
 
 ### Permissions
 

@@ -26,6 +26,7 @@ import {
   Plus,
   Pencil,
   Archive,
+  ArchiveRestore,
   AlertCircle,
 } from "lucide-react"
 
@@ -68,6 +69,11 @@ export default function AdminClientsPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+
+  // Unarchive (restore) confirmation
+  const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false)
+  const [restoreTargetId, setRestoreTargetId] = useState<string | null>(null)
+  const [restoring, setRestoring] = useState(false)
 
   const fetchClients = useCallback(async () => {
     setLoading(true)
@@ -125,6 +131,25 @@ export default function AdminClientsPage() {
       setError(err instanceof Error ? err.message : "Failed to delete client")
     } finally {
       setDeleting(false)
+    }
+  }
+
+  async function handleRestoreClient() {
+    if (!restoreTargetId) return
+    setRestoring(true)
+    try {
+      const res = await fetch(`/api/admin/clients/${restoreTargetId}/restore`, { method: "POST" })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || "Failed to unarchive client")
+      }
+      setRestoreConfirmOpen(false)
+      setRestoreTargetId(null)
+      fetchClients()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to unarchive client")
+    } finally {
+      setRestoring(false)
     }
   }
 
@@ -256,7 +281,7 @@ export default function AdminClientsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                        {!client.deletedAt && (
+                        {!client.deletedAt ? (
                           <>
                             <Button
                               variant="ghost"
@@ -269,6 +294,7 @@ export default function AdminClientsPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                title="Archive client"
                                 onClick={() => {
                                   setDeleteTargetId(client.id)
                                   setDeleteConfirmOpen(true)
@@ -278,6 +304,20 @@ export default function AdminClientsPage() {
                               </Button>
                             )}
                           </>
+                        ) : (
+                          userRole === "SUPER_ADMIN" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title="Unarchive client"
+                              onClick={() => {
+                                setRestoreTargetId(client.id)
+                                setRestoreConfirmOpen(true)
+                              }}
+                            >
+                              <ArchiveRestore className="h-4 w-4" />
+                            </Button>
+                          )
                         )}
                       </div>
                     </TableCell>
@@ -316,6 +356,20 @@ export default function AdminClientsPage() {
         confirmLabel="Delete"
         onConfirm={handleDeleteClient}
         loading={deleting}
+      />
+
+      <ConfirmDialog
+        open={restoreConfirmOpen}
+        onOpenChange={(open) => {
+          setRestoreConfirmOpen(open)
+          if (!open) setRestoreTargetId(null)
+        }}
+        title="Unarchive Client"
+        description={`Restore ${clients.find((c) => c.id === restoreTargetId)?.name || "this client"} to active status? They will reappear in active views and regain portal access.`}
+        confirmLabel="Unarchive"
+        variant="default"
+        onConfirm={handleRestoreClient}
+        loading={restoring}
       />
     </div>
   )
