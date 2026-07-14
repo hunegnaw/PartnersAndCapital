@@ -222,7 +222,7 @@ export const BLOCK_TYPES = {
       headingFont: "",
       subtitle: "",
       subtitleFont: "",
-      cards: [] as { name: string; description: string }[],
+      cards: [] as { name: string; description: string; modalContent?: string }[],
       backgroundColor: "#F5F3EE",
       taglineColor: "",
       headingColor: "",

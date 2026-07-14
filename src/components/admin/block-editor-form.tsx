@@ -1063,7 +1063,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
       );
 
     case "asset_cards": {
-      const cards = (props.cards as { name: string; description: string }[]) || [];
+      const cards = (props.cards as { name: string; description: string; modalContent?: string }[]) || [];
       return (
         <div className="space-y-4">
           <InputField label="Tagline" field="tagline" {...fp} />
@@ -1124,6 +1124,22 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
                     rows={2}
                     className="w-full px-2 py-1 text-xs border rounded"
                   />
+                  <div>
+                    <label className="block text-[11px] font-medium uppercase tracking-wide text-gray-500 mb-1 mt-1">
+                      Modal Content
+                    </label>
+                    <RichTextEditor
+                      content={card.modalContent || ""}
+                      onChange={(html) => {
+                        const updated = [...cards];
+                        updated[i] = { ...updated[i], modalContent: html };
+                        updateProp("cards", updated);
+                      }}
+                    />
+                    <p className="mt-1 text-[11px] text-gray-400">
+                      Shown in a popup when a visitor clicks this card. Leave empty to keep the card non-clickable.
+                    </p>
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -1136,7 +1152,7 @@ export function BlockEditorForm({ type, props, onChange }: BlockEditorFormProps)
             ))}
             <button
               type="button"
-              onClick={() => updateProp("cards", [...cards, { name: "", description: "" }])}
+              onClick={() => updateProp("cards", [...cards, { name: "", description: "", modalContent: "" }])}
               className="flex items-center gap-1 text-xs text-[#B07D3A] hover:underline"
             >
               <Plus size={12} /> Add Card

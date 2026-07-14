@@ -2,6 +2,18 @@
 
 import { useState } from "react";
 import { resolveBlockFont, resolveBlockFontVars } from "@/lib/block-fonts";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+interface AssetCard {
+  name: string;
+  description: string;
+  modalContent?: string;
+}
 
 interface AssetCardsBlockProps {
   props: Record<string, unknown>;
@@ -11,8 +23,9 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
   const tagline = (props.tagline as string) ?? "";
   const heading = (props.heading as string) ?? "";
   const subtitle = (props.subtitle as string) ?? "";
-  const cards =
-    (props.cards as { name: string; description: string }[]) ?? [];
+  const cards = (props.cards as AssetCard[]) ?? [];
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const openCard = openIndex !== null ? cards[openIndex] : null;
   const backgroundColor = (props.backgroundColor as string) || "#F5F3EE";
   const taglineColor = (props.taglineColor as string) || "";
   const headingColor = (props.headingColor as string) || "";
@@ -99,10 +112,45 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
           style={{ gap: "1px", backgroundColor: "rgba(26,38,64,0.1)" }}
         >
           {cards.map((card, i) => (
-            <AssetCard key={i} card={card} index={i} cardNameColor={cardNameColor} cardDescColor={cardDescColor} cardNameFont={cardNameFont} cardDescFont={cardDescFont} />
+            <AssetCard
+              key={i}
+              card={card}
+              index={i}
+              cardNameColor={cardNameColor}
+              cardDescColor={cardDescColor}
+              cardNameFont={cardNameFont}
+              cardDescFont={cardDescFont}
+              onOpen={card.modalContent ? () => setOpenIndex(i) : undefined}
+            />
           ))}
         </div>
       </div>
+
+      {/* Modal content popup */}
+      <Dialog open={openCard !== null} onOpenChange={(o) => { if (!o) setOpenIndex(null); }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          {openCard && (
+            <>
+              <DialogHeader>
+                <DialogTitle
+                  style={{
+                    fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
+                    fontWeight: 500,
+                    fontSize: "28px",
+                    color: "#1A2640",
+                  }}
+                >
+                  {openCard.name}
+                </DialogTitle>
+              </DialogHeader>
+              <div
+                className="prose prose-lg max-w-none prose-headings:text-[#1A2640] prose-a:text-[#B07D3A] prose-strong:text-[#1A2640]"
+                dangerouslySetInnerHTML={{ __html: openCard.modalContent || "" }}
+              />
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
@@ -114,19 +162,36 @@ function AssetCard({
   cardDescColor,
   cardNameFont,
   cardDescFont,
+  onOpen,
 }: {
-  card: { name: string; description: string };
+  card: AssetCard;
   index: number;
   cardNameColor: string;
   cardDescColor: string;
   cardNameFont: import("react").CSSProperties | null;
   cardDescFont: import("react").CSSProperties | null;
+  onOpen?: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
 
   return (
     <div
-      className="relative cursor-default overflow-hidden px-7 py-9 transition-all duration-300"
+      role={onOpen ? "button" : undefined}
+      tabIndex={onOpen ? 0 : undefined}
+      onClick={onOpen}
+      onKeyDown={
+        onOpen
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onOpen();
+              }
+            }
+          : undefined
+      }
+      className={`relative overflow-hidden px-7 py-9 transition-all duration-300 ${
+        onOpen ? "cursor-pointer" : "cursor-default"
+      }`}
       style={{
         backgroundColor: hovered ? "#1A2640" : "#ffffff",
       }}

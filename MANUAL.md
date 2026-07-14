@@ -297,7 +297,7 @@ The page builder allows admins to create and edit CMS pages using drag-and-drop 
 | Image | Single image with alt text and caption |
 | Video Embed | YouTube/Vimeo responsive iframe |
 | Spacer | Vertical spacing (sm/md/lg/xl) |
-| Asset Cards | 4-column grid of asset class cards with numbered layout, gold accents, and navy hover effect |
+| Asset Cards | 4-column grid of asset class cards with numbered layout, gold accents, and navy hover effect. Each card in the block editor has a **Modal Content** WYSIWYG field; when set, the card becomes clickable on the front end and opens a popup (Dialog) rendering that rich content. Cards with empty Modal Content stay non-clickable. |
 | Philosophy | Navy section with large italic serif quote (supports `*italic*` gold text) and pillars sidebar with gold left border |
 | Process Steps | Roman-numeral numbered steps with a sticky navy sidebar card showing stats and quote; optional dynamic stats from database |
 | CTA Split | Two-column CTA layout with heading, description, dual buttons on left and bullet list with gold dots on right |
