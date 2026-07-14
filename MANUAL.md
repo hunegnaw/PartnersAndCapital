@@ -420,7 +420,7 @@ The media library manages public images, videos, and PDF documents used across b
 - **Bulk delete:** When one or more items are selected, a "Delete Selected (N)" button appears in the header. Clicking it opens a confirmation dialog, then soft-deletes all selected items via `DELETE /api/admin/media` with `{ ids: [...] }`.
 - **Show Deleted toggle:** A switch next to the type filter controls whether soft-deleted items appear in results. When enabled, deleted items render with reduced opacity (50%). The toggle resets page and clears selection.
 - **Rename:** Hover over any media item in the picker to see a pencil icon. Click it to rename the file. The file is renamed on disk with an SEO-friendly slug and the database path is updated.
-- **Edit:** Click any media item to update alt text and caption.
+- **Edit:** Click any media item to update alt text and caption. The detail modal also shows a read-only **File URL** field (the full absolute URL to the file) with a **copy button** (shows a check for 2s after copying).
 - **Delete:** Soft delete (sets deletedAt, removes file from disk).
 - **Supported formats:** JPEG, PNG, GIF, WebP, SVG (images); MP4, WebM, MOV (videos); PDF (documents). SVG files are explicitly accepted in all file pickers for full browser compatibility. PDFs render a "PDF" file-icon tile in the grid (no `<img>`) and an embedded preview (with an "Open PDF" fallback link) in the detail view. Image-only pickers (logo, favicon, OG image, hero image) filter to `image/*` server-side, so PDFs only appear in the general media browser and the "all"-mode picker.
 

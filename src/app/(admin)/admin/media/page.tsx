@@ -29,6 +29,8 @@ import {
   FileText,
   AlertCircle,
   Loader2,
+  Copy,
+  Check,
 } from "lucide-react"
 
 interface MediaItem {
@@ -91,6 +93,7 @@ export default function AdminMediaPage() {
   const [editAlt, setEditAlt] = useState("")
   const [editCaption, setEditCaption] = useState("")
   const [savingMeta, setSavingMeta] = useState(false)
+  const [urlCopied, setUrlCopied] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
 
   const fetchMedia = useCallback(async () => {
@@ -177,6 +180,16 @@ export default function AdminMediaPage() {
     setSelectedItem(null)
     setEditAlt("")
     setEditCaption("")
+  }
+
+  async function handleCopyUrl(url: string) {
+    try {
+      await navigator.clipboard.writeText(url)
+      setUrlCopied(true)
+      setTimeout(() => setUrlCopied(false), 2000)
+    } catch {
+      // Clipboard unavailable
+    }
   }
 
   async function handleSaveMeta() {
@@ -603,6 +616,36 @@ export default function AdminMediaPage() {
                 <div>
                   <span className="text-muted-foreground">Uploaded:</span>
                   <p className="font-medium">{formatDate(selectedItem.createdAt)}</p>
+                </div>
+              </div>
+
+              {/* File URL */}
+              <div className="space-y-1">
+                <Label htmlFor="detail-url">File URL</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="detail-url"
+                    readOnly
+                    value={`${window.location.origin}${selectedItem.filePath}`}
+                    onFocus={(e) => e.target.select()}
+                    className="font-mono text-xs"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                    title={urlCopied ? "Copied!" : "Copy URL"}
+                    onClick={() =>
+                      handleCopyUrl(`${window.location.origin}${selectedItem.filePath}`)
+                    }
+                  >
+                    {urlCopied ? (
+                      <Check className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
               </div>
 
