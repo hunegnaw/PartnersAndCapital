@@ -128,10 +128,14 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
 
       {/* Modal content popup */}
       <Dialog open={openCard !== null} onOpenChange={(o) => { if (!o) setOpenIndex(null); }}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-y-auto border-t-4 border-[#B07D3A]">
           {openCard && (
             <>
               <DialogHeader>
+                <span
+                  className="mb-3 inline-block h-px w-10"
+                  style={{ backgroundColor: "#B07D3A" }}
+                />
                 <DialogTitle
                   style={{
                     fontFamily: "var(--font-section-heading-family, 'Cormorant Garamond'), serif",
