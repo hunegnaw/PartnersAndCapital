@@ -128,7 +128,7 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
 
       {/* Modal content popup */}
       <Dialog open={openCard !== null} onOpenChange={(o) => { if (!o) setOpenIndex(null); }}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           {openCard && (
             <>
               <DialogHeader>
@@ -144,7 +144,14 @@ export function AssetCardsBlock({ props }: AssetCardsBlockProps) {
                 </DialogTitle>
               </DialogHeader>
               <div
-                className="prose prose-lg max-w-none prose-headings:text-[#1A2640] prose-a:text-[#B07D3A] prose-strong:text-[#1A2640]"
+                className="prose max-w-none prose-headings:text-[#1A2640] prose-a:text-[#B07D3A] prose-strong:text-[#1A2640]"
+                style={{
+                  // Base body style: Inter 16px. WYSIWYG font/size choices apply
+                  // inline styles per element, which override these.
+                  fontFamily: "var(--font-body-family, Inter), sans-serif",
+                  fontSize: "16px",
+                  color: "#1A2640",
+                }}
                 dangerouslySetInnerHTML={{ __html: openCard.modalContent || "" }}
               />
             </>
