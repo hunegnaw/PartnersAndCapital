@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { X, Upload, Search, ImageIcon, Film, Pencil, Check } from "lucide-react";
+import { X, Upload, Search, ImageIcon, Film, FileText, Pencil, Check } from "lucide-react";
 
 interface Media {
   id: string;
@@ -242,7 +242,7 @@ export function MediaPicker({
                       ? "image/*,.svg"
                       : accept === "video"
                       ? "video/*"
-                      : "image/*,.svg,video/*"
+                      : "image/*,.svg,video/*,application/pdf,.pdf"
                   }
                   onChange={handleUpload}
                   className="hidden"
@@ -250,7 +250,11 @@ export function MediaPicker({
                 />
               </label>
               <p className="text-xs text-gray-400 mt-2">
-                Images: max 10MB | Videos: max 100MB
+                {accept === "image"
+                  ? "Images: max 10MB"
+                  : accept === "video"
+                  ? "Videos: max 100MB"
+                  : "Images: max 10MB | Videos: max 100MB | PDF: max 50MB"}
               </p>
             </div>
           ) : loading ? (
@@ -279,6 +283,11 @@ export function MediaPicker({
                       {item.mimeType.startsWith("video/") ? (
                         <div className="w-full h-full flex items-center justify-center bg-gray-900">
                           <Film size={24} className="text-white/60" />
+                        </div>
+                      ) : item.mimeType === "application/pdf" ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-1 bg-[#FDF5E8]">
+                          <FileText size={24} className="text-[#7A5520]" />
+                          <span className="text-[9px] font-medium text-[#7A5520]">PDF</span>
                         </div>
                       ) : (
                         // eslint-disable-next-line @next/next/no-img-element

@@ -410,11 +410,11 @@ The hero background uses a fixed (parallax) attachment on desktop only (`md:bg-f
 
 ### Overview
 
-The media library manages public images and videos used across blog posts and CMS pages. Files are stored unencrypted in `public/uploads/media/YYYY/` and served directly by Next.js.
+The media library manages public images, videos, and PDF documents used across blog posts and CMS pages. Files are stored unencrypted in `public/uploads/media/YYYY/` and served directly by Next.js.
 
 ### Admin Media Browser (`/admin/media`)
 
-- **Upload:** Drag-and-drop or file picker. Images up to 10MB, videos up to 100MB.
+- **Upload:** Drag-and-drop or file picker. Images up to 10MB, videos up to 100MB, PDFs up to 50MB.
 - **Browse:** Grid of thumbnails with search and type filter (Images/Videos/All). Paginated.
 - **Checkbox selection:** Each grid item has a checkbox in the top-left corner. Selected items show a gold ring highlight. Clicking the checkbox does not open the detail view.
 - **Bulk delete:** When one or more items are selected, a "Delete Selected (N)" button appears in the header. Clicking it opens a confirmation dialog, then soft-deletes all selected items via `DELETE /api/admin/media` with `{ ids: [...] }`.
@@ -422,7 +422,7 @@ The media library manages public images and videos used across blog posts and CM
 - **Rename:** Hover over any media item in the picker to see a pencil icon. Click it to rename the file. The file is renamed on disk with an SEO-friendly slug and the database path is updated.
 - **Edit:** Click any media item to update alt text and caption.
 - **Delete:** Soft delete (sets deletedAt, removes file from disk).
-- **Supported formats:** JPEG, PNG, GIF, WebP, SVG (images); MP4, WebM, MOV (videos). SVG files are explicitly accepted in all file pickers for full browser compatibility.
+- **Supported formats:** JPEG, PNG, GIF, WebP, SVG (images); MP4, WebM, MOV (videos); PDF (documents). SVG files are explicitly accepted in all file pickers for full browser compatibility. PDFs render a "PDF" file-icon tile in the grid (no `<img>`) and an embedded preview (with an "Open PDF" fallback link) in the detail view. Image-only pickers (logo, favicon, OG image, hero image) filter to `image/*` server-side, so PDFs only appear in the general media browser and the "all"-mode picker.
 
 ### Filenames and SEO
 

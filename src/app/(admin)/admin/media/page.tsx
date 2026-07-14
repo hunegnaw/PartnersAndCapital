@@ -26,6 +26,7 @@ import {
   X,
   Film,
   Image as ImageIcon,
+  FileText,
   AlertCircle,
   Loader2,
 } from "lucide-react"
@@ -56,6 +57,10 @@ function isImage(mimeType: string): boolean {
 
 function isVideo(mimeType: string): boolean {
   return mimeType.startsWith("video/")
+}
+
+function isPdf(mimeType: string): boolean {
+  return mimeType === "application/pdf"
 }
 
 export default function AdminMediaPage() {
@@ -390,6 +395,11 @@ export default function AdminMediaPage() {
                   <div className="w-full h-full flex items-center justify-center bg-[#1A2640]">
                     <Film className="h-8 w-8 text-white/60" />
                   </div>
+                ) : isPdf(item.mimeType) ? (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-1 bg-[#FDF5E8]">
+                    <FileText className="h-8 w-8 text-[#7A5520]" />
+                    <span className="text-[10px] font-medium text-[#7A5520]">PDF</span>
+                  </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <ImageIcon className="h-8 w-8 text-gray-400" />
@@ -462,7 +472,7 @@ export default function AdminMediaPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*,.svg,video/*"
+                accept="image/*,.svg,video/*,application/pdf,.pdf"
                 multiple
                 onChange={handleUpload}
                 disabled={uploading}
@@ -549,6 +559,22 @@ export default function AdminMediaPage() {
                     controls
                     className="max-h-80 w-full"
                   />
+                ) : isPdf(selectedItem.mimeType) ? (
+                  <object
+                    data={selectedItem.filePath}
+                    type="application/pdf"
+                    className="w-full h-80"
+                  >
+                    <a
+                      href={selectedItem.filePath}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center gap-2 py-12 text-[#7A5520]"
+                    >
+                      <FileText className="h-12 w-12" />
+                      <span className="text-sm font-medium">Open PDF</span>
+                    </a>
+                  </object>
                 ) : (
                   <div className="py-12">
                     <ImageIcon className="h-12 w-12 text-gray-400 mx-auto" />

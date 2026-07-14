@@ -16,8 +16,13 @@ const ALLOWED_VIDEO_TYPES = [
   "video/quicktime",
 ];
 
+const ALLOWED_DOCUMENT_TYPES = [
+  "application/pdf",
+];
+
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
+const MAX_DOCUMENT_SIZE = 50 * 1024 * 1024; // 50MB
 
 export interface MediaUploadResult {
   filePath: string;
@@ -29,7 +34,7 @@ export interface MediaUploadResult {
 }
 
 function getAllowedTypes() {
-  return [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
+  return [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES, ...ALLOWED_DOCUMENT_TYPES];
 }
 
 /** Slugify a filename stem for URL-safe, SEO-friendly paths */
@@ -49,12 +54,14 @@ export async function saveMediaFile(file: File): Promise<MediaUploadResult> {
   const allAllowed = getAllowedTypes();
   if (!allAllowed.includes(file.type)) {
     throw new Error(
-      `File type ${file.type} is not allowed. Allowed: JPEG, PNG, GIF, WebP, SVG, MP4, WebM, MOV`
+      `File type ${file.type} is not allowed. Allowed: JPEG, PNG, GIF, WebP, SVG, MP4, WebM, MOV, PDF`
     );
   }
 
   const maxSize = ALLOWED_VIDEO_TYPES.includes(file.type)
     ? MAX_VIDEO_SIZE
+    : ALLOWED_DOCUMENT_TYPES.includes(file.type)
+    ? MAX_DOCUMENT_SIZE
     : MAX_IMAGE_SIZE;
   if (file.size > maxSize) {
     const maxMB = maxSize / (1024 * 1024);
@@ -116,6 +123,7 @@ function getExtension(mimeType: string, fileName: string): string {
     "video/mp4": "mp4",
     "video/webm": "webm",
     "video/quicktime": "mov",
+    "application/pdf": "pdf",
   };
   if (map[mimeType]) return map[mimeType];
   const parts = fileName.split(".");
