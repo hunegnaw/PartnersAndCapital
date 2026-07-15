@@ -27,7 +27,10 @@ export async function GET(
         updatedAt: true,
         lastLoginAt: true,
         clientInvestments: {
-          where: { deletedAt: null },
+          // Exclude positions whose fund itself was soft-deleted — otherwise the
+          // row shows as a clickable dead link (the fund detail 404s) and its
+          // money still counts in the client's totals.
+          where: { deletedAt: null, investment: { deletedAt: null } },
           include: {
             investment: {
               include: { assetClass: true },
@@ -183,10 +186,30 @@ export async function DELETE(
       );
     }
 
-    await prisma.user.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
+    // Cascade the archive to the client's positions, contributions, and
+    // distributions using one shared timestamp. The exact timestamp lets the
+    // restore re-activate precisely these rows (and not any that were manually
+    // soft-deleted earlier). This keeps fund AUM/totals excluding archived
+    // clients, since those aggregates filter deletedAt: null.
+    const archivedAt = new Date();
+    await prisma.$transaction([
+      prisma.clientInvestment.updateMany({
+        where: { userId: id, deletedAt: null },
+        data: { deletedAt: archivedAt },
+      }),
+      prisma.contribution.updateMany({
+        where: { userId: id, deletedAt: null },
+        data: { deletedAt: archivedAt },
+      }),
+      prisma.distribution.updateMany({
+        where: { userId: id, deletedAt: null },
+        data: { deletedAt: archivedAt },
+      }),
+      prisma.user.update({
+        where: { id },
+        data: { deletedAt: archivedAt },
+      }),
+    ]);
 
     await createAuditLog({
       userId: user.id,

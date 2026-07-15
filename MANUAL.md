@@ -1550,6 +1550,8 @@ Clients can be deleted from two places:
 
 In both cases, the client's investment data is preserved. Deleted clients appear under the **Archived** tab on the client list page.
 
+**Cascade:** Archiving a client also soft-deletes (with one shared timestamp) their **positions, contributions, and distributions**, so they drop out of fund AUM/totals while archived. Unarchiving re-activates **exactly** those rows (matched by that timestamp), leaving any independently/manually deleted rows untouched. Clients archived before this behavior existed simply have nothing to cascade-restore. Additionally, a client's investment list now hides positions whose **fund itself was soft-deleted** (previously these showed as clickable rows that 404'd with "Investment not found").
+
 ### Viewing Deleted Investments
 
 1. Navigate to **Admin > Investments**.

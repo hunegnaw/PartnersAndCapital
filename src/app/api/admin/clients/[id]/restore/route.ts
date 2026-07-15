@@ -39,10 +39,28 @@ export async function POST(
       );
     }
 
-    await prisma.user.update({
-      where: { id },
-      data: { deletedAt: null },
-    });
+    // Re-activate exactly the positions/contributions/distributions that were
+    // cascade-archived together with this user (they share the user's archive
+    // timestamp). Rows soft-deleted at any other time are left untouched.
+    const archivedAt = existing.deletedAt;
+    await prisma.$transaction([
+      prisma.clientInvestment.updateMany({
+        where: { userId: id, deletedAt: archivedAt },
+        data: { deletedAt: null },
+      }),
+      prisma.contribution.updateMany({
+        where: { userId: id, deletedAt: archivedAt },
+        data: { deletedAt: null },
+      }),
+      prisma.distribution.updateMany({
+        where: { userId: id, deletedAt: archivedAt },
+        data: { deletedAt: null },
+      }),
+      prisma.user.update({
+        where: { id },
+        data: { deletedAt: null },
+      }),
+    ]);
 
     await createAuditLog({
       userId: user.id,
