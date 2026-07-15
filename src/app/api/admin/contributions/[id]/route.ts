@@ -74,3 +74,49 @@ export async function PATCH(
     );
   }
 }
+
+// Soft-delete a contribution (bookkeeping record; amountInvested is unaffected).
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await requireAdmin();
+    if (user instanceof NextResponse) return user;
+
+    const { id } = await params;
+
+    const existing = await prisma.contribution.findFirst({
+      where: { id, deletedAt: null },
+    });
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Contribution not found" },
+        { status: 404 }
+      );
+    }
+
+    await prisma.contribution.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+
+    await createAuditLog({
+      userId: user.id,
+      action: "DELETE_CONTRIBUTION",
+      targetType: "Contribution",
+      targetId: id,
+      details: { amount: Number(existing.amount) },
+      request,
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting contribution:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

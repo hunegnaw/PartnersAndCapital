@@ -27,6 +27,7 @@ import { DistributionFormDialog } from "@/components/admin/distribution-form-dia
 import { DistributionImportDialog } from "@/components/admin/distribution-import-dialog"
 import { EditDistributionDialog } from "@/components/admin/edit-distribution-dialog"
 import { EditContributionDialog } from "@/components/admin/edit-contribution-dialog"
+import { ContributionFormDialog } from "@/components/admin/contribution-form-dialog"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { formatCurrency, formatDate, formatDateOnly, formatPercentage } from "@/lib/utils"
 import {
@@ -292,6 +293,10 @@ export default function AdminInvestmentDetailPage({
   const [docSort, setDocSort] = useState<SortState<string>>(null)
   const [editContributionOpen, setEditContributionOpen] = useState(false)
   const [editContributionTarget, setEditContributionTarget] = useState<ContributionRecord | null>(null)
+  const [addContributionOpen, setAddContributionOpen] = useState(false)
+  const [deleteContributionOpen, setDeleteContributionOpen] = useState(false)
+  const [deleteContributionTarget, setDeleteContributionTarget] = useState<ContributionRecord | null>(null)
+  const [deletingContribution, setDeletingContribution] = useState(false)
 
   const fetchInvestment = useCallback(async () => {
     setLoading(true)
@@ -410,11 +415,35 @@ export default function AdminInvestmentDetailPage({
       if (!res.ok) throw new Error("Failed to remove position")
       setDeletePositionOpen(false)
       setDeletePositionTarget(null)
-      fetchInvestment()
+      // In the client-scoped view the deleted position is the whole page — send
+      // the admin back to the client. Otherwise stay on the fund and refresh.
+      if (scopedClientId) {
+        router.push(`/admin/clients/${scopedClientId}`)
+      } else {
+        fetchInvestment()
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to remove position")
     } finally {
       setDeletingPosition(false)
+    }
+  }
+
+  const handleDeleteContribution = async () => {
+    if (!deleteContributionTarget) return
+    setDeletingContribution(true)
+    try {
+      const res = await fetch(`/api/admin/contributions/${deleteContributionTarget.id}`, {
+        method: "DELETE",
+      })
+      if (!res.ok) throw new Error("Failed to delete contribution")
+      setDeleteContributionOpen(false)
+      setDeleteContributionTarget(null)
+      fetchInvestment()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete contribution")
+    } finally {
+      setDeletingContribution(false)
     }
   }
 
@@ -613,16 +642,44 @@ export default function AdminInvestmentDetailPage({
           <p className="text-muted-foreground mt-1">{investment.assetClass.name}</p>
         </div>
         <div className="flex gap-2">
-          {userRole === "SUPER_ADMIN" && (
-            <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="h-4 w-4" />
-              Delete
-            </Button>
+          {isClientScoped ? (
+            <>
+              {userRole === "SUPER_ADMIN" && (
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setDeletePositionTarget({ id: clientPosition.id, clientName: clientPosition.user.name || clientPosition.user.email })
+                    setDeletePositionOpen(true)
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete Position
+                </Button>
+              )}
+              <Button
+                onClick={() => {
+                  setEditPositionTarget(clientPosition)
+                  setEditPositionOpen(true)
+                }}
+              >
+                <Pencil className="h-4 w-4" />
+                Edit Position
+              </Button>
+            </>
+          ) : (
+            <>
+              {userRole === "SUPER_ADMIN" && (
+                <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </Button>
+              )}
+              <Button onClick={() => setEditOpen(true)}>
+                <Pencil className="h-4 w-4" />
+                Edit Investment
+              </Button>
+            </>
           )}
-          <Button onClick={() => setEditOpen(true)}>
-            <Pencil className="h-4 w-4" />
-            Edit Investment
-          </Button>
         </div>
       </div>
 
@@ -933,6 +990,12 @@ export default function AdminInvestmentDetailPage({
         {/* Contributions Tab (client-scoped only) */}
         {isClientScoped && (
           <TabsContent value="contributions" className="mt-4 space-y-4">
+            <div className="flex justify-end">
+              <Button size="sm" onClick={() => setAddContributionOpen(true)}>
+                <Plus className="h-4 w-4" />
+                Add Contribution
+              </Button>
+            </div>
             <Card>
               <CardContent className="p-0">
                 <Table>
@@ -942,12 +1005,13 @@ export default function AdminInvestmentDetailPage({
                       <TableHead className="text-right">Amount</TableHead>
                       <TableHead>Notes</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {allContributions.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                        <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                           <Plus className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
                           <p>No contributions recorded yet.</p>
                         </TableCell>
@@ -966,6 +1030,26 @@ export default function AdminInvestmentDetailPage({
                             <Badge variant={c.status === "COMPLETED" ? "default" : "secondary"}>
                               {c.status}
                             </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                title="Edit contribution"
+                                onClick={() => { setEditContributionTarget(c); setEditContributionOpen(true) }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                title="Delete contribution"
+                                onClick={() => { setDeleteContributionTarget(c); setDeleteContributionOpen(true) }}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))
@@ -1075,12 +1159,26 @@ export default function AdminInvestmentDetailPage({
                 </Button>
               )}
             </div>
-            {!isClientScoped && (
-              <Button size="sm" variant="outline" onClick={() => setBulkDistributionOpen(true)}>
-                <Upload className="h-4 w-4" />
-                Bulk Upload
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {isClientScoped && (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setDistributionTarget({ clientInvestmentId: clientPosition.id, clientName: clientPosition.user.name || clientPosition.user.email })
+                    setDistributionOpen(true)
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Distribution
+                </Button>
+              )}
+              {!isClientScoped && (
+                <Button size="sm" variant="outline" onClick={() => setBulkDistributionOpen(true)}>
+                  <Upload className="h-4 w-4" />
+                  Bulk Upload
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Distributions Table */}
@@ -1593,6 +1691,30 @@ export default function AdminInvestmentDetailPage({
         }}
         contribution={editContributionTarget}
         onSuccess={fetchInvestment}
+      />
+
+      {isClientScoped && clientPosition && (
+        <ContributionFormDialog
+          open={addContributionOpen}
+          onOpenChange={setAddContributionOpen}
+          investmentId={investment.id}
+          clientInvestmentId={clientPosition.id}
+          clientName={clientPosition.user.name || clientPosition.user.email}
+          onSuccess={fetchInvestment}
+        />
+      )}
+
+      <ConfirmDialog
+        open={deleteContributionOpen}
+        onOpenChange={(open) => {
+          setDeleteContributionOpen(open)
+          if (!open) setDeleteContributionTarget(null)
+        }}
+        title="Delete Contribution"
+        description={`Delete this contribution${deleteContributionTarget ? ` of ${formatCurrency(Number(deleteContributionTarget.amount))}` : ""}? This soft-deletes the record and can be reversed by an administrator.`}
+        confirmLabel="Delete"
+        onConfirm={handleDeleteContribution}
+        loading={deletingContribution}
       />
 
       <ConfirmDialog
