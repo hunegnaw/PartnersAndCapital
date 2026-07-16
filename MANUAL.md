@@ -1098,6 +1098,20 @@ When the environment variable is not set (e.g., in development), the component r
 
 ---
 
+## Google Tag Manager
+
+GTM is available via the `NEXT_PUBLIC_GTM_ID` environment variable (a container id like `GTM-XXXXXXX`). When set, `GoogleTagManager` (`src/components/analytics/google-tag-manager.tsx`) is rendered as the **first child of `<body>`** in the root layout — it injects the GTM loader script (`next/script`, `afterInteractive`) and the `<noscript>` iframe fallback immediately after the opening body tag, per Google's install guidance.
+
+### Configuration
+
+```
+NEXT_PUBLIC_GTM_ID="GTM-XXXXXXX"
+```
+
+GTM and the direct GA4 integration are **independent** — set either or both. If you manage GA4 **inside** GTM (add the GA4 tag in the GTM container), leave `NEXT_PUBLIC_GA4_ID` **unset** so pageviews aren't double-counted. When `NEXT_PUBLIC_GTM_ID` is not set, the component renders nothing.
+
+---
+
 ## Typography & Font Settings
 
 ### Overview
