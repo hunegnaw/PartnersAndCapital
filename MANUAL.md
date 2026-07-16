@@ -1084,23 +1084,11 @@ All user-facing API routes validate input using Zod schemas defined in `src/lib/
 
 ---
 
-## Google Analytics 4
+## Analytics (Google Tag Manager)
 
-GA4 integration is available via the `NEXT_PUBLIC_GA4_ID` environment variable. When set, the GA4 script tag is automatically included in the root layout.
+Analytics is loaded exclusively through **Google Tag Manager**. There is no direct GA4 integration in the app — **GA4 is configured as a tag inside the GTM container**. (The former `NEXT_PUBLIC_GA4_ID` / direct `gtag.js` component was removed.)
 
-### Configuration
-
-```
-NEXT_PUBLIC_GA4_ID="G-XXXXXXXXXX"
-```
-
-When the environment variable is not set (e.g., in development), the component renders nothing.
-
----
-
-## Google Tag Manager
-
-GTM is available via the `NEXT_PUBLIC_GTM_ID` environment variable (a container id like `GTM-XXXXXXX`). When set, `GoogleTagManager` (`src/components/analytics/google-tag-manager.tsx`) is rendered as the **first child of `<body>`** in the root layout — it injects the GTM loader script (`next/script`, `afterInteractive`) and the `<noscript>` iframe fallback immediately after the opening body tag, per Google's install guidance.
+GTM is enabled via the `NEXT_PUBLIC_GTM_ID` environment variable (a container id like `GTM-XXXXXXX`). When set, `GoogleTagManager` (`src/components/analytics/google-tag-manager.tsx`) is rendered as the **first child of `<body>`** in the root layout — it injects the GTM loader script (`next/script`, `afterInteractive`) and the `<noscript>` iframe fallback immediately after the opening body tag, per Google's install guidance. When it's not set (e.g., in development), the component renders nothing.
 
 ### Configuration
 
@@ -1108,7 +1096,7 @@ GTM is available via the `NEXT_PUBLIC_GTM_ID` environment variable (a container 
 NEXT_PUBLIC_GTM_ID="GTM-XXXXXXX"
 ```
 
-GTM and the direct GA4 integration are **independent** — set either or both. If you manage GA4 **inside** GTM (add the GA4 tag in the GTM container), leave `NEXT_PUBLIC_GA4_ID` **unset** so pageviews aren't double-counted. When `NEXT_PUBLIC_GTM_ID` is not set, the component renders nothing.
+To collect GA4 data: in the GTM container add a **Google Tag** with your GA4 measurement id (`G-XXXXXXX`) on an **Initialization – All Pages** trigger, then **Submit → Publish**. Because `NEXT_PUBLIC_GTM_ID` is a build-time public variable, changing it requires a redeploy.
 
 ---
 

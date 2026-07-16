@@ -2,10 +2,8 @@ import Script from "next/script";
 
 /**
  * Google Tag Manager. Renders nothing unless NEXT_PUBLIC_GTM_ID is set
- * (a container id like "GTM-XXXXXXX"). Mirrors the manual, env-gated pattern
- * used by GoogleAnalytics. GTM and the direct GA4 integration are independent —
- * set either or both. If you manage GA4 *inside* GTM, leave NEXT_PUBLIC_GA4_ID
- * unset so events aren't double-counted.
+ * (a container id like "GTM-XXXXXXX"). This is the site's only analytics loader —
+ * GA4 is managed as a tag *inside* the GTM container, not loaded directly.
  *
  * Render this as the FIRST child of <body> so the <noscript> fallback sits
  * immediately after the opening body tag, per Google's install guidance.
