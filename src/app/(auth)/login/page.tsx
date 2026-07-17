@@ -511,8 +511,11 @@ function LoginContent() {
 
           <div>
             <h1
-              className="text-[22px] font-medium text-[#E8D5B0] leading-snug"
-              style={{ fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif" }}
+              className="text-[22px] font-medium leading-snug"
+              // Inline color beats the `.marketing-typography h1` rule (whose
+              // color isn't !important), which otherwise overrides the Tailwind
+              // text color and leaves this heading dark/unreadable on navy.
+              style={{ fontFamily: "var(--font-hero-title-family, 'Cormorant Garamond'), serif", color: "#E8D5B0" }}
             >
               Your capital.<br />A clear view.
             </h1>
