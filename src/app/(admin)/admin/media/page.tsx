@@ -208,17 +208,21 @@ export default function AdminMediaPage() {
 
       if (!res.ok) throw new Error("Failed to update media")
 
+      // The PATCH route returns the updated media object directly (not wrapped
+      // in { media }). Reading data.media.alt here threw a TypeError inside the
+      // setItems updater, which escaped to the error boundary ("Something went
+      // wrong") instead of saving.
       const data = await res.json()
       // Update item in local state
       setItems((prev) =>
         prev.map((item) =>
           item.id === selectedItem.id
-            ? { ...item, alt: data.media.alt, caption: data.media.caption }
+            ? { ...item, alt: data.alt, caption: data.caption }
             : item
         )
       )
       setSelectedItem((prev) =>
-        prev ? { ...prev, alt: data.media.alt, caption: data.media.caption } : null
+        prev ? { ...prev, alt: data.alt, caption: data.caption } : null
       )
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update media")
