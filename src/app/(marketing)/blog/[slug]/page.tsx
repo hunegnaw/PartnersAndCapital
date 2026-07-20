@@ -16,13 +16,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     select: { title: true, excerpt: true, metaTitle: true, metaDescription: true, ogImageUrl: true, heroImageUrl: true },
   });
   if (!post) return { title: "Post Not Found" };
+  const title = post.metaTitle || post.title;
+  const description = post.metaDescription || post.excerpt || "";
+  // Prefer an explicit OG image, else fall back to the hero image. Relative
+  // paths are resolved to absolute via metadataBase (set in the root layout).
+  const imageUrl = post.ogImageUrl || post.heroImageUrl || undefined;
   return {
     title: post.metaTitle || `${post.title} | Partners + Capital`,
-    description: post.metaDescription || post.excerpt || "",
+    description,
     openGraph: {
-      title: post.metaTitle || post.title,
-      description: post.metaDescription || post.excerpt || "",
-      images: post.ogImageUrl || post.heroImageUrl ? [{ url: post.ogImageUrl || post.heroImageUrl! }] : undefined,
+      type: "article",
+      title,
+      description,
+      images: imageUrl ? [{ url: imageUrl }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: imageUrl ? [imageUrl] : undefined,
     },
   };
 }

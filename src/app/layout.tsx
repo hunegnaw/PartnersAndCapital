@@ -17,6 +17,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Resolves relative Open Graph / Twitter image URLs (e.g. /uploads/media/…)
+  // to absolute URLs. Without this, social scrapers like Facebook get a
+  // localhost/relative og:image and can't fetch the blog hero image.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "https://partnersandcapital.com"
+  ),
   title: "Partners + Capital",
   description: "Investor Portal",
 };
