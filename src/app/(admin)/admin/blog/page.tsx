@@ -43,25 +43,7 @@ import {
   Eye,
   ExternalLink,
   AlertCircle,
-  GripVertical,
 } from "lucide-react"
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core"
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
 
 interface BlogCategory {
   id: string
@@ -81,14 +63,13 @@ interface BlogPost {
   excerpt: string | null
   isPublished: boolean
   views: number
-  sortOrder: number
   publishedAt: string | null
   createdAt: string
   deletedAt: string | null
   categories: BlogPostCategoryJoin[]
 }
 
-function SortableRow({
+function PostRow({
   post,
   deleting,
   onDelete,
@@ -101,27 +82,10 @@ function SortableRow({
   isSelected: boolean
   onToggleSelect: (id: string) => void
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: post.id })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  }
-
   const isDeleted = !!post.deletedAt
 
   return (
     <TableRow
-      ref={setNodeRef}
-      style={style}
       className={`${isSelected ? "bg-[#FDF5E8]/50" : ""} ${isDeleted ? "opacity-50" : ""}`}
     >
       <TableCell className="w-8">
@@ -131,16 +95,6 @@ function SortableRow({
           onChange={() => onToggleSelect(post.id)}
           className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
         />
-      </TableCell>
-      <TableCell className="w-8">
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600"
-        >
-          <GripVertical className="h-4 w-4" />
-        </button>
       </TableCell>
       <TableCell className="font-medium max-w-[300px]">
         <div className="truncate">{post.title}</div>
@@ -238,13 +192,6 @@ export default function AdminBlogPage() {
 
   const totalPages = Math.ceil(total / pageSize)
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  )
-
   const fetchPosts = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -292,36 +239,6 @@ export default function AdminBlogPage() {
       setError(err instanceof Error ? err.message : "Failed to delete blog post")
     } finally {
       setDeleting(null)
-    }
-  }
-
-  async function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-
-    const oldIndex = posts.findIndex((p) => p.id === active.id)
-    const newIndex = posts.findIndex((p) => p.id === over.id)
-    if (oldIndex === -1 || newIndex === -1) return
-
-    const reordered = arrayMove(posts, oldIndex, newIndex).map((p, i) => ({
-      ...p,
-      sortOrder: i,
-    }))
-
-    setPosts(reordered)
-
-    try {
-      const res = await fetch("/api/admin/blog/reorder", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          posts: reordered.map((p, i) => ({ id: p.id, sortOrder: i })),
-        }),
-      })
-      if (!res.ok) throw new Error("Failed to save post order")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save post order")
-      fetchPosts()
     }
   }
 
@@ -467,7 +384,6 @@ export default function AdminBlogPage() {
                     className="h-4 w-4 rounded border-[#dfdedd] accent-[#B07D3A]"
                   />
                 </TableHead>
-                <TableHead className="w-8"></TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Status</TableHead>
@@ -481,7 +397,6 @@ export default function AdminBlogPage() {
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-4 w-4" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
@@ -492,34 +407,23 @@ export default function AdminBlogPage() {
                 ))
               ) : posts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                     {search
                       ? "No blog posts match your search."
                       : "No blog posts yet. Create your first post to get started."}
                   </TableCell>
                 </TableRow>
               ) : (
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext
-                    items={posts.map((p) => p.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {posts.map((post) => (
-                      <SortableRow
-                        key={post.id}
-                        post={post}
-                        deleting={deleting}
-                        onDelete={handleDelete}
-                        isSelected={selectedPosts.has(post.id)}
-                        onToggleSelect={handleToggleSelect}
-                      />
-                    ))}
-                  </SortableContext>
-                </DndContext>
+                posts.map((post) => (
+                  <PostRow
+                    key={post.id}
+                    post={post}
+                    deleting={deleting}
+                    onDelete={handleDelete}
+                    isSelected={selectedPosts.has(post.id)}
+                    onToggleSelect={handleToggleSelect}
+                  />
+                ))
               )}
             </TableBody>
           </Table>

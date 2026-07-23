@@ -7,7 +7,7 @@ import { PageHero } from "@/components/marketing/page-hero";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ page?: string; category?: string; tag?: string; search?: string }>;
+  searchParams: Promise<{ page?: string; category?: string; tag?: string; search?: string; sort?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

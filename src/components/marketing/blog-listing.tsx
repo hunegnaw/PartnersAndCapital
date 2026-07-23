@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { PageHero } from "@/components/marketing/page-hero";
+import { BlogSortSelect } from "@/components/marketing/blog-sort-select";
 
 interface BlogListingProps {
-  searchParams?: { page?: string; category?: string; tag?: string; search?: string };
+  searchParams?: { page?: string; category?: string; tag?: string; search?: string; sort?: string };
   basePath?: string;
   heroTitle?: string;
   heroImageUrl?: string | null;
@@ -22,6 +23,29 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
   const categorySlug = params.category || "";
   const tagSlug = params.tag || "";
   const search = params.search || "";
+  const sort: "newest" | "oldest" = params.sort === "oldest" ? "oldest" : "newest";
+
+  // Build a URL for this listing, preserving the current filters/sort and
+  // applying the given overrides. Pass `undefined` to drop a param.
+  const buildUrl = (
+    overrides: Record<string, string | number | undefined> = {},
+    hash = ""
+  ) => {
+    const current: Record<string, string> = {};
+    if (categorySlug) current.category = categorySlug;
+    if (tagSlug) current.tag = tagSlug;
+    if (search) current.search = search;
+    if (sort !== "newest") current.sort = sort;
+    for (const [key, value] of Object.entries(overrides)) {
+      if (value === undefined || value === "") {
+        delete current[key];
+      } else {
+        current[key] = String(value);
+      }
+    }
+    const qs = new URLSearchParams(current).toString();
+    return `${basePath}${qs ? `?${qs}` : ""}${hash}`;
+  };
 
   const where: Record<string, unknown> = {
     isPublished: true,
@@ -40,7 +64,7 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
   const [posts, total, categories, tags] = await Promise.all([
     prisma.blogPost.findMany({
       where,
-      orderBy: [{ sortOrder: "asc" }, { publishedAt: "desc" }],
+      orderBy: { publishedAt: sort === "oldest" ? "asc" : "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize,
       include: {
@@ -55,6 +79,12 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
   ]);
 
   const totalPages = Math.ceil(total / pageSize);
+
+  // Page numbers to display: up to 3 in either direction of the current page.
+  const windowStart = Math.max(1, page - 3);
+  const windowEnd = Math.min(totalPages, page + 3);
+  const pageNumbers: number[] = [];
+  for (let p = windowStart; p <= windowEnd; p++) pageNumbers.push(p);
 
   return (
     <div className="bg-[#f5f5f3] min-h-screen">
@@ -74,7 +104,7 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
         {/* Filters */}
         <div id="blog-filters" className="flex flex-wrap items-center gap-3 mb-8" style={{ scrollMarginTop: "80px" }}>
           <Link
-            href={`${basePath}#blog-filters`}
+            href={buildUrl({ category: undefined, tag: undefined, page: undefined }, "#blog-filters")}
             scroll={false}
             className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
               !categorySlug
@@ -87,7 +117,7 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
           {categories.map((cat) => (
             <Link
               key={cat.id}
-              href={`${basePath}?category=${cat.slug}#blog-filters`}
+              href={buildUrl({ category: cat.slug, tag: undefined, page: undefined }, "#blog-filters")}
               scroll={false}
               className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
                 categorySlug === cat.slug
@@ -98,6 +128,11 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
               {cat.name}
             </Link>
           ))}
+          <BlogSortSelect
+            sort={sort}
+            newestHref={buildUrl({ sort: undefined, page: undefined }, "#blog-filters")}
+            oldestHref={buildUrl({ sort: "oldest", page: undefined }, "#blog-filters")}
+          />
         </div>
 
         {/* Post Grid */}
@@ -190,21 +225,32 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center gap-2 mt-12">
+          <div className="flex flex-wrap justify-center items-center gap-2 mt-12">
             {page > 1 && (
               <Link
-                href={`${basePath}?page=${page - 1}${categorySlug ? `&category=${categorySlug}` : ""}${search ? `&search=${search}` : ""}`}
+                href={buildUrl({ page: page - 1 === 1 ? undefined : page - 1 })}
                 className="px-4 py-2 text-sm rounded-lg border bg-white text-gray-600 hover:bg-gray-50"
               >
                 Previous
               </Link>
             )}
-            <span className="px-4 py-2 text-sm text-gray-500">
-              Page {page} of {totalPages}
-            </span>
+            {pageNumbers.map((p) => (
+              <Link
+                key={p}
+                href={buildUrl({ page: p === 1 ? undefined : p })}
+                aria-current={p === page ? "page" : undefined}
+                className={`px-4 py-2 text-sm rounded-lg border transition-colors ${
+                  p === page
+                    ? "bg-[#1A2640] text-white border-[#1A2640]"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {p}
+              </Link>
+            ))}
             {page < totalPages && (
               <Link
-                href={`${basePath}?page=${page + 1}${categorySlug ? `&category=${categorySlug}` : ""}${search ? `&search=${search}` : ""}`}
+                href={buildUrl({ page: page + 1 })}
                 className="px-4 py-2 text-sm rounded-lg border bg-white text-gray-600 hover:bg-gray-50"
               >
                 Next
@@ -223,7 +269,7 @@ export async function BlogListing({ searchParams, basePath = "/blog", heroTitle,
               {tags.map((tag) => (
                 <Link
                   key={tag.id}
-                  href={`${basePath}?tag=${tag.slug}`}
+                  href={buildUrl({ tag: tag.slug, category: undefined, page: undefined })}
                   className={`px-3 py-1 text-xs rounded-full transition-colors ${
                     tagSlug === tag.slug
                       ? "bg-[#B07D3A] text-white"

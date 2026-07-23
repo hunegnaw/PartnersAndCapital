@@ -235,7 +235,7 @@ The blog (called "Partner Thoughts" publicly) provides article publishing with c
 
 ### Admin Blog Management
 
-**Post List** (`/admin/blog`): Search, filter by status (published/draft) and category, paginated table with title, category, status, view count, published date, and view (opens in new tab)/edit/delete actions. Supports bulk delete via the DELETE endpoint (soft-deletes all specified posts). The GET endpoint accepts an `includeDeleted=true` query parameter to include soft-deleted posts in results.
+**Post List** (`/admin/blog`): Search, filter by status (published/draft) and category, paginated table with title, category, status, view count, published date, and view (opens in new tab)/edit/delete actions. Posts are sorted by publish date, newest first. Supports bulk delete via the DELETE endpoint (soft-deletes all specified posts). The GET endpoint accepts an `includeDeleted=true` query parameter to include soft-deleted posts in results.
 
 **Create/Edit Post** (`/admin/blog/new`, `/admin/blog/[id]/edit`): Two-column editor with:
 - **Main area:** Title (auto-generates slug), excerpt, Tiptap rich text editor with full toolbar (bold, italic, underline, strikethrough, headings, lists, alignment, colors, links, images via media picker, blockquotes, code blocks, tables, undo/redo, HTML source toggle)
@@ -255,7 +255,9 @@ Blog posts support multiple categories. The category selector uses checkboxes (t
 
 ### Public Blog
 
-**Listing** (`/blog`): Navy hero banner, category filter pills, 3-column responsive post grid with cards showing hero image, category badge, title, excerpt, date, and read time. Tag filter section at bottom. Server-side pagination.
+**Listing** (`/blog`): Navy hero banner, category filter pills, 3-column responsive post grid with cards showing hero image, category badge, title, excerpt, date, and read time. Tag filter section at bottom. Server-side pagination (9 posts per page).
+
+Posts are sorted strictly by publish date, defaulting to newest first. A **Sort** dropdown next to the category pills lets visitors switch between "Newest first" and "Oldest first" (persisted via a `sort=oldest` query param). Pagination shows clickable numbered page links -- up to 3 pages in either direction of the current page -- alongside Previous/Next buttons. All active filters (category, tag, search) and the chosen sort order are preserved across page and filter navigation.
 
 **Post Detail** (`/blog/[slug]`): Hero image or navy fallback, breadcrumb navigation, author/date/read-time/view-count metadata, full prose content, tags, share button (clipboard + native share API), up to 3 related posts. Full SEO metadata via `generateMetadata()`.
 
